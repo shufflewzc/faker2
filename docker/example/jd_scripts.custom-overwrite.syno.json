@@ -1,0 +1,69 @@
+{
+   "cap_add" : [],
+   "cap_drop" : [],
+   "cmd" : "",
+   "cpu_priority" : 50,
+   "devices" : null,
+   "enable_publish_all_ports" : false,
+   "enable_restart_policy" : true,
+   "enabled" : true,
+   "env_variables" : [
+      {
+         "key" : "PATH",
+         "value" : "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      {
+         "key" : "CDN_JD_DAILYBONUS",
+         "value" : "true"
+      },
+      {
+         "key" : "JD_COOKIE",
+         "value" : "pt_key=xxx;pt_pin=xxx;"
+      },
+      {
+         "key" : "PUSH_KEY",
+         "value" : ""
+      },
+      {
+         "key" : "CUSTOM_LIST_FILE",
+         "value" : "my_crontab_list.sh"
+      },
+      {
+         "key" : "CUSTOM_LIST_MERGE_TYPE",
+         "value" : "overwrite"
+      }
+   ],
+   "exporting" : false,
+   "id" : "3a2f6f27c23f93bc104585c22569c760cc9ce82df09cdb41d53b491fe1d0341c",
+   "image" : "lxk0301/jd_scripts",
+   "is_ddsm" : false,
+   "is_package" : false,
+   "links" : [],
+   "memory_limit" : 0,
+   "name" : "jd_scripts",
+   "network" : [
+      {
+         "driver" : "bridge",
+         "name" : "bridge"
+      }
+   ],
+   "network_mode" : "default",
+   "port_bindings" : [],
+   "privileged" : false,
+   "shortcut" : {
+      "enable_shortcut" : false
+   },
+   "use_host_network" : false,
+   "volume_bindings" : [
+      {
+         "host_volume_file" : "/docker/jd_scripts/my_crontab_list.sh",
+         "mount_point" : "/scripts/docker/my_crontab_list.sh",
+         "type" : "rw"
+      },
+      {
+         "host_volume_file" : "/docker/jd_scripts/logs",
+         "mount_point" : "/scripts/logs",
+         "type" : "rw"
+      }
+   ]
+}

@@ -1,0 +1,5 @@
+python_telegram_bot==13.0
+requests==2.23.0
+MyQR==2.3.1
+telegram==0.0.1
+tzlocal<3.0
