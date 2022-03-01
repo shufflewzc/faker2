@@ -57,7 +57,17 @@ if ($.isNode() && process.env.CC_NOHELPAFTER8) {
 		}			
 	}	
 }
-
+let WP_APP_TOKEN_ONE = "";
+if ($.isNode()) {
+	if (process.env.WP_APP_TOKEN_ONE) {		
+		WP_APP_TOKEN_ONE = process.env.WP_APP_TOKEN_ONE;
+	}
+}
+if(WP_APP_TOKEN_ONE)
+	console.log(`检测到已配置Wxpusher的Token，启用一对一推送...`);
+else
+	console.log(`检测到未配置Wxpusher的Token，禁用一对一推送...`);
+	
 console.log(`共${cookiesArr.length}个京东账号\n`);
 
 !(async() => {
@@ -166,6 +176,9 @@ async function jdPet() {
                 if ($.isNode()) {
                     await notify.sendNotify(`${$.name} - 账号${$.index} - ${$.nickName || $.UserName}奖品已可领取`, `京东账号${$.index} ${$.nickName || $.UserName}\n${$.petInfo.goodsInfo.goodsName}已可领取`);
                 }
+				if ($.isNode() && WP_APP_TOKEN_ONE) {
+					await notify.sendNotifybyWxPucher($.name, `【提醒⏰】${$.petInfo.goodsInfo.goodsName}已可领取\n【领取步骤】京东->我的->东东萌宠兑换京东红包,可以用于京东app的任意商品.`, `${$.UserName}`);
+				}
                 return
             } else if ($.petInfo.petStatus === 6) {
                 await slaveHelp(); //已领取红包,但未领养新的,也能继续助力好友
@@ -174,6 +187,7 @@ async function jdPet() {
                 if ($.isNode()) {
                     await notify.sendNotify(`${$.name} - 账号${$.index} - ${$.nickName || $.UserName}奖品已可领取`, `京东账号${$.index} ${$.nickName || $.UserName}\n已领取红包,但未继续领养新的物品`);
                 }
+				
                 return
             }
             //console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}好友互助码】${$.petInfo.shareCode}\n`);
