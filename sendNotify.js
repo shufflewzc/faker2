@@ -14,7 +14,7 @@ const querystring = require('querystring');
 const exec = require('child_process').exec;
 const $ = new Env();
 const timeout = 15000; //超时时间(单位毫秒)
-console.log("加载sendNotify，当前版本: 20220217");
+console.log("加载sendNotify，当前版本: 20220302");
 // =======================================go-cqhttp通知设置区域===========================================
 //gobot_url 填写请求地址http://127.0.0.1/send_private_msg
 //gobot_token 填写在go-cqhttp文件设置的访问密钥
@@ -1587,7 +1587,7 @@ function getQLinfo(strCK, intcreated, strTimestamp, strRemark) {
     var strCheckCK = strCK.match(/pt_key=([^; ]+)(?=;?)/) && strCK.match(/pt_key=([^; ]+)(?=;?)/)[1];
     var strPtPin = decodeURIComponent(strCK.match(/pt_pin=([^; ]+)(?=;?)/) && strCK.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
     var strReturn = "";
-    if (strCheckCK.substring(0, 4) == "AAJh") {
+    if (strCheckCK.substring(0, 3) == "AAJ") {
         var DateCreated = new Date(intcreated);
         var DateTimestamp = new Date(strTimestamp);
         var DateToday = new Date();
