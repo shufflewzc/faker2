@@ -1,22 +1,35 @@
 /*
-#女装盲盒抽京豆任务，自行加入一下环境变量
-export jd_nzmhurl="https://anmp.jd.com/babelDiy/Zeus/2x36jyruNVDWxUiAiGAgHRrkqVX2/index.html"
+女装盲盒
+活动时间：2021-3-1至2021-3-31
+活动地址：https://anmp.jd.com/babelDiy/Zeus/3z12ngsd27UR1KfRqdMrMSSg3uxg/index.html
+活动入口：京东app-女装馆-赢京豆
+已支持IOS双京东账号,Node.js支持N个京东账号
+脚本兼容: QuantumultX, Surge, Loon, JSBox, Node.js
+============Quantumultx===============
+[task_local]
+#女装盲盒
+35 1,23 * * * https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_nzmh.js, tag=女装盲盒, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 
-cron 35 1,23 * * *
+================Loon==============
+[Script]
+cron "35 1,23 * * *" script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_nzmh.js,tag=女装盲盒
+
+===============Surge=================
+女装盲盒 = type=cron,cronexp="35 1,23 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_nzmh.js
+
+============小火箭=========
+女装盲盒 = type=cron,script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_nzmh.js, cronexpr="35 1,23 * * *", timeout=3600, enable=true
  */
-
 const $ = new Env('女装盲盒抽京豆');
 const notify = $.isNode() ? require('./sendNotify') : '';
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
 //IOS等用户直接用NobyDa的jd cookie
-let cookiesArr = [], cookie = '', message = '', allMessage = '';
-let jd_nzmhurl = 'https://anmp.jd.com/babelDiy/Zeus/3ZHWXfEDpu5GyX1BgCEN3qQwrC4K/index.html';
+let cookiesArr = [], cookie = '', message;
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
     cookiesArr.push(jdCookieNode[item])
   })
-  if (process.env.jd_nzmhurl) jd_nzmhurl = process.env.jd_nzmhurl
   if (process.env.JD_DEBUG && process.env.JD_DEBUG === 'false') console.log = () => {};
 } else {
   cookiesArr = [$.getdata('CookieJD'), $.getdata('CookieJD2'), ...jsonParse($.getdata('CookiesJD') || "[]").map(item => item.cookie)].filter(item => !!item);
@@ -26,11 +39,9 @@ if ($.isNode()) {
     $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/', {"open-url": "https://bean.m.jd.com/"});
     return;
   }
-  if (!jd_nzmhurl) {
-    $.log(`暂时没有女装盲盒，改日再来～`);
-    return;
-  }
-  console.log(`新的女装盲盒已经准备好: ${jd_nzmhurl}，准备开始薅豆`);
+  console.log('女装盲盒\n' +
+      '活动时间：2021-3-1至2021-3-31\n' +
+      '活动地址：https://anmp.jd.com/babelDiy/Zeus/3z12ngsd27UR1KfRqdMrMSSg3uxg/index.html');
   for (let i = 0; i < cookiesArr.length; i++) {
     if (cookiesArr[i]) {
       cookie = cookiesArr[i];
@@ -50,16 +61,12 @@ if ($.isNode()) {
         continue
       }
       try {
-        await jdMh(jd_nzmhurl)
+        await jdMh('https://anmp.jd.com/babelDiy/Zeus/3z12ngsd27UR1KfRqdMrMSSg3uxg/index.html')
       } catch (e) {
         $.logErr(e)
       }
     }
   }
-  if (allMessage) {
-    if ($.isNode()) await notify.sendNotify(`${$.name}`, `${allMessage}`);
-    $.msg($.name, '', allMessage);
-    }
 })()
   .catch((e) => {
     $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
@@ -88,7 +95,6 @@ function showMsg() {
   return new Promise(resolve => {
     if ($.beans) {
       message += `本次运行获得${$.beans}京豆`
-      allMessage += `京东账号${$.index}${$.nickName}获得${$.beans}京豆\n`
       $.msg($.name, '', `京东账号${$.index}${$.nickName}\n${message}`);
     }
     resolve()
@@ -96,7 +102,7 @@ function showMsg() {
 }
 
 function getInfo(url) {
-  console.log(`\n女装盲盒url:${url}\n`)
+  console.log(`url:${url}`)
   return new Promise(resolve => {
     $.get({
       url,
@@ -153,9 +159,13 @@ function doTask(taskId) {
           console.log(`${$.name} API请求失败，请检查网路重试`)
         } else {
           data = JSON.parse(data.match(/query\((.*)\n/)[1])
-          if (data.data.complete_task_list.includes(taskId)) {
-            console.log(`任务完成成功，当前幸运值${data.data.curbless}`)
-            $.userInfo.bless = data.data.curbless
+          if (data.errcode === 8004) {
+            console.log(`任务完成失败，无效任务ID`)
+          } else {
+            if (data.data.complete_task_list.includes(taskId)) {
+              console.log(`任务完成成功，当前幸运值${data.data.curbless}`)
+              $.userInfo.bless = data.data.curbless
+            }
           }
         }
       } catch (e) {
@@ -205,7 +215,7 @@ function taskUrl(function_id, body = '') {
       'Content-Type': 'application/json;charset=utf-8',
       'Origin': 'wq.jd.com',
       'User-Agent': 'JD4iPhone/167490 (iPhone; iOS 14.2; Scale/3.00)',
-      'Referer': `${jd_nzmhurl}?wxAppName=jd`,
+      'Referer': `https://anmp.jd.com/babelDiy/Zeus/xKACpgVjVJM7zPKbd5AGCij5yV9/index.html?wxAppName=jd`,
       'Cookie': cookie
     }
   }
