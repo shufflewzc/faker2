@@ -79,6 +79,9 @@ async function main() {
         continue
       case '去浏览精彩会场': case '去关注特色频道' :
         product_info_vos = task_vos['shopping_activity_vos']
+        if(!product_info_vos){
+           continue
+        }
         break
       case '去关注优质好店':
         product_info_vos = task_vos['follow_shop_vo']
