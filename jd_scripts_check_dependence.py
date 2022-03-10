@@ -1,12 +1,12 @@
-# -*- coding: UTF-8 -*-
-# 作者仓库:https://github.com/spiritLHL/qinglong_auto_tools
+# -*- coding:utf-8 -*-
+# 作者仓库:https://jihulab.com/spiritlhl/qinglong_auto_tools.git
 # 觉得不错麻烦点个star谢谢
 # 频道：https://t.me/qinglong_auto_tools
 
 
 '''
-cron: 0
-new Env('修复脚本依赖文件');
+cron: 1
+new Env('单容器 二叉树修复脚本依赖文件');
 '''
 
 import os, requests
@@ -15,14 +15,18 @@ import time
 
 # from os import popen
 
-# 感谢spiritLHL大佬的脚本！
+# 版本号 2.10.9 ，其他环境自测
 # 只修复依赖文件（jdCookie.js那种）！！不修复环境依赖（pip install aiohttp）！！
-# 如要运行脚本 请在配置文件添加
+# 默认不做任何操作只查询依赖脚本存在与否，有需求请在配置文件中配置对应变量进行操作，更新不会增加缺失文件
+# 如果你有发现更多的脚本依赖文件没有新增，欢迎提交issues到https://jihulab.com/spiritlhl/dependence_scripts
+# 增加缺失依赖文件(推荐)
 # export ec_fix_dep="true"
+# 更新老旧依赖文件(慎填，默认的依赖我使用的魔改版本，非必要别选)
+# export ec_ref_dep="true"
 
-# 如果运行完本脚本仍然出错，请使用Faker一键部署脚本重新部署
+# 2021.11.27 支持新版本仓库拉取的脚本目录结构，针对各个仓库进行依赖检索
 
-txtx = "青龙配置文件中的config中填写下列变量启用对应功能\n\n增加缺失依赖文件(推荐)\n填写export ec_fix_dep=\"true\"\n"
+txtx = "青龙配置文件中的config中填写下列变量启用对应功能\n\n增加缺失依赖文件(推荐)\n填写export ec_fix_dep=\"true\"\n更新老旧依赖文件(日常使用别填，默认的依赖我使用的魔改版本，非必要别选)\n如果选择使用请使用对应code文件等相关文件：https://jihulab.com/spiritlhl/dependence_config \n填写export ec_ref_dep=\"true\"\n"
 print(txtx)
 
 try:
@@ -64,12 +68,12 @@ def traversalDir_FirstDir(path):
 
 def check_dependence(file_path):
     try:
-        res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/contents.json").json()
+        res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/contents.json").json()
     except:
         print("网络波动，稍后尝试")
         time.sleep(5)
         try:
-            res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/contents.json").json()
+            res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/contents.json").json()
         except:
             print("网络问题无法获取仓库文件列表，终止检索")
             return
@@ -92,7 +96,7 @@ def check_dependence(file_path):
                 if fix == 1:
                     print("增加文件 {}{}".format(file_path, i))
                     r = requests.get(
-                        "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/" + i).text
+                        "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/" + i).text
                     if "db" in os.listdir("../"):
                         with open(file_path + i, "w", encoding="utf-8") as fe:
                             fe.write(r)
@@ -116,7 +120,7 @@ def check_dependence(file_path):
                     if "db" in os.listdir("../"):
                         with open(i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/" + i).text
                             d = f.read()
                             if r == d:
                                 print("无需修改 {}".format(i))
@@ -127,7 +131,7 @@ def check_dependence(file_path):
                     else:
                         with open(i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/" + i).text
                             d = f.read()
                             if r == d:
                                 print("无需修改 {}".format(i))
@@ -144,12 +148,12 @@ def check_dependence(file_path):
     # utils
 
     try:
-        res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/utils.json").json()
+        res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/utils.json").json()
     except:
         print("网络波动，稍后尝试")
         time.sleep(5)
         try:
-            res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/utils.json").json()
+            res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/utils.json").json()
         except:
             print("网络问题无法获取仓库文件列表，终止检索")
             return
@@ -180,7 +184,7 @@ def check_dependence(file_path):
                 if fix == 1:
                     print("增加文件 {}utils/{}".format(file_path, i))
                     r = requests.get(
-                        "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/utils/" + i).text
+                        "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/utils/" + i).text
                     if "db" in os.listdir("../"):
                         with open(file_path + "utils/" + i, "w", encoding="utf-8") as fe:
                             fe.write(r)
@@ -204,7 +208,7 @@ def check_dependence(file_path):
                     if "db" in os.listdir("../"):
                         with open(file_path + "utils/" + i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/utils/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/utils/" + i).text
                             d = f.read()
                             if r == d:
                                 print("已存在文件 {}utils/{}".format(file_path, i))
@@ -215,7 +219,7 @@ def check_dependence(file_path):
                     else:
                         with open("." + file_path + "utils/" + i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/utils/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/utils/" + i).text
                             d = f.read()
                             if r == d:
                                 print("已存在文件 {}utils/{}".format(file_path, i))
@@ -231,12 +235,12 @@ def check_dependence(file_path):
     # function
 
     try:
-        res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/function.json").json()
+        res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/function.json").json()
     except:
         print("网络波动，稍后尝试")
         time.sleep(5)
         try:
-            res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/function.json").json()
+            res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/function.json").json()
         except:
             print("网络问题无法获取仓库文件列表，终止检索")
             return
@@ -267,7 +271,7 @@ def check_dependence(file_path):
                 if fix == 1:
                     print("增加文件 {}function/{}".format(file_path, i))
                     r = requests.get(
-                        "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/function/" + i).text
+                        "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/function/" + i).text
                     if "db" in os.listdir("../"):
                         with open(file_path + "function/" + i, "w", encoding="utf-8") as fe:
                             fe.write(r)
@@ -291,7 +295,7 @@ def check_dependence(file_path):
                     if "db" in os.listdir("../"):
                         with open(file_path + "function/" + i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/function/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/function/" + i).text
                             d = f.read()
                             if r == d:
                                 print("已存在文件 {}function/{}".format(file_path, i))
@@ -302,7 +306,7 @@ def check_dependence(file_path):
                     else:
                         with open("." + file_path + "function/" + i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/function/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/function/" + i).text
                             d = f.read()
                             if r == d:
                                 print("已存在文件 {}function/{}".format(file_path, i))
@@ -317,12 +321,12 @@ def check_dependence(file_path):
 
 def check_root():
     try:
-        res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/contents.json").json()
+        res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/contents.json").json()
     except:
         print("网络波动，稍后尝试")
         time.sleep(5)
         try:
-            res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/contents.json").json()
+            res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/contents.json").json()
         except:
             print("网络问题无法获取仓库文件列表，终止检索")
             return
@@ -345,7 +349,7 @@ def check_root():
                 if fix == 1:
                     print("增加文件 {}".format(i))
                     r = requests.get(
-                        "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/" + i).text
+                        "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/" + i).text
                     if "db" in os.listdir("../"):
                         with open(i, "w", encoding="utf-8") as fe:
                             fe.write(r)
@@ -369,7 +373,7 @@ def check_root():
                     if "db" in os.listdir("../"):
                         with open(i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/" + i).text
                             d = f.read()
                             if r == d:
                                 print("无需修改 {}".format(i))
@@ -380,7 +384,7 @@ def check_root():
                     else:
                         with open("../" + i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/" + i).text
                             d = f.read()
                             if r == d:
                                 print("无需修改 {}".format(i))
@@ -397,12 +401,12 @@ def check_root():
     # utils
 
     try:
-        res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/utils.json").json()
+        res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/utils.json").json()
     except:
         print("网络波动，稍后尝试")
         time.sleep(5)
         try:
-            res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/utils.json").json()
+            res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/utils.json").json()
         except:
             print("网络问题无法获取仓库文件列表，终止检索")
             return
@@ -433,7 +437,7 @@ def check_root():
                 if fix == 1:
                     print("增加文件 utils/{}".format(i))
                     r = requests.get(
-                        "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/utils/" + i).text
+                        "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/utils/" + i).text
                     if "db" in os.listdir("../"):
                         with open("./utils/" + i, "w", encoding="utf-8") as fe:
                             fe.write(r)
@@ -457,7 +461,7 @@ def check_root():
                     if "db" in os.listdir("../"):
                         with open("./utils/" + i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/utils/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/utils/" + i).text
                             d = f.read()
                             if r == d:
                                 print("已存在文件 utils/{}".format(i))
@@ -468,7 +472,7 @@ def check_root():
                     else:
                         with open("../utils/" + i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/utils/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/utils/" + i).text
                             d = f.read()
                             if r == d:
                                 print("已存在文件 utils/{}".format(i))
@@ -484,12 +488,12 @@ def check_root():
     # function
 
     try:
-        res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/function.json").json()
+        res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/function.json").json()
     except:
         print("网络波动，稍后尝试")
         time.sleep(5)
         try:
-            res = requests.get("https://cdn.jsdelivr.net/gh/spiritLHL/dependence_scripts@master/function.json").json()
+            res = requests.get("https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/function.json").json()
         except:
             print("网络问题无法获取仓库文件列表，终止检索")
             return
@@ -520,7 +524,7 @@ def check_root():
                 if fix == 1:
                     print("增加文件 function/{}".format(i))
                     r = requests.get(
-                        "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/function/" + i).text
+                        "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/function/" + i).text
                     if "db" in os.listdir("../"):
                         with open("./function/" + i, "w", encoding="utf-8") as fe:
                             fe.write(r)
@@ -544,7 +548,7 @@ def check_root():
                     if "db" in os.listdir("../"):
                         with open("./function/" + i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/function/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/function/" + i).text
                             d = f.read()
                             if r == d:
                                 print("已存在文件 function/{}".format(i))
@@ -555,7 +559,7 @@ def check_root():
                     else:
                         with open("../function/" + i, "r", encoding="utf-8") as f:
                             r = requests.get(
-                                "https://cdn.jsdelivr.net/gh/spiritlhl/dependence_scripts@master/function/" + i).text
+                                "https://jihulab.com/spiritlhl/dependence_scripts/-/raw/master/function/" + i).text
                             d = f.read()
                             if r == d:
                                 print("已存在文件 function/{}".format(i))
@@ -599,16 +603,4 @@ if __name__ == '__main__':
     if fix == 1:
         print("修复完毕后脚本无法运行，显示缺依赖文件，大概率库里没有或者依赖文件同名但内容不一样，请另寻他法\n")
         print("修复完毕后缺依赖环境导致的脚本无法运行，这种无法修复，请自行在依赖管理中添加\n")
-        print("如果运行完本脚本仍然出错，请使用Faker一键部署脚本重新部署")
-
-# 待开发
-# 修复依赖环境
-# export ec_add_dep="true"
-# docker exec -it qinglong bash -c "$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/FlechazoPh/QLDependency/main/Shell/QLOneKeyDependency.sh | sh)"
-# try:
-#     if os.environ["ec_add_dep"] == "true":
-#         pass
-# except:
-#     pass
-# text = os.popen("$(curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/FlechazoPh/QLDependency/main/Shell/QLOneKeyDependency.sh | sh)").read()
-# print(text)
+        print("前者缺文件(如 Error: Cannot find module './utils/magic')，后者缺依赖(如 Error: Cannot find module 'date-fns' )，本脚本只修复前一种")
