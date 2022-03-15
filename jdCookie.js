@@ -45,7 +45,7 @@ function SetShareCodesEnv(nameConfig = "", envName = "") {
     let rawCodeConfig = {}
 
     // 读取互助码
-    shareCodeLogPath = `${process.env.QL_DIR}/log/.ShareCode/${nameConfig}.log`
+    let shareCodeLogPath = `${process.env.QL_DIR}/log/.ShareCode/${nameConfig}.log`
     let fs = require('fs')
     if (fs.existsSync(shareCodeLogPath)) {
         // 因为faker2目前没有自带ini，改用已有的dotenv来解析
@@ -59,7 +59,7 @@ function SetShareCodesEnv(nameConfig = "", envName = "") {
     }
 
     // 解析每个用户的互助码
-    codes = {}
+    let codes = {}
     Object.keys(rawCodeConfig).forEach(function (key) {
         if (key.startsWith(`My${nameConfig}`)) {
             codes[key] = rawCodeConfig[key]
