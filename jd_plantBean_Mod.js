@@ -1,14 +1,12 @@
 /*
 种豆得豆 脚本更新地址：https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_plantBean.js
-更新时间：2021-08-20
+更新时间：2022-03-19
 活动入口：京东APP我的-更多工具-种豆得豆
 已支持IOS京东多账号,云端多京东账号
 脚本兼容: QuantumultX, Surge, Loon, JSBox, Node.js
 注：会自动关注任务中的店铺跟商品，介意者勿使用。
 互助码shareCode请先手动运行脚本查看打印可看到
 每个京东账号每天只能帮助3个人。多出的助力码将会助力失败。
-
-// zero205：已添加自己账号内部互助，有剩余助力次数再帮我助力
 
 =====================================Quantumult X=================================
 [task_local]
@@ -43,6 +41,7 @@ let roundList = [];
 let awardState = '';//上期活动的京豆是否收取
 let randomCount = $.isNode() ? 20 : 5;
 let num;
+let llerror=false;
 $.newShareCode = [];
 
 let NowHour = new Date().getHours();
@@ -113,9 +112,32 @@ async function jdPlantBean() {
     console.log(`获取任务及基本信息`)
     await plantBeanIndex();
     if ($.plantBeanIndexResult.errorCode === 'PB101') {
-      console.log(`\n活动太火爆了，还是去买买买吧！\n`)
-      return
+        console.log(`\n活动太火爆了，还是去买买买吧！\n`)
+        return
     }
+    if ($.plantBeanIndexResult.errorCode) {
+        console.log(`获取任务及基本信息出错，10秒后重试\n`)
+        await $.wait(10000);
+        await plantBeanIndex();
+        if ($.plantBeanIndexResult.errorCode === 'PB101') {
+            console.log(`\n活动太火爆了，还是去买买买吧！\n`)
+            return
+        }
+    }
+	if ($.plantBeanIndexResult.errorCode) {
+        console.log(`获取任务及基本信息出错，30秒后重试\n`)
+        await $.wait(30000);
+        await plantBeanIndex();
+        if ($.plantBeanIndexResult.errorCode === 'PB101') {
+            console.log(`\n活动太火爆了，还是去买买买吧！\n`)
+            return
+        }
+    }
+	if ($.plantBeanIndexResult.errorCode) {
+		console.log(`获取任务及基本信息失败，活动异常，换个时间再试试吧....`)
+		console.log("错误代码;"+$.plantBeanIndexResult.errorCode)
+		return
+	}
     for (let i = 0; i < $.plantBeanIndexResult.data.roundList.length; i++) {
       if ($.plantBeanIndexResult.data.roundList[i].roundState === "2") {
         num = i
@@ -151,7 +173,7 @@ async function jdPlantBean() {
   } catch (e) {
     $.logErr(e);
     const errMsg = `京东账号${$.index} ${$.nickName || $.UserName}\n任务执行异常，请检查执行日志 ‼️‼️`;
-    // if ($.isNode()) await notify.sendNotify(`${$.name}`, errMsg);
+    if ($.isNode()) await notify.sendNotify(`${$.name}`, errMsg);
     $.msg($.name, '', `${errMsg}`)
   }
 }
@@ -571,29 +593,6 @@ async function helpShare(plantUuid) {
 }
 async function plantBeanIndex() {
   $.plantBeanIndexResult = await request('plantBeanIndex');//plantBeanIndexBody
-}
-function readShareCode() {
-  return new Promise(async resolve => {
-    $.get({url: `https://api.jdsharecode.xyz/api/bean/${randomCount}`, timeout: 10000}, (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-          console.log(`${$.name} API请求失败，请检查网路重试`)
-        } else {
-          if (data) {
-            console.log(`随机取${randomCount}个码放到您固定的互助码后面(不影响已有固定互助)`)
-            data = JSON.parse(data);
-          }
-        }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve(data);
-      }
-    })
-    await $.wait(15000);
-    resolve()
-  })
 }
 //格式化助力码
 function shareCodesFormat() {
