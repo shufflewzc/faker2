@@ -6,7 +6,14 @@ const { readFile } = require('fs/promises');
 const path = require('path');
 
 const qlDir = '/ql';
-const authFile = path.join(qlDir, 'config/auth.json');
+const fs = require('fs');
+let Fileexists = fs.existsSync('/ql/data/config/auth.json');
+let authFile="";
+if (Fileexists) 
+	authFile="/ql/data/config/auth.json"
+else
+	authFile="/ql/config/auth.json"
+//const authFile = path.join(qlDir, 'config/auth.json');
 
 const api = got.extend({
   prefixUrl: 'http://127.0.0.1:5600',
@@ -18,7 +25,7 @@ async function getToken() {
   return authConfig.token;
 }
 
-module.exports.getEnvs = async () => {
+module.exports.getEnvs = async () => {  
   const token = await getToken();
   const body = await api({
     url: 'api/envs',
