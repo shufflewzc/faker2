@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 """
 cron: 50 * * * *
-new Env('禁用重复任务青龙2.11版本');
+new Env('禁用重复任务青龙2.12版本');
 """
 
 import json
@@ -155,6 +155,9 @@ def disable_duplicate_tasks(ids: list) -> None:
 
 def get_token() -> str or None:
     try:
+        with open("/ql/data/config/auth.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
         with open("/ql/config/auth.json", "r", encoding="utf-8") as f:
             data = json.load(f)
     except Exception:
