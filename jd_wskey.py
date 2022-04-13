@@ -27,12 +27,12 @@ except Exception as e:  # 异常捕捉
 os.environ['no_proxy'] = '*'  # 禁用代理
 requests.packages.urllib3.disable_warnings()  # 抑制错误
 try:  # 异常捕捉
-    from notify import send  # 导入青龙消息通知模块
+    from sendNotify import send  # 导入青龙消息通知模块
 except Exception as err:  # 异常捕捉
     logger.debug(str(err))  # 调试日志输出
     logger.info("无推送文件")  # 标准日志输出
 
-ver = 20318  # 版本号
+ver = 20413  # 版本号
 
 
 # 登录青龙 返回值 token
@@ -51,16 +51,34 @@ def get_qltoken(username, password):  # 方法 用于获取青龙 Token
     try:  # 异常捕捉
         res = requests.post(url=url, headers=headers, data=payload)  # 使用 requests模块进行 HTTP POST请求
         token = json.loads(res.text)["data"]['token']  # 从 res.text 返回值中 取出 Token值
-    except Exception as err:  # 异常捕捉
+    except Exception as err:
         logger.debug(str(err))  # Debug日志输出
-        logger.info("青龙登录失败, 请检查面板状态!")  # 标准日志输出
-        text = '青龙面板WSKEY转换登陆面板失败, 请检查面板状态.'  # 设置推送内容
+        logger.info("使用旧版青龙登录接口")
+        url = "http://127.0.0.1:{0}/api/login".format(port)  # 设置青龙地址 使用 format格式化自定义端口
+        payload = {
+            'username': username,
+            'password': password
+        }  # HTTP请求载荷
+        payload = json.dumps(payload)  # json格式化载荷
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }  # HTTP请求头 设置为 Json格式
         try:  # 异常捕捉
-            send('WSKEY转换', text)  # 消息发送
+            res = requests.post(url=url, headers=headers, data=payload)  # 使用 requests模块进行 HTTP POST请求
+            token = json.loads(res.text)["data"]['token']  # 从 res.text 返回值中 取出 Token值
         except Exception as err:  # 异常捕捉
             logger.debug(str(err))  # Debug日志输出
-            logger.info("通知发送失败")  # 标准日志输出
-        sys.exit(1)  # 脚本退出
+            logger.info("青龙登录失败, 请检查面板状态!")  # 标准日志输出
+            text = '青龙面板WSKEY转换登陆面板失败, 请检查面板状态.'  # 设置推送内容
+            try:  # 异常捕捉
+                send('WSKEY转换', text)  # 消息发送
+            except Exception as err:  # 异常捕捉
+                logger.debug(str(err))  # Debug日志输出
+                logger.info("通知发送失败")  # 标准日志输出
+            sys.exit(1)  # 脚本退出
+        else:  # 无异常执行分支
+            return token  # 返回 token值
     else:  # 无异常执行分支
         return token  # 返回 token值
 
@@ -68,6 +86,8 @@ def get_qltoken(username, password):  # 方法 用于获取青龙 Token
 # 返回值 Token
 def ql_login():  # 方法 青龙登录(获取Token 功能同上)
     path = '/ql/config/auth.json'  # 设置青龙 auth文件地址
+    if not os.path.isfile(path):
+        path = '/ql/data/config/auth.json'  # 尝试设置青龙 auth 新版文件地址
     if os.path.isfile(path):  # 进行文件真值判断
         with open(path, "r") as file:  # 上下文管理
             auth = file.read()  # 读取文件
