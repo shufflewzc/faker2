@@ -6,17 +6,17 @@
 =================================Quantumultx=========================
 [task_local]
 #京东特价翻翻乐
-20 0-23/3 * * * https://raw.githubusercontent.com/okyyds/yydspure/master/jd_jdtj_winner.js, tag=京东特价翻翻乐, img-url=https://github.com/58xinian/icon/raw/master/jdgc.png, enabled=true
+20 0-23/3 * * * https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_jdtj_winner.js, tag=京东特价翻翻乐, img-url=https://github.com/58xinian/icon/raw/master/jdgc.png, enabled=true
 
 ================Loon==============
 [Script]
-cron "20 0-23/3 * * *" script-path=https://raw.githubusercontent.com/okyyds/yydspure/master/jd_jdtj_winner.js,tag=京东特价翻翻乐
+cron "20 0-23/3 * * *" script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_jdtj_winner.js,tag=京东特价翻翻乐
 
 ===============Surge=================
-京东特价翻翻乐 = type=cron,cronexp="20 0-23/3 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/okyyds/yydspure/master/jd_jdtj_winner.js
+京东特价翻翻乐 = type=cron,cronexp="20 0-23/3 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_jdtj_winner.js
 
 ============小火箭=========
-京东特价翻翻乐 = type=cron,script-path=https://raw.githubusercontent.com/okyyds/yydspure/master/jd_jdtj_winner.js, cronexpr="20 0-23/3 * * *", timeout=3600, enable=true
+京东特价翻翻乐 = type=cron,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_jdtj_winner.js, cronexpr="20 0-23/3 * * *", timeout=3600, enable=true
  */
 const $ = new Env('京东特价翻翻乐');
 const notify = $.isNode() ? require('./sendNotify') : '';

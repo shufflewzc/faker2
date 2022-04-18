@@ -14,17 +14,17 @@ by：jiulan
 ============Quantumultx===============
 [task_local]
 #京东评价
-37 15 * * * https://raw.githubusercontent.com/okyyds/yydspure/master/jd_evaluation.js, tag=京东评价, enabled=true
+37 15 * * * https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_evaluation.js, tag=京东评价, enabled=true
 
 ================Loon==============
 [Script]
-cron "37 15 * * *" script-path=https://raw.githubusercontent.com/okyyds/yydspure/master/jd_evaluation.js,tag=京东评价
+cron "37 15 * * *" script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_evaluation.js,tag=京东评价
 
 ===============Surge=================
-京东评价 = type=cron,cronexp="37 15 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/okyyds/yydspure/master/jd_evaluation.js
+京东评价 = type=cron,cronexp="37 15 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_evaluation.js
 
 ============小火箭=========
-京东评价 = type=cron,script-path=https://raw.githubusercontent.com/okyyds/yydspure/master/jd_evaluation.js, cronexpr="37 15 * * *", timeout=3600, enable=true
+京东评价 = type=cron,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_evaluation.js, cronexpr="37 15 * * *", timeout=3600, enable=true
  */
 const $ = new Env('京东评价');
 const notify = $.isNode() ? require('./sendNotify') : '';
