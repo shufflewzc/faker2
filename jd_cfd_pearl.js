@@ -8,17 +8,17 @@
 ============Quantumultx===============
 [task_local]
 #京喜财富岛合成珍珠
-30 0-23/2 * * * https://raw.githubusercontent.com/okyyds/yydspure/master/jd_cfd_pearl.js, tag=京喜财富岛合成珍珠, img-url=https://raw.githubusercontent.com/58xinian/icon/master/jxcfd.png, enabled=true
+30 0-23/2 * * * https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_cfd_pearl.js, tag=京喜财富岛合成珍珠, img-url=https://raw.githubusercontent.com/58xinian/icon/master/jxcfd.png, enabled=true
 
 ================Loon==============
 [Script]
-cron "30 0-23/2 * * *" script-path=https://raw.githubusercontent.com/okyyds/yydspure/master/jd_cfd_pearl.js,tag=京喜财富岛合成珍珠
+cron "30 0-23/2 * * *" script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_cfd_pearl.js,tag=京喜财富岛合成珍珠
 
 ===============Surge=================
-京喜财富岛合成珍珠 = type=cron,cronexp="30 0-23/2 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/okyyds/yydspure/master/jd_cfd_pearl.js
+京喜财富岛合成珍珠 = type=cron,cronexp="30 0-23/2 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_cfd_pearl.js
 
 ============小火箭=========
-京喜财富岛合成珍珠 = type=cron,script-path=https://raw.githubusercontent.com/okyyds/yydspure/master/jd_cfd_pearl.js, cronexpr="30 0-23/2 * * *", timeout=3600, enable=true
+京喜财富岛合成珍珠 = type=cron,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_cfd_pearl.js, cronexpr="30 0-23/2 * * *", timeout=3600, enable=true
 
 */
 

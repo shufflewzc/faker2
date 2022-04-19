@@ -20,7 +20,7 @@ d、 30000名之外，0京豆
 cron "1 0,6,12,18 * * *" script-path=jd_carnivalcity.js, tag=京东手机狂欢城
 
 ====================Surge================
-京东手机狂欢城 = type=cron,cronexp=1 0,6,12,18 * * *,wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_carnivalcity.js
+京东手机狂欢城 = type=cron,cronexp=1 0,6,12,18 * * *,wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_carnivalcity.js
 
 ============小火箭=========
 京东手机狂欢城 = type=cron,script-path=jd_carnivalcity.js, cronexpr="1 0,6,12,18 * * *", timeout=3600, enable=true

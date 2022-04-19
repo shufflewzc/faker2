@@ -68,12 +68,11 @@ if (UidFileexists) {
             cookie = cookiesArr[i];
             var tempptpin = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
             var intSeq = inArray(tempptpin, arrEnvPtPin);
-            if (intSeq != -1) {
-                intSeq += 1;
+            if (intSeq != -1) {                
                 arrCkPtPin.push(tempptpin);
-                strCk += "【"+intSeq + "】" + tempptpin ;
-				if (arrEnvOnebyOne[i]) {
-					strCk += "(账号已启用一对一推送)"
+                strCk += "【"+(intSeq+1) + "】" + tempptpin ;
+				if (arrEnvOnebyOne[intSeq]) {
+					strCk += "(已启用一对一推送)"
 				}
 				strCk +="\n";
             }
@@ -86,14 +85,14 @@ if (UidFileexists) {
         if (intSeq == -1) {
             strNoFoundCk += "【" + (i + 1) + "】" + tempptpin;
             if (arrEnvStatus[i] == 1) {
-                strNoFoundCk += "(状态已禁用)"
+                strNoFoundCk += "(已禁用)"
                 if ($.isNode() && WP_APP_TOKEN_ONE) {
                     await notify.sendNotifybyWxPucher("账号下线通知", strNotify, tempptpin);
 					await $.wait(1000);
                 }
             }
             if (arrEnvOnebyOne[i]) {
-                strNoFoundCk += "(账号已启用一对一推送)"
+                strNoFoundCk += "(已启用一对一推送)"
             }
             strNoFoundCk += "\n";
 
@@ -118,13 +117,14 @@ if (UidFileexists) {
 
 function inArray(search, array) {
     var lnSeq = -1;
-    for (var i in array) {
+    for (let i = 0; i < array.length; i++) {
         if (array[i] == search) {
             lnSeq = i;
         }
     }
     return parseInt(lnSeq);
 }
+
 
 function getuuid(strRemark, PtPin) {
     var strTempuuid = "";
