@@ -564,7 +564,7 @@ function taskUrl(function_path, body = '', dwEnv = 7) {
             "User-Agent": UA,
             "Accept-Language": "zh-CN,zh-Hans;q=0.9",
             "Referer": "https://st.jingxi.com/",
-            "Cookie": cookie
+            "Cookie": cookie + "cid=4"
         }
     };
 }
@@ -648,7 +648,7 @@ function TotalBean() {
                 "User-Agent": "ScriptableWidgetExtension/185 CFNetwork/1312 Darwin/21.0.0",
                 "Accept-Language": "zh-CN,zh-Hans;q=0.9",
                 "Accept-Encoding": "gzip, deflate, br",
-                "Cookie": cookie
+                "Cookie": cookie + "cid=4"
             }
         }
         $.get(options, (err, resp, data) => {
