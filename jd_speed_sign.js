@@ -72,7 +72,7 @@ async function jdGlobal() {
     await wheelsHome()
 
     // await signInit()
-     await sign()
+    // await sign()
     await invite()
     await invite2()
     $.score = 0
@@ -123,53 +123,33 @@ async function signInit() {
 }
 
 async function sign() {
-	
-	return new Promise(async resolve => {
-    const body = {"linkId":signLinkId,"serviceName":"dayDaySignGetRedEnvelopeSignService","business":1};
-	let h5st = "20220412164641157%3B197ee697d50ca316f3582488c7fa9d34%3B169f1%3Btk02wd9451deb18n1P31JunSGTfZhmebuivwsEwYWUQF1ZkpdtuSmKOES5DnIMFdyOvKikdguelIiBUnJbeCgoNlcEvv%3B6e090cbde337590b51a514718fee391d46fece6b953ed1084a052f6d76ffbd92%3B3.0%3B1649753201157"
-    const options = {
-
-      url: `https://api.m.jd.com`,
-      body: `functionId=apSignIn_day&body=${escape(JSON.stringify(body))}&_t=${+new Date()}&appid=activities_platform&client=H5&clientVersion=1.0.0&h5st=${h5st}`,
-      headers: {
-        'Cookie': cookie,
-        "Host": "api.m.jd.com",
-        'Origin': 'https://daily-redpacket.jd.com',
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Accept": "*/*",
-        "Connection": "keep-alive",
-        "User-Agent": "jdltapp;iPhone;3.3.2;14.5.1network/wifi;hasUPPay/0;pushNoticeIsOpen/1;lang/zh_CN;model/iPhone13,2;addressid/137923973;hasOCPay/0;appBuild/1047;supportBestPay/0;pv/467.11;apprpd/MyJD_Main;",
-        "Accept-Language": "zh-Hans-CN;q=1, en-CN;q=0.9, zh-Hant-CN;q=0.8",
-        'Referer': `https://daily-redpacket.jd.com/?activityId=${signLinkId}`,
-        "Accept-Encoding": "gzip, deflate, br"
-      }
-    }
-    $.post(options, async (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-          console.log(`${$.name} API请求失败，请检查网路重试`)
-        } else {
-          if (safeGet(data)) {
-            data = $.toObj(data);
-            if (data.code === 0) {
-              if (data.data.retCode === 0) {
-                message += `极速版签到提现：签到成功\n`;
-                console.log(`极速版签到提现：签到成功\n`);
+  return new Promise(resolve => {
+    $.get(taskUrl('speedSign', {
+        "kernelPlatform": "RN",
+        "activityId": "8a8fabf3cccb417f8e691b6774938bc2",
+        "noWaitPrize": "false"
+      }),
+      async (err, resp, data) => {
+        try {
+          if (err) {
+            console.log(`${JSON.stringify(err)}`)
+            console.log(`${$.name} API请求失败，请检查网路重试`)
+          } else {
+            if (safeGet(data)) {
+              data = JSON.parse(data);
+              if (data.subCode === 0) {
+                console.log(`签到获得${data.data.signAmount}现金，共计获得${data.data.cashDrawAmount}`)
               } else {
-                console.log(`极速版签到提现：签到失败:${data.data.retMessage}\n`);
+                console.log(`签到失败，${data.msg}`)
               }
-            } else {
-              console.log(`极速版签到提现：签到异常:${JSON.stringify(data)}\n`);
             }
           }
+        } catch (e) {
+          $.logErr(e, resp)
+        } finally {
+          resolve(data);
         }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve(data);
-      }
-    })
+      })
   })
 }
 
