@@ -216,7 +216,7 @@ async function main() {
 			if ($.canOpenRed) {
 				 while (!$.canApCashWithDraw && $.changeReward) {
 					await openRedReward();
-					await $.wait(1000);
+					await $.wait(1000);					
 				} 
 				if ($.canApCashWithDraw) {
 					//提现
@@ -253,7 +253,7 @@ function gambleHomePage() {
 			try {
 				if (err) {
 					console.log(`${JSON.stringify(err)}`)
-					console.log(`${$.name} API请求失败，请检查网路重试`)
+					console.log(`${$.name} API请求失败，请检查网路重试`)					
 				} else {
 					if (data) {
 						data = JSON.parse(data);
@@ -356,6 +356,7 @@ function openRedReward(functionId = 'gambleChangeReward', type) {
 				if (err) {
 					console.log(`${JSON.stringify(err)}`)
 					console.log(`${$.name} API请求失败，请检查网路重试`)
+					$.changeReward = false;
 				} else {
 					if (data) {
 						console.log(`翻翻乐结果：${data}\n`);
