@@ -6,7 +6,7 @@
 需要算法支持
 默认：不执行 如需要请添加环境变量
 gua_cleancart_Run="true"
-gua_cleancart_PandaToken="" # PanDaToken
+PandaToken="" # PanDaToken
 
 ——————————————
 1.@&@ 前面加数字 指定账号pin
@@ -35,7 +35,7 @@ pin3@&@不清空👉该pin不清空
 防止没指定的账号购物车全清空
 
 */
-let jdSignUrl = 'https://api.jds.codes/jd/sign'
+let jdSignUrl = 'https://api.zhezhe.cf/jd/sign'
 let jdPandaToken = ''
 let cleancartRun = 'false'
 let cleancartProducts = ''
@@ -57,14 +57,14 @@ if ($.isNode()) {
 
 message = ''
 
-jdPandaToken = $.isNode() ? (process.env.gua_cleancart_PandaToken ? process.env.gua_cleancart_PandaToken : `${jdPandaToken}`) : ($.getdata('gua_cleancart_PandaToken') ? $.getdata('gua_cleancart_PandaToken') : `${jdPandaToken}`);
+jdPandaToken = $.isNode() ? (process.env.PandaToken ? process.env.PandaToken : `${jdPandaToken}`) : ($.getdata('PandaToken') ? $.getdata('PandaToken') : `${jdPandaToken}`);
 
 cleancartRun = $.isNode() ? (process.env.gua_cleancart_Run ? process.env.gua_cleancart_Run : `${cleancartRun}`) : ($.getdata('gua_cleancart_Run') ? $.getdata('gua_cleancart_Run') : `${cleancartRun}`);
 
 cleancartProducts = $.isNode() ? (process.env.gua_cleancart_products ? process.env.gua_cleancart_products : `${cleancartProducts}`) : ($.getdata('gua_cleancart_products') ? $.getdata('gua_cleancart_products') : `${cleancartProducts}`);
 
 if (!jdPandaToken) {
-    console.log('请填写Panda获取的Token,变量是gua_cleancart_PandaToken');
+    console.log('请填写Panda获取的Token,变量是PandaToken');
 	return;
 }
 let productsArr = []
