@@ -3,6 +3,12 @@
 自动提现微信现金
 更新时间：2022-2-28
 
+============Quantumultx===============
+[task_local]
+#签到领现金
+11 0,20 * * * jd_js_cash.js, tag=签到领现金, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+
+
 出现：签到失败:风控用户，不允许参与活动
 
 手动能签就隔一段时间再运行一次试试。
@@ -30,7 +36,7 @@ if ($.isNode()) {
   cookiesArr = [$.getdata('CookieJD'), $.getdata('CookieJD2'), ...jsonParse($.getdata('CookiesJD') || "[]").map(item => item.cookie)].filter(item => !!item);
 }
 !(async () => {
-  console.log(`\n【如提示活动火爆,可再执行一次尝试】\n【加密脚本，不放心可禁用】\n`);
+  console.log(`\n【如提示活动火爆,可再执行一次尝试】\n`);
   if (!cookiesArr[0]) {
     $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
     return;
