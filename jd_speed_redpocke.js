@@ -27,9 +27,10 @@ const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 let cookiesArr = [], cookie = '', message;
-const linkIdArr = ["7ya6o83WSbNhrbYJqsMfFA"];
+const linkIdArr = ["Eu7-E0CUzqYyhZJo9d3YkQ"];
 const signLinkId = '9WA12jYGulArzWS7vcrwhw';
 let linkId;
+let blackfail;
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
     cookiesArr.push(jdCookieNode[item])
@@ -81,13 +82,13 @@ async function jsRedPacket() {
   try {
     await invite2();
     // await sign();//极速版签到提现
-    // await reward_query();
+    await reward_query();
     // for (let i = 0; i < 3; ++i) {
     //   await redPacket();//开红包
     //   await $.wait(2000)
     // }
     // await getPacketList();//领红包提现
-    // await signPrizeDetailList();
+    await signPrizeDetailList();
     await showMsg()
   } catch (e) {
     $.logErr(e)
@@ -160,10 +161,16 @@ function reward_query() {
         } else {
           if (safeGet(data)) {
             data = JSON.parse(data);
-            if (data.code === 0) {
-
-            } else {
-              console.log(data.errMsg)
+            if (data.code != 0) {
+              console.log('账号领红包貌似黑了，请手动进入活动查看')
+              blackfail = true
+			} else {
+			  console.log('领红包次数剩余：' + data.data.remainChance)
+				for (let i = 0; i < data.data.remainChance; ++i) {
+				await redPacket();//开红包
+				await $.wait(5000)
+				}
+				await getPacketList();//领红包提现
             }
           }
         }
@@ -395,11 +402,8 @@ function cashOut(id,poolBaseId,prizeGroupId,prizeBaseId,) {
 
 function invite2() {
   let inviterIdArr = [
-    "5V7vHE23qh2EkdBHXRFDuA==",
     "wXX9SjXOdYMWe5Ru/1+x9A==",
-    "4AVQao+eH8Q8kvmXnWmkG8ef/fNr5fdejnD9+9Ugbec=",
-    "jbGBRBPo5DmwB9ntTCSVOGXuh1YQyccCuZpWwb3PlIc=",
-    "DuqL56/3h17VpbHIW+v8uJRRyPL6k9E1Hu5UhCyHw/s=",
+	"EX5edGJ14b70ZUglRq7IMmT3GewOP9IL/BN3k2dfrjw=",
   ]
   let inviterId = inviterIdArr[Math.floor((Math.random() * inviterIdArr.length))]
   let options = {
