@@ -1,10 +1,10 @@
 /**
  * 京东-新品-魔方
- * 本地log或rabbit log
+ * rabbit log
  * cron: 10 9,12,15 * * *
  */
 
-import {o2s, requireConfig, wait, post, get} from './TS_USER_AGENTS'
+import {requireConfig, wait, post, get} from './TS_USER_AGENTS'
 import {existsSync} from "fs";
 import * as dotenv from 'dotenv'
 
@@ -29,7 +29,6 @@ let rabbitToken: string = process.env.RABBIT_TOKEN || '', tg_id: string = proces
     let sign: string = res.result.taskConfig.projectId
 
     res = await api(`functionId=queryInteractiveInfo&body=%7B%22encryptProjectId%22%3A%22${sign}%22%2C%22sourceCode%22%3A%22acexinpin0823%22%2C%22ext%22%3A%7B%7D%7D&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
-    // o2s(res)
     for (let t of res.assignmentList) {
       if (t.completionCnt < t.assignmentTimesLimit) {
         if (t.ext) {
@@ -42,7 +41,7 @@ let rabbitToken: string = process.env.RABBIT_TOKEN || '', tg_id: string = proces
               res = await api(`functionId=doInteractiveAssignment&body=${JSON.stringify({
                 "encryptProjectId": sign, "encryptAssignmentId": t.encryptAssignmentId, "sourceCode": "acexinpin0823", "itemId": "1", "actionType": "", "completionFlag": "", "ext": {}, "extParam": {"businessData": {"random": log.match(/"random":"(\d+)"/)[1]}, "signStr": log.match(/"log":"(.*)"/)[1], "sceneid": "XMFhPageh5"}
               })}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
-              o2s(res, '签到成功')
+              console.log('签到成功')
             } else {
               console.log('已签到')
             }
@@ -53,7 +52,7 @@ let rabbitToken: string = process.env.RABBIT_TOKEN || '', tg_id: string = proces
               console.log(t.assignmentName)
               log = await getLog()
               res = await api(`functionId=doInteractiveAssignment&body=${encodeURIComponent(JSON.stringify({"encryptProjectId": sign, "encryptAssignmentId": t.encryptAssignmentId, "sourceCode": "acexinpin0823", "itemId": proInfo.itemId, "actionType": 0, "completionFlag": "", "ext": {}, "extParam": {"businessData": {"random": log.match(/"random":"(\d+)"/)[1]}, "signStr": log.match(/"log":"(.*)"/)[1], "sceneid": "XMFhPageh5"}}))}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
-              o2s(res)
+              console.log(res.msg)
               if (res.msg === '任务已完成') {
                 break
               }
@@ -65,11 +64,11 @@ let rabbitToken: string = process.env.RABBIT_TOKEN || '', tg_id: string = proces
               console.log(t.assignmentName)
               log = await getLog()
               res = await api(`functionId=doInteractiveAssignment&body=${encodeURIComponent(JSON.stringify({"encryptProjectId": sign, "encryptAssignmentId": t.encryptAssignmentId, "sourceCode": "acexinpin0823", "itemId": proInfo.itemId, "actionType": 1, "completionFlag": "", "ext": {}, "extParam": {"businessData": {"random": log.match(/"random":"(\d+)"/)[1]}, "signStr": log.match(/"log":"(.*)"/)[1], "sceneid": "XMFhPageh5"}}))}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
-              o2s(res)
+              console.log(res.msg)
               await wait(t.ext.waitDuration * 1000)
               log = await getLog()
               res = await api(`functionId=doInteractiveAssignment&body=${encodeURIComponent(JSON.stringify({"encryptProjectId": sign, "encryptAssignmentId": t.encryptAssignmentId, "sourceCode": "acexinpin0823", "itemId": proInfo.itemId, "actionType": 0, "completionFlag": "", "ext": {}, "extParam": {"businessData": {"random": log.match(/"random":"(\d+)"/)[1]}, "signStr": log.match(/"log":"(.*)"/)[1], "sceneid": "XMFhPageh5"}}))}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
-              o2s(res)
+              console.log(res.msg)
             }
           }
 
@@ -80,13 +79,13 @@ let rabbitToken: string = process.env.RABBIT_TOKEN || '', tg_id: string = proces
               res = await api(`functionId=doInteractiveAssignment&body=${JSON.stringify({
                 "encryptProjectId": sign, "encryptAssignmentId": t.encryptAssignmentId, "sourceCode": "acexinpin0823", "itemId": proInfo.itemId, "actionType": 1, "completionFlag": "", "ext": {}, "extParam": {"businessData": {"random": log.match(/"random":"(\d+)"/)[1]}, "signStr": log.match(/"log":"(.*)"/)[1], "sceneid": "XMFhPageh5"}
               })}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
-              o2s(res)
+              console.log(res.msg)
               await wait(t.ext.waitDuration * 1000)
               log = await getLog()
               res = await api(`functionId=doInteractiveAssignment&body=${JSON.stringify({
                 "encryptProjectId": sign, "encryptAssignmentId": t.encryptAssignmentId, "sourceCode": "acexinpin0823", "itemId": proInfo.itemId, "actionType": 0, "completionFlag": "", "ext": {}, "extParam": {"businessData": {"random": log.match(/"random":"(\d+)"/)[1]}, "signStr": log.match(/"log":"(.*)"/)[1], "sceneid": "XMFhPageh5"}
               })}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
-              o2s(res)
+              console.log(res.msg)
             }
           }
 
@@ -95,7 +94,7 @@ let rabbitToken: string = process.env.RABBIT_TOKEN || '', tg_id: string = proces
               console.log(t.assignmentName)
               log = await getLog()
               res = await api(`functionId=doInteractiveAssignment&body=${encodeURIComponent(JSON.stringify({"encryptProjectId": sign, "encryptAssignmentId": t.encryptAssignmentId, "sourceCode": "acexinpin0823", "itemId": proInfo.itemId, "actionType": "0", "completionFlag": "", "ext": {}, "extParam": {"businessData": {"random": log.match(/"random":"(\d+)"/)[1]}, "signStr": log.match(/"log":"(.*)"/)[1], "sceneid": "XMFJGh5"}}))}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
-              o2s(res)
+              console.log(res.msg)
               if (res.msg === '任务已完成') {
                 break
               }

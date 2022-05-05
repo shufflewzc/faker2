@@ -6,15 +6,18 @@
  * CK2～n  内部   -> HW.ts
  */
 
-import axios from 'axios'
 import {sendNotify} from './sendNotify'
-import {get, getshareCodeHW, o2s, requireConfig, wait} from "./TS_USER_AGENTS"
+import * as dotenv from 'dotenv'
+import {get, post, getshareCodeHW, o2s, requireConfig, wait} from "./TS_USER_AGENTS"
 
+let rabbitToken: string = process.env.RABBIT_TOKEN || '', tg_id: string = process.env.TG_ID || ''
 let cookie: string, cookiesArr: string[] = [], res: any, UserName: string
+let ua: string = "Mozilla/5.0 (Linux; U; Android 8.0.0; zh-cn; Mi Note 2 Build/OPR1.170623.032) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/61.0.3163.128 Mobile Safari/537.36 XiaoMi/MiuiBrowser/10.1.1"
 let shareCodesSelf: string[] = [], shareCodes: string[] = [], shareCodesHW: string[] = [], fullCode: string[] = []
 let min: number[] = [0.02, 0.03, 0.12, 0.3, 0.4, 0.6, 0.7, 0.8, 1, 1.2, 2, 3.6], log: string
 
 !(async () => {
+  dotenv.config()
   cookiesArr = await requireConfig(false)
   cookiesArr = cookiesArr.slice(0, 1)
   await join()
@@ -22,11 +25,12 @@ let min: number[] = [0.02, 0.03, 0.12, 0.3, 0.4, 0.6, 0.7, 0.8, 1, 1.2, 2, 3.6],
 
   cookiesArr = await requireConfig(false)
   cookiesArr = cookiesArr.slice(0, 9)
-  if (new Date().getHours() !== 6)
+  if ([0, 1].includes(new Date().getHours())) {
     await join()
+  }
   await getShareCodeSelf()
   await help()
-  await open(1)
+  await open(0)
 })()
 
 async function join() {
@@ -40,11 +44,11 @@ async function join() {
           log = await getLog()
           res = await api('h5launch', {followShop: 0, random: log.match(/"random":"(\d+)"/)[1], log: log.match(/"log":"(.*)"/)[1], sceneid: 'JLHBhPageh5'})
           console.log('活动初始化：', res.data.result.statusDesc)
-          if (res.rtn_code !== 403) {
+          if (res.rtn_code === 0) {
             break
           }
         } catch (e) {
-          console.log('log error', e)
+          console.log('join error', res.rtn_code)
           await wait(3000)
         }
       }
@@ -143,8 +147,8 @@ async function help() {
             if (success) break
             log = await getLog()
             res = await api('jinli_h5assist', {"redPacketId": code, "followShop": 0, random: log.match(/"random":"(\d+)"/)[1], log: log.match(/"log":"(.*)"/)[1], sceneid: 'JLHBhPageh5'})
-            if (res.rtn_code === 403) {
-              console.log('log error')
+            if (res.rtn_code !== 0) {
+              console.log('help error', res.rtn_code)
               await wait(5000)
             } else {
               success = true
@@ -177,25 +181,36 @@ async function help() {
 }
 
 async function api(fn: string, body: object) {
-  let {data} = await axios.post(`https://api.m.jd.com/api?appid=jinlihongbao&functionId=${fn}&loginType=2&client=jinlihongbao&clientVersion=10.2.4&osVersion=AndroidOS&d_brand=Xiaomi&d_model=Xiaomi`, `body=${encodeURIComponent(JSON.stringify(body))}`, {
-    headers: {
-      "origin": "https://h5.m.jd.com",
-      "referer": "https://h5.m.jd.com/babelDiy/Zeus/2NUvze9e1uWf4amBhe1AV6ynmSuH/index.html",
-      'Content-Type': 'application/x-www-form-urlencoded',
-      "X-Requested-With": "com.jingdong.app.mall",
-      "User-Agent": "Mozilla/5.0 (Linux; U; Android 8.0.0; zh-cn; Mi Note 2 Build/OPR1.170623.032) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/61.0.3163.128 Mobile Safari/537.36 XiaoMi/MiuiBrowser/10.1.1",
-      "Cookie": cookie,
-    }
+  return await post(`https://api.m.jd.com/api?appid=jinlihongbao&functionId=${fn}&loginType=2&client=jinlihongbao&clientVersion=10.2.4&osVersion=AndroidOS&d_brand=Xiaomi&d_model=Xiaomi`, `body=${encodeURIComponent(JSON.stringify(body))}`, {
+    "origin": "https://h5.m.jd.com",
+    "referer": "https://h5.m.jd.com/babelDiy/Zeus/2NUvze9e1uWf4amBhe1AV6ynmSuH/index.html",
+    'Content-Type': 'application/x-www-form-urlencoded',
+    "X-Requested-With": "com.jingdong.app.mall",
+    "User-Agent": ua,
+    "Cookie": cookie,
   })
-  return data
 }
 
 async function getLog() {
-  let data = await get(`https://api.jdsharecode.xyz/api/jlhb`)
-  if (data !== 1 && data !== '1') {
-    return data
+  if (!rabbitToken && !tg_id) {
+    let data = await get(`https://api.jdsharecode.xyz/api/jlhb`)
+    if (data !== 1 && data !== '1') {
+      return data
+    } else {
+      console.log('No log')
+      process.exit(0)
+    }
   } else {
-    console.log('No log')
-    process.exit(0)
+    console.log('rabbit log')
+    let data: any = ''
+    for (let i = 0; i < 10; i++) {
+      try {
+        data = await get(`http://www.madrabbit.cf:8080/license/log?tg_id=${tg_id}&token=${rabbitToken}`)
+        break
+      } catch (e) {
+        console.log('rabbit log api error')
+      }
+    }
+    return `'"random":"${data.data.random}","log":"${data.data.log}"'`
   }
 }

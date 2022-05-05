@@ -14,7 +14,7 @@ const querystring = require('querystring');
 const exec = require('child_process').exec;
 const $ = new Env();
 const timeout = 15000; //超时时间(单位毫秒)
-console.log("加载sendNotify，当前版本: 20220327");
+console.log("加载sendNotify，当前版本: 20220504");
 // =======================================go-cqhttp通知设置区域===========================================
 //gobot_url 填写请求地址http://127.0.0.1/send_private_msg
 //gobot_token 填写在go-cqhttp文件设置的访问密钥
@@ -410,15 +410,6 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
             }
         }
 
-        //检查黑名单屏蔽通知
-        const notifySkipList = process.env.NOTIFY_SKIP_LIST ? process.env.NOTIFY_SKIP_LIST.split('&') : [];
-        let titleIndex = notifySkipList.findIndex((item) => item === text);
-
-        if (titleIndex !== -1) {
-            console.log(`${text} 在推送黑名单中，已跳过推送`);
-            return;
-        }
-
         if (text.indexOf("已可领取") != -1) {
             if (text.indexOf("农场") != -1) {
                 strTitle = "东东农场领取";
@@ -469,7 +460,16 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         }
 
         console.log("通知标题: " + strTitle);
+		
+		//检查黑名单屏蔽通知
+        const notifySkipList = process.env.NOTIFY_SKIP_LIST ? process.env.NOTIFY_SKIP_LIST.split('&') : [];
+        let titleIndex = notifySkipList.findIndex((item) => item === strTitle);
 
+        if (titleIndex !== -1) {
+            console.log(`${strTitle} 在推送黑名单中，已跳过推送`);
+            return;
+        }
+		
         //检查脚本名称是否需要通知到Group2,Group2读取原环境配置的变量名后加2的值.例如: QYWX_AM2
         const notifyGroup2List = process.env.NOTIFY_GROUP2_LIST ? process.env.NOTIFY_GROUP2_LIST.split('&') : [];
         const titleIndex2 = notifyGroup2List.findIndex((item) => item === strTitle);
