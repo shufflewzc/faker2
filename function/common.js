@@ -37,20 +37,12 @@ class env {
         console.log(`🔔${this.name}, 结束!\n`)
     }
     notify(array) {
-        let text = [];
-        let type = 0
+        let text = '';
         for (let i of array) {
-            text.push(`${i.user} -- ${i.msg}`)
-            type = i.type
+            text += `${i.user} -- ${i.msg}\n`
         }
         console.log(`\n=============================开始发送提醒消息=============================`)
-        if (type == 1) {
-            for (let i of text) {
-                notify.sendNotify(this.name + "消息提醒", i)
-            }
-        } else {
-            notify.sendNotify(this.name + "消息提醒", text.join('\n'))
-        }
+        notify.sendNotify(this.name + "消息提醒", text)
     }
     wait(t) {
         return new Promise(e => setTimeout(e, t))
@@ -131,20 +123,18 @@ class env {
     loads(str) {
         return JSON.parse(str)
     }
-    notice(msg, type = 0) {
+    notice(msg) {
         this.message.push({
             'index': this.index,
             'user': this.user,
-            'msg': msg,
-            type
+            'msg': msg
         })
     }
-    notices(msg, user, type = 0) {
+    notices(msg, user, index = '') {
         this.message.push({
             'user': user,
             'msg': msg,
-            // 'index': index,
-            type
+            'index': index
         })
     }
     urlparse(url) {
