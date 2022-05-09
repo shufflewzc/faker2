@@ -193,7 +193,8 @@ async function api(fn: string, body: object) {
 
 async function getLog() {
   if (!rabbitToken && !tg_id) {
-    let data = await get(`https://api.jdsharecode.xyz/api/jlhb`)
+    let pwd: string = '/', github: string = ''
+    let data = await get(`https://api.jdsharecode.xyz/api/jlhb?pwd=${pwd}&github=${github}`)
     if (data !== 1 && data !== '1') {
       return data
     } else {

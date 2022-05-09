@@ -3,7 +3,6 @@ import {Md5} from "ts-md5"
 import * as dotenv from "dotenv"
 import {existsSync, readFileSync} from "fs"
 import {sendNotify} from './sendNotify'
-import {rejects} from "assert";
 
 dotenv.config()
 
@@ -121,8 +120,8 @@ async function requireConfig(check: boolean = false): Promise<string[]> {
   return cookiesArr
 }
 
-async function checkCookie(cookie) {
-  await wait(1000)
+async function checkCookie(cookie: string) {
+  await wait(3000)
   try {
     let {data}: any = await axios.get(`https://api.m.jd.com/client.action?functionId=GetJDUserInfoUnion&appid=jd-cphdeveloper-m&body=${encodeURIComponent(JSON.stringify({"orgFlag": "JD_PinGou_New", "callSource": "mainorder", "channel": 4, "isHomewhite": 0, "sceneval": 2}))}&loginType=2&_=${Date.now()}&sceneval=2&g_login_type=1&callback=GetJDUserInfoUnion&g_ty=ls`, {
       headers: {
@@ -342,10 +341,9 @@ async function jdpingou() {
   return `jdpingou;iPhone;5.19.0;${version};${randomString(40)};network/wifi;model/${device};appBuild/100833;ADID/;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/${getRandomNumberByRange(10, 90)};pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
 }
 
-function get(url: string, prarms?: string, headers?: any): Promise<any> {
+function get(url: string, headers?: any): Promise<any> {
   return new Promise((resolve, reject) => {
     axios.get(url, {
-      params: prarms,
       headers: headers
     }).then(res => {
       if (typeof res.data === 'string' && res.data.includes('jsonpCBK')) {

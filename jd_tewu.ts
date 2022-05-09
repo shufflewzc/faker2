@@ -3,7 +3,6 @@
  * cron: 15 8,20 * * *
  */
 
-import axios from 'axios';
 import USER_AGENT, {requireConfig, wait, o2s, getshareCodeHW, post} from './TS_USER_AGENTS'
 
 interface ShareCode {
@@ -131,6 +130,7 @@ let cookie: string = '', UserName: string = '', res: any = '', message: string =
       } else if (res.data.bizCode === '108') {
         console.log('上限')
         break
+      } else if (res.data.bizCode === '109') {
       } else if (res.data.bizCode === '2001') {
         console.log('黑号')
         break
