@@ -1,7 +1,7 @@
 /**
 特务之明星送好礼
 一次性脚本。请禁用！
-cron 36 18 * * * jd_superBrandStar.js
+cron 36 22 * * * jd_superBrandStar.js
  */
 const $ = new Env('特务之明星送好礼');
 const notify = $.isNode() ? require('./sendNotify') : '';
