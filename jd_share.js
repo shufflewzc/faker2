@@ -1,6 +1,6 @@
 /* 
 关注 https://t.me/okyydsnb
-7 7 7 7 7
+7 7 7 7 7 jd_share.js
 注意控制ck数量
 */
 

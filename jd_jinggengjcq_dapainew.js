@@ -1,7 +1,7 @@
 /*
 actId 活动id
 无内置,助力ck1,默认不跑
-7 7 7 7 7
+7 7 7 7 7 jd_jinggengjcq_dapainew.js
 */
 const $ = new Env("大牌联合");
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
