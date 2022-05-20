@@ -1,8 +1,8 @@
 /*
-五月宠爱季 和你在一起
-7 7 7 7 7 jd_lzdz1_customized5_18.js
+一见倾芯 天长地久
+7 7 7 7 7 jd_lzdz1_customized5_18_2.js
 */
-const $ = new Env("五月宠爱季 和你在一起");
+const $ = new Env("一见倾芯 天长地久");
 const jdCookieNode = $.isNode() ? require("./jdCookie.js") : "";
 const notify = $.isNode() ? require("./sendNotify") : "";
 let cookiesArr = [], cookie = "", message = "";
@@ -56,16 +56,16 @@ if ($.isNode()) {
       $.ADID = getUUID("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", 1);
       $.UUID = getUUID("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
       authorCodeList = [
-        '7dd1468579244d55a45af7a6a5ef51c1',
-        'ad712ab8ddfd4c62908b50cc438e6f9f',
-        '12795868bf034968b53039dce7d8a260',
+        '161743cf4e3645ba86671e3f4504d4fb',
+        'f1c4f0d03a8e480aaaffe0093d3590bc',
+        '9b785de5825649cda88f574d3ac57ec5',
       ];
       // $.authorCode = authorCodeList[random(0, authorCodeList.length)];
       $.authorCode = ownCode ? ownCode : authorCodeList[random(0, authorCodeList.length)]
       $.authorNum = `${random(1000000, 9999999)}`;
       $.randomCode = random(1000000, 9999999);
-      $.activityId = "dzlhkkbd172c997dbf3c4fa4d2cf42";
-      $.activityShopId = "1000003443";
+      $.activityId = "dzlhkk0c046a602d347bea3e27b82f5";
+      $.activityShopId = "1000072521";
       $.activityUrl = `https://lzdz1-isv.isvjcloud.com/dingzhi/customized/common/activity/${$.authorNum}?activityId=${$.activityId}&shareUuid=${encodeURIComponent($.authorCode)}&adsource=SD&shareuserid4minipg=${encodeURIComponent($.secretPin)}&shopid=undefined&lng=00.000000&lat=00.000000&sid=&un_area=`;
       await member();
       // await $.wait(1000);
@@ -124,7 +124,7 @@ async function member() {
           await getToken();
           if (vo.status == 0) {
             await getShopOpenCardInfo({ venderId: `${vo.venderId}`, channel: "401" }, vo.venderId);
-            // console.log($.openCardActivityId)
+            console.log($.openCardActivityId)
             await bindWithVender({ venderId: `${vo.venderId}`, bindByVerifyCodeFlag: 1, registerExtend: {}, writeChildFlag: 0, activityId: 2329491, channel: 401 }, vo.venderId);
             await $.wait(500);
           } else {

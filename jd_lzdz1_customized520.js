@@ -1,8 +1,8 @@
 /*
-五月宠爱季 和你在一起
-7 7 7 7 7 jd_lzdz1_customized5_18.js
+甜蜜派对 五月宠爱季
+7 7 7 7 7 jd_lzdz1_customized520.js
 */
-const $ = new Env("五月宠爱季 和你在一起");
+const $ = new Env("甜蜜派对 五月宠爱季");
 const jdCookieNode = $.isNode() ? require("./jdCookie.js") : "";
 const notify = $.isNode() ? require("./sendNotify") : "";
 let cookiesArr = [], cookie = "", message = "";
@@ -56,16 +56,18 @@ if ($.isNode()) {
       $.ADID = getUUID("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", 1);
       $.UUID = getUUID("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
       authorCodeList = [
-        '7dd1468579244d55a45af7a6a5ef51c1',
-        'ad712ab8ddfd4c62908b50cc438e6f9f',
-        '12795868bf034968b53039dce7d8a260',
+        'fbc5469be0114caaa1fce2e8195b6ec2',
+        'd2b4e3beb5f34bb493f6154d08637fbe',
+        '49cc6e179a174cc79ef358c8e2b8007f',
+        'f35e83807ce54133a78f284dc608c33d',
+        'ebf9293dff5f4293982443ce0cfe97cd'
       ];
       // $.authorCode = authorCodeList[random(0, authorCodeList.length)];
       $.authorCode = ownCode ? ownCode : authorCodeList[random(0, authorCodeList.length)]
       $.authorNum = `${random(1000000, 9999999)}`;
       $.randomCode = random(1000000, 9999999);
-      $.activityId = "dzlhkkbd172c997dbf3c4fa4d2cf42";
-      $.activityShopId = "1000003443";
+      $.activityId = "dzlhkk02f74bd4ac17f97a692c0268";
+      $.activityShopId = "1000164941";
       $.activityUrl = `https://lzdz1-isv.isvjcloud.com/dingzhi/customized/common/activity/${$.authorNum}?activityId=${$.activityId}&shareUuid=${encodeURIComponent($.authorCode)}&adsource=SD&shareuserid4minipg=${encodeURIComponent($.secretPin)}&shopid=undefined&lng=00.000000&lat=00.000000&sid=&un_area=`;
       await member();
       // await $.wait(1000);
@@ -118,14 +120,10 @@ async function member() {
         for (const vo of $.openCardList) {
           // console.log(vo)
           $.log(`>>> 去加入${vo.name} ${vo.venderId}`);
-          await task("crm/pageVisit/insertCrmPageVisit", `venderId=1000000576&elementId=入会跳转&pageId=dzlhkk068d4d0ab8a6609723002f50&pin=${encodeURIComponent($.secretPin)}`, 1);
-          await $.wait(500);
-          await getFirstLZCK();
-          await getToken();
           if (vo.status == 0) {
             await getShopOpenCardInfo({ venderId: `${vo.venderId}`, channel: "401" }, vo.venderId);
-            // console.log($.openCardActivityId)
-            await bindWithVender({ venderId: `${vo.venderId}`, bindByVerifyCodeFlag: 1, registerExtend: {}, writeChildFlag: 0, activityId: 2329491, channel: 401 }, vo.venderId);
+            console.log($.openCardActivityId)
+            await bindWithVender({ venderId: `${vo.venderId}`, bindByVerifyCodeFlag: 1, registerExtend: {}, writeChildFlag: 0, activityId: 2317870, channel: 401 }, vo.venderId);
             await $.wait(500);
           } else {
             $.log(`>>> 已经是会员`);
@@ -134,6 +132,10 @@ async function member() {
       } else {
         $.log("没有获取到对应的任务。\n");
       }
+
+      // $.taskList = []
+      // await dsb($.openCardList)
+      // await Promise.all($.taskList)
       await task("linkgame/checkOpenCard", `pin=${encodeURIComponent($.secretPin)}&activityId=${$.activityId}`);
       console.log("去助力 -> " + $.authorCode);
       await task("linkgame/assist/status", `activityId=${$.activityId}&pin=${encodeURIComponent($.secretPin)}&shareUuid=${$.authorCode}`);
@@ -157,6 +159,23 @@ async function member() {
       // await $.wait(2000)
       // await task('linkgame/draw/record', `activityId=${$.activityId}&actorUuid=${$.actorUuid}&pin=${encodeURIComponent($.secretPin)}`);
     }
+  }
+}
+
+function dsb(openCardList){
+  if (openCardList) {
+    for (const vo of openCardList) {
+      // console.log(vo)
+      $.log(`>>> 去加入${vo.name} ${vo.venderId}`);
+      if (vo.status == 0) {
+        // bindWithVender({ venderId: `${vo.venderId}`, bindByVerifyCodeFlag: 1, registerExtend: {}, writeChildFlag: 0, activityId: 2317870, channel: 401 }, vo.venderId);
+        $.taskList.push(bindWithVender({ venderId: `${vo.venderId}`, bindByVerifyCodeFlag: 1, registerExtend: {}, writeChildFlag: 0, activityId: 2317870, channel: 401 }, vo.venderId))
+      } else {
+        $.log(`>>> 已经是会员`);
+      }
+    }
+  } else {
+    $.log("没有获取到对应的任务。\n");
   }
 }
 
