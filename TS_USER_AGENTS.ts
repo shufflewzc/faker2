@@ -87,48 +87,14 @@ async function getFarmShareCode(cookie: string) {
     return ''
 }
 
-async function getCookie(check: boolean = false): Promise<string[]> {
-  let pwd: string = __dirname
+async function getCookie(): Promise<string[]> {
   let cookiesArr: string[] = []
   const jdCookieNode = require('./jdCookie.js')
-  let keys: string[] = Object.keys(jdCookieNode)
-  for (let i = 0; i < keys.length; i++) {
-    let cookie = jdCookieNode[keys[i]]
-    if (!check) {
-      if (pwd.includes('/ql') && !pwd.includes('JDHelloWorld')) {
-      } else {
-        cookiesArr.push(cookie)
-      }
-    } else {
-      if (await checkCookie(cookie)) {
-        cookiesArr.push(cookie)
-      } else {
-        let username = decodeURIComponent(jdCookieNode[keys[i]].match(/pt_pin=([^;]*)/)![1])
-        console.log('Cookie失效', username)
-        await sendNotify('Cookie失效', '【京东账号】' + username)
-      }
-    }
+  for (let keys of Object.keys(jdCookieNode)) {
+    cookiesArr.push(jdCookieNode[keys])
   }
   console.log(`共${cookiesArr.length}个京东账号\n`)
   return cookiesArr
-}
-
-async function checkCookie(cookie: string) {
-  await wait(3000)
-  try {
-    let {data}: any = await axios.get(`https://api.m.jd.com/client.action?functionId=GetJDUserInfoUnion&appid=jd-cphdeveloper-m&body=${encodeURIComponent(JSON.stringify({"orgFlag": "JD_PinGou_New", "callSource": "mainorder", "channel": 4, "isHomewhite": 0, "sceneval": 2}))}&loginType=2&_=${Date.now()}&sceneval=2&g_login_type=1&callback=GetJDUserInfoUnion&g_ty=ls`, {
-      headers: {
-        'authority': 'api.m.jd.com',
-        'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1',
-        'referer': 'https://home.m.jd.com/',
-        'cookie': cookie
-      }
-    })
-    data = JSON.parse(data.match(/GetJDUserInfoUnion\((.*)\)/)[1])
-    return data.retcode === '0';
-  } catch (e) {
-    return false
-  }
 }
 
 function wait(ms: number) {
