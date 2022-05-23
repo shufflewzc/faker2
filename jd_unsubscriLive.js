@@ -7,14 +7,14 @@
 ==============Quantumult X===========
 [task_local]
 #取关所有主播
-55 6 * * * jd_unsubscriLive.js, tag=取关所有主播, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+55 22 * * * jd_unsubscriLive.js, tag=取关所有主播, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 ===========Loon============
 [Script]
-cron "55 6 * * *" script-path=jd_unsubscriLive.js,tag=取关所有主播
+cron "55 22 * * *" script-path=jd_unsubscriLive.js,tag=取关所有主播
 ============Surge=============
-取关所有主播 = type=cron,cronexp="55 6 * * *",wake-system=1,timeout=3600,script-path=jd_unsubscriLive.js
+取关所有主播 = type=cron,cronexp="55 22 * * *",wake-system=1,timeout=3600,script-path=jd_unsubscriLive.js
 ===========小火箭========
-取关所有主播 = type=cron,script-path=jd_unsubscriLive.js, cronexpr="55 6 * * *", timeout=3600, enable=true
+取关所有主播 = type=cron,script-path=jd_unsubscriLive.js, cronexpr="55 22 * * *", timeout=3600, enable=true
  */
 const $ = new Env('取关所有主播');
 //Node.js用户请在jdCookie.js处填写京东ck;
@@ -136,7 +136,7 @@ function unsubscribeCartsFun(author) {
                 $.result = true;
                 console.log(`取关主播【${$.userName}】成功\n`)
             } else {
-                console.log(`取关主播【${$.userName}】失败：` + data + `\n`)
+                console.log(`取关主播【${$.userName}】失败\n`)
             }
             resolve(data);
         });

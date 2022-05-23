@@ -1,7 +1,7 @@
 /**
 特务之明星送好礼
 一次性脚本。请禁用！
-cron 36 22 * * * jd_superBrandStar.js
+cron 36 2,19 * * * jd_superBrandStar.js
  */
 const $ = new Env('特务之明星送好礼');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -10,6 +10,7 @@ let cookiesArr = [];
 let UA = ``;
 $.allInvite = [];
 let useInfo = {};
+$.flag = false
 if ($.isNode()) {
     Object.keys(jdCookieNode).forEach((item) => { cookiesArr.push(jdCookieNode[item]) });
     if (process.env.JD_DEBUG && process.env.JD_DEBUG === 'false') console.log = () => { };
@@ -22,6 +23,7 @@ if ($.isNode()) {
         return;
     }
     for (let i = 0; i < cookiesArr.length; i++) {
+
         UA = `jdapp;iPhone;10.0.8;14.6;${randomWord(false, 40, 40)};network/wifi;JDEbook/openapp.jdreader;model/iPhone9,2;addressid/2214222493;appBuild/168841;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16E158;supportJDSHWK/1`;
         $.index = i + 1;
         $.cookie = cookiesArr[i];
@@ -39,6 +41,7 @@ if ($.isNode()) {
             continue
         }
         await main();
+        if ($.flag) return;
     }
 
 })().catch((e) => { $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '') }).finally(() => { $.done(); })
@@ -48,7 +51,8 @@ async function main() {
     $.activityInfo = {};
     await takeRequest('showStarGiftInfo');
     if (JSON.stringify($.activityInfo) === '{}') {
-        console.log(`获取活动详情失败`);
+        console.log(`本期活动结束，等待下期。。。`);
+        $.flag = true
         return;
     }
     console.log(`获取活动详情成功`);
@@ -62,6 +66,7 @@ async function main() {
     await $.wait(1000);
     await doTask();
     await $.wait(500)
+	console.log('开始抽奖：')
     await await takeRequest('superBrandTaskLottery')
 
 }
@@ -186,7 +191,7 @@ function dealReturn(type, data) {
                 $.runFlag = false;
                 console.log(`抽奖失败`);
             }
-            console.log(JSON.stringify(data));
+            //console.log(JSON.stringify(data));
             break;
         default:
             console.log(JSON.stringify(data));
