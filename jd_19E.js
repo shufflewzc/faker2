@@ -1,3 +1,8 @@
+if (process.env.JD_19E != "true") {
+    console.log('\n默认不运行,安全性自行衡量,设置变量export JD_19E="true"来运行\n')
+    return
+}
+
 /*
 
 建议手动先点开一次
@@ -34,7 +39,6 @@ $.shareCodesArr = [];
         $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
         return;
     }
-
     $.inviteIdCodesArr = {}
     for (let i = 0; i < cookiesArr.length && true; i++) {
         if (cookiesArr[i]) {
@@ -263,7 +267,7 @@ function promote_sign() {
 }
 
 function promote_raise() {
-    let body = { "ss": { "extraData": { "log": "", "sceneid": "RAhomePageh5" }, "secretp": secretp, "random": randomString(6) } };
+    let body = {"scenceId":4, "ss": { "extraData": { "log": "", "sceneid": "RAhomePageh5" }, "secretp": secretp, "random": randomString(6) } };
     return new Promise((resolve) => {
         $.post(taskPostUrl("promote_raise", body), async(err, resp, data) => {
             try {
