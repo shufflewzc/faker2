@@ -14,7 +14,7 @@ const querystring = require('querystring');
 const exec = require('child_process').exec;
 const $ = new Env();
 const timeout = 15000; //超时时间(单位毫秒)
-console.log("加载sendNotify，当前版本: 20220517");
+console.log("加载sendNotify，当前版本: 20220523");
 // =======================================go-cqhttp通知设置区域===========================================
 //gobot_url 填写请求地址http://127.0.0.1/send_private_msg
 //gobot_token 填写在go-cqhttp文件设置的访问密钥
@@ -457,7 +457,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
             var strPtPin = await GetPtPin(text);
             var strdecPtPin = decodeURIComponent(strPtPin);
             if (strPtPin) {
-                await sendNotifybyWxPucher("汪汪乐园领取通知", `【京东账号】${strdecPtPin}\n当前等级: 30\n已自动领取最高等级奖励\n请前往京东极速版APP查看使用优惠券\n活动入口：京东极速版APP->我的->优惠券->京券`, strdecPtPin);
+                await sendNotifybyWxPucher("汪汪乐园领取通知", `【京东账号】${strdecPtPin}\n当前等级: 30\n请自行去解锁新场景,奖励领取方式如下:\n极速版APP->我的->汪汪乐园,点击左上角头像，点击中间靠左的现金奖励图标，弹出历史奖励中点击领取.`, strdecPtPin);
             }
         }
 
