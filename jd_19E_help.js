@@ -656,7 +656,7 @@ async function doApi(functionId, prepend = {}, append = {}, needSs = false, getL
                                 if (/加入.*?会员.*?获得/.test(data?.data?.bizMsg)) {
                                     console.log(data?.data?.bizMsg + `（${data?.data?.bizCode}）`)
                                     $.stopCard = true
-                                } else console.log(formatErr(functionId, data?.data?.bizMsg + `（${data?.data?.bizCode}）`, toCurl(option)))
+                                } else console.log(formatErr(data?.data?.bizMsg + `（${data?.data?.bizCode}）`))
                             } else {
                                 res = data?.data?.result || {}
                             }

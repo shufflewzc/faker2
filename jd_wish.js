@@ -5,17 +5,17 @@
 ===============Quantumultx===============
 [task_local]
 #众筹许愿池
-40 0,2 * * * https://raw.githubusercontent.com/KingRan/JDJB/main/jd_wish.js, tag=众筹许愿池, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+40 0,2 * * * https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_wish.js, tag=众筹许愿池, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
 
 ================Loon==============
 [Script]
-cron "40 0,2 * * *" script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_wish.js,tag=众筹许愿池
+cron "40 0,2 * * *" script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_wish.js,tag=众筹许愿池
 
 ===============Surge=================
-众筹许愿池 = type=cron,cronexp="40 0,2 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_wish.js
+众筹许愿池 = type=cron,cronexp="40 0,2 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_wish.js
 
 ============小火箭=========
-众筹许愿池 = type=cron,script-path=https://raw.githubusercontent.com/KingRan/JDJB/main/jd_wish.js, cronexpr="40 0,2 * * *", timeout=3600, enable=true
+众筹许愿池 = type=cron,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_wish.js, cronexpr="40 0,2 * * *", timeout=3600, enable=true
  */
 const $ = new Env('众筹许愿池');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -25,8 +25,8 @@ let message = '', allMessage = '';
 //IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '';
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
-let appIdArr = ['1EFNVyqeH','1FFVQyqw','1EFRWxKuG', '1E1xZy6s'];
-let appNameArr = ['京东电器','1111点心动','许愿抽好礼', 'PLUS生活特权'];
+let appIdArr = ["1EFNUwqeO",'1EFNVyqeH','1FFVQyqw','1EFRWxKuG', '1E1xZy6s'];
+let appNameArr = ['互动抽豪礼','京东电器','1111点心动','许愿抽好礼', 'PLUS生活特权'];
 let appId, appName;
 $.shareCode = [];
 if ($.isNode()) {
