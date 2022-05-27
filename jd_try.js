@@ -1,13 +1,10 @@
 /*
  * 如需运行请自行添加环境变量：JD_TRY，值填 true 即可运行
- * 脚本兼容: Node.js
  * X1a0He留
  * 脚本是否耗时只看args_xh.maxLength的大小
  * 上一作者说了每天最多300个商店，总上限为500个，jd_unsubscribe.js我已更新为批量取关版
  * 请提前取关至少250个商店确保京东试用脚本正常运行
- *
  * @Address: https://github.com/X1a0He/jd_scripts_fixed/blob/main/jd_try_xh.js
- * @LastEditors: X1a0He
  参考环境变量配置如下：
 export JD_TRY="true"
 export JD_TRY_PLOG="true" #是否打印输出到日志
@@ -48,8 +45,8 @@ $.innerKeyWords =
         "女用", "神油", "足力健", "老年", "老人",
         "宠物", "饲料", "丝袜", "黑丝", "磨脚",
         "脚皮", "除臭", "性感", "内裤", "跳蛋",
-        "安全套", "龟头", "阴道", "阴部", "手机卡",
-        "流量卡", "和田玉", "钢化膜", "手机壳","习题","试卷"
+        "安全套", "龟头", "阴道", "阴部", "手机卡", "电话卡", "流量卡",
+        "玉坠","和田玉","习题","试卷","手机壳","钢化膜"
     ]
 //下面很重要，遇到问题请把下面注释看一遍再来问
 let args_xh = {
@@ -91,14 +88,14 @@ let args_xh = {
      * C商品原价99元，试用价1元，如果下面设置为50，那么C商品将会被加入到待提交的试用组
      * 默认为0
      * */
-    jdPrice: process.env.JD_TRY_PRICE * 1 || 0,
+    jdPrice: process.env.JD_TRY_PRICE * 1 || 20,
     /*
      * 获取试用商品类型，默认为1
      * 下面有一个function是可以获取所有tabId的，名为try_tabList
      * 可设置环境变量：JD_TRY_TABID，用@进行分隔
      * 默认为 1 到 10
      * */
-    tabId: process.env.JD_TRY_TABID && process.env.JD_TRY_TABID.split('@').map(Number) || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    tabId: process.env.JD_TRY_TABID && process.env.JD_TRY_TABID.split('@').map(Number) || [104, 3, 4, 5, 6, 7, 8, 9, 10],
     /*
      * 试用商品标题过滤，黑名单，当标题存在关键词时，则不加入试用组
      * 当白名单和黑名单共存时，黑名单会自动失效，优先匹配白名单，匹配完白名单后不会再匹配黑名单，望周知
@@ -181,7 +178,7 @@ let args_xh = {
 !(async() => {
     await $.wait(500)
     // 如果你要运行京东试用这个脚本，麻烦你把环境变量 JD_TRY 设置为 true
-    if (process.env.JD_TRY && process.env.JD_TRY === 'true') {
+    if (1) {
         await requireConfig()
         if (!$.cookiesArr[0]) {
             $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/', {
@@ -222,7 +219,7 @@ let args_xh = {
                 }
                 $.isLimit = false;
                 // 获取tabList的，不知道有哪些的把这里的注释解开跑一遍就行了
-                // await try_tabList();
+                 //await try_tabList();
                 // return;
                 $.isForbidden = false
                 $.wrong = false
@@ -249,8 +246,10 @@ let args_xh = {
                             break
                         }
                         await try_apply(trialActivityTitleList[i], trialActivityIdList[i])
-                        console.log(`间隔等待中，请等待 ${args_xh.applyInterval} ms\n`)
-                        await $.wait(args_xh.applyInterval);
+                        //console.log(`间隔等待中，请等待 ${args_xh.applyInterval} ms\n`)
+                        const waitTime = generateRandomInteger(5000, 8000);
+                        console.log(`随机等待${waitTime}ms后继续`);
+                        await $.wait(waitTime);
                     }
                     console.log("试用申请执行完毕...")
                     // await try_MyTrials(1, 1)    //申请中的商品
@@ -338,7 +337,7 @@ function try_tabList() {
             "previewTime": ""
         });
         let option = taskurl_xh('newtry', 'try_tabList', body)
-        $.get(option, (err, resp, data) => {
+        $.post(option, (err, resp, data) => {
             try{
                 if(err){
                     if(JSON.stringify(err) === `\"Response code 403 (Forbidden)\"`){
@@ -377,7 +376,7 @@ function try_feedsList(tabId, page) {
             "previewTime": ""
         });
         let option = taskurl_xh('newtry', 'try_feedsList', body)
-        $.get(option, (err, resp, data) => {
+        $.post(option, (err, resp, data) => {
             try{
                 if(err){
                     if(JSON.stringify(err) === `\"Response code 403 (Forbidden)\"`){
@@ -553,7 +552,7 @@ function try_MyTrials(page, selected) {
                 'origin': 'https://prodev.m.jd.com',
                 'User-Agent': 'jdapp;iPhone;10.3.4;;;M/5.0;appBuild/167945;jdSupportDarkMode/1;;;Mozilla/5.0 (iPhone; CPU iPhone OS 15_2_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1;',
                 'referer': 'https://prodev.m.jd.com/',
-                'cookie': $.cookie
+                'cookie': `${$.cookie} __jda=1.1.1.1.1.1;`
             },
         }
         $.post(options, (err, resp, data) => {
@@ -594,12 +593,18 @@ function taskurl_xh(appid, functionId, body = JSON.stringify({})) {
     return {
         "url": `${URL}?appid=${appid}&functionId=${functionId}&clientVersion=10.3.4&client=wh5&body=${encodeURIComponent(body)}`,
         'headers': {
-            'Cookie': $.cookie,
-            'UserAgent': 'jdapp;iPhone;10.1.2;15.0;ff2caa92a8529e4788a34b3d8d4df66d9573f499;network/wifi;model/iPhone13,4;addressid/2074196292;appBuild/167802;jdSupportDarkMode/1;Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1',
-            'Referer': 'https://prodev.m.jd.com/'
+            'Cookie': `${$.cookie} __jda=1.1.1.1.1.1;`,
+            'user-agent': 'jdapp;iPhone;10.1.2;15.0;ff2caa92a8529e4788a34b3d8d4df66d9573f499;network/wifi;model/iPhone13,4;addressid/2074196292;appBuild/167802;jdSupportDarkMode/1;Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1',
+            'Referer': 'https://prodev.m.jd.com/',
+            'origin': 'https://prodev.m.jd.com/',
+            'Accept': 'application/json,text/plain,*/*',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'zh-cn',
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
     }
-}
+
+  }
 
 async function showMsg() {
     let message = ``;
@@ -685,7 +690,17 @@ function jsonParse(str) {
         }
     }
 }
-
+ const generateRandomInteger = (min, max = 0) => {
+   if (min > max) {
+     let temp = min;
+     min = max;
+     max = temp;
+   }
+   var Range = max - min;
+   var Rand = Math.random();
+   return min + Math.round(Rand * Range);
+ };
+ 
 function Env(name, opts) {
     class Http {
         constructor(env) {
