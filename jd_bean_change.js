@@ -247,7 +247,7 @@ if(DisableIndex!=-1){
 }	
 
 //金融养猪
-let EnablePigPet=false;
+let EnablePigPet=true;
 DisableIndex=strDisableList.findIndex((item) => item === "金融养猪");
 if(DisableIndex!=-1){
 	console.log("检测到设定关闭金融养猪查询");
@@ -402,7 +402,7 @@ if(DisableIndex!=-1){
 
 						await notify.sendNotify(`${$.name}`, `${allMessage}`, {
 							url: `https://bean.m.jd.com/beanDetail/index.action?resourceValue=bean`
-						}, '\n\n本通知 By https://github.com/shufflewzc/faker2',TempMessage)
+						}, '\n\n本通知 By ccwav Mod',TempMessage)
 					}
 					if ($.isNode() && allMessageMonth) {
 						await notify.sendNotify(`京东月资产变动`, `${allMessageMonth}`, {
@@ -471,7 +471,7 @@ if(DisableIndex!=-1){
 				
 				await notify.sendNotify(`${$.name}`, `${allMessage}`, {
 					url: `https://bean.m.jd.com/beanDetail/index.action?resourceValue=bean`
-				}, '\n\n本通知 By https://github.com/shufflewzc/faker2',TempMessage)
+				}, '\n\n本通知 By ccwav Mod',TempMessage)
 			}
 			if ($.isNode() && allMessageMonth) {
 				await notify.sendNotify(`京东月资产变动`, `${allMessageMonth}`, {
@@ -487,7 +487,7 @@ if(DisableIndex!=-1){
 				allMessageGp2=strAllNotify+`\n`+allMessageGp2;
 			await notify.sendNotify(`${$.name}#2`, `${allMessageGp2}`, {
 				url: `https://bean.m.jd.com/beanDetail/index.action?resourceValue=bean`
-			}, '\n\n本通知 By https://github.com/shufflewzc/faker2',TempMessage)
+			}, '\n\n本通知 By ccwav Mod',TempMessage)
 			await $.wait(10 * 1000);
 		}
 		if ($.isNode() && allMessageGp3) {
@@ -496,7 +496,7 @@ if(DisableIndex!=-1){
 				allMessageGp3=strAllNotify+`\n`+allMessageGp3;
 			await notify.sendNotify(`${$.name}#3`, `${allMessageGp3}`, {
 				url: `https://bean.m.jd.com/beanDetail/index.action?resourceValue=bean`
-			}, '\n\n本通知 By https://github.com/shufflewzc/faker2',TempMessage)
+			}, '\n\n本通知 By ccwav Mod',TempMessage)
 			await $.wait(10 * 1000);
 		}
 		if ($.isNode() && allMessageGp4) {
@@ -505,7 +505,7 @@ if(DisableIndex!=-1){
 				allMessageGp4=strAllNotify+`\n`+allMessageGp4;
 			await notify.sendNotify(`${$.name}#4`, `${allMessageGp4}`, {
 				url: `https://bean.m.jd.com/beanDetail/index.action?resourceValue=bean`
-			}, '\n\n本通知 By https://github.com/shufflewzc/faker2',TempMessage)
+			}, '\n\n本通知 By ccwav Mod',TempMessage)
 			await $.wait(10 * 1000);
 		}
 		if ($.isNode() && allMessage) {
@@ -515,7 +515,7 @@ if(DisableIndex!=-1){
 			
 			await notify.sendNotify(`${$.name}`, `${allMessage}`, {
 				url: `https://bean.m.jd.com/beanDetail/index.action?resourceValue=bean`
-			}, '\n\n本通知 By https://github.com/shufflewzc/faker2',TempMessage)
+			}, '\n\n本通知 By ccwav Mod',TempMessage)
 			await $.wait(10 * 1000);
 		}
 
@@ -998,7 +998,7 @@ async function showMsg() {
 		if(strAllNotify)
 			ReturnMessage=strAllNotify+`\n`+ReturnMessage;
 		
-		await notify.sendNotifybyWxPucher(strTitle, `${ReturnMessage}`, `${$.UserName}`,'\n\n本通知 By https://github.com/shufflewzc/faker2',strsummary);
+		await notify.sendNotifybyWxPucher(strTitle, `${ReturnMessage}`, `${$.UserName}`,'\n\n本通知 By ccwav Mod',strsummary);
 	}
 
 	//$.msg($.name, '', ReturnMessage , {"open-url": "https://bean.m.jd.com/beanDetail/index.action?resourceValue=bean"});
@@ -1685,22 +1685,27 @@ function getCoupon() {
 					    }
 
 					}
-                    /* if (useable[i].couponTitle.indexOf('极速版APP活动') > -1) {						
-                        $.couponEndTime = useable[i].endTime;
-                        $.startIndex = useable[i].couponTitle.indexOf('-') - 3;
-                        $.endIndex = useable[i].couponTitle.indexOf('元') + 1;
-                        $.couponName = useable[i].couponTitle.substring($.startIndex, $.endIndex);
-
-                        if ($.couponEndTime < $.todayEndTime) {
-                            $.message += `【极速版券】${$.couponName}(今日过期)\n`;
-                        } else if ($.couponEndTime < $.tomorrowEndTime) {
-                            $.message += `【极速版券】${$.couponName}(明日将过期)\n`;
-                        } else {
-                            $.couponEndTime = timeFormat(parseInt($.couponEndTime));
-                            $.message += `【极速版券】${$.couponName}(有效期至${$.couponEndTime})\n`;
+                    if (useable[i].couponTitle.indexOf('极速版APP活动') > -1 && useable[i].limitStr=='仅可购买活动商品') {						
+                        $.beginTime = useable[i].beginTime;
+                        if ($.beginTime < new Date().getTime() && useable[i].coupontype === 1) {                            
+							if (useable[i].platFormInfo) 
+								$.platFormInfo = useable[i].platFormInfo;
+							var decquota=parseFloat(useable[i].quota).toFixed(2);
+							var decdisc= parseFloat(useable[i].discount).toFixed(2);
+							
+							$.message += `【极速版券】满${decquota}减${decdisc}元`;
+							
+							if (useable[i].endTime < $.todayEndTime) {
+								$.message += `(今日过期,${$.platFormInfo})\n`;
+							} else if (useable[i].endTime < $.tomorrowEndTime) {
+								$.message += `(明日将过期,${$.platFormInfo})\n`;
+							} else {
+								$.message += `(${$.platFormInfo})\n`;
+							}
+							
                         }
 
-                    } */
+                    }
                     //8是支付券， 7是白条券
                     if (useable[i].couponStyle == 7 || useable[i].couponStyle == 8) {
                         $.beginTime = useable[i].beginTime;
