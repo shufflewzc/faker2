@@ -115,13 +115,12 @@ function getCart_xh() {
         }
         $.get(option, async (err, resp, data) => {
             try {
-                let content = getSubstr(data, "window.cartData = ", "window._PFM_TIMING").replace(/\s*/g, "");
-                data = JSON.parse(content);
+                data = JSON.parse(data.match(/window\.cartData = ([^;]*)/)[1])
                 $.areaId = data.areaId;   // locationId的传值
                 $.traceId = data.traceId; // traceid的传值
                 venderCart = data.cart.venderCart;
                 postBody = 'pingouchannel=0&commlist=';
-                $.beforeRemove = data.cartJson.num
+                $.beforeRemove = data.cart.currentCount ? data.cart.currentCount : 0;
                 console.log(`获取到购物车数据 ${$.beforeRemove} 条`)
             } catch (e) {
                 $.logErr(e, resp);
@@ -203,13 +202,6 @@ function removeCart() {
             }
         });
     })
-}
-
-function getSubstr(str, leftStr, rightStr) {
-    let left = str.indexOf(leftStr);
-    let right = str.indexOf(rightStr, left);
-    if (left < 0 || right < left) return '';
-    return str.substring(left + leftStr.length, right);
 }
 
 function TotalBean() {
