@@ -23,7 +23,6 @@ if ($.isNode()) {
     cookiesArr = cookiesArr.filter(item => !!item);
 }
 
-console.log("脚本部份加密,不喜欢勿跑!!!,10次抽奖机会,3个助力一次抽奖,入口 https://lzkjdz-isv.isvjcloud.com/esteelauder/inviteNew/activityPage?activityId=2205100037674501")
 !(async () => {
     $.getAuthorCodeListerr = false
     if (!cookiesArr[0]) {
@@ -33,9 +32,7 @@ console.log("脚本部份加密,不喜欢勿跑!!!,10次抽奖机会,3个助力�
     authorCodeList = await getAuthorCodeList('https://raw.githubusercontent.com/okyyds/duck/master/code/lzkjdz.json')
     if ($.getAuthorCodeListerr === false) {
         authorCodeList = [
-            '1f5e9466fdd24c6bb20e91414a7e8e73',
-            'f05e242294cf4620b08dfb980a7d48d4',
-            'b6ab9357c3ef4ee7a4abac4867c85143'
+            'eaee1e93884f4b008b2ff630cb5031b2',
         ]
     }
     for (let i = 0; i < cookiesArr.length; i++) {
@@ -60,15 +57,15 @@ console.log("脚本部份加密,不喜欢勿跑!!!,10次抽奖机会,3个助力�
             $.ADID = getUUID('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 1);
             $.UUID = getUUID('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
             // authorCodeList = [
-            //     // '1f5e9466fdd24c6bb20e91414a7e8e73',
-            //     '54f086a80f404c04971a2fa70ac3f2dd',
-            //     'b78b710b23f145edbc163dcc6eb03dc8'
+            //     'eaee1e93884f4b008b2ff630cb5031b2',
+            //     '5ebde0a8cd9a4b36aab2d602d6eb365b',
+            //     'fd9e4abc20c34a1ebe642e237b49a947'
             // ]
             // $.authorCode = authorCodeList[random(0, authorCodeList.length)]
             $.authorCode = ownCode ? ownCode : authorCodeList[random(0, authorCodeList.length)]
             $.authorNum = `${random(1000000, 9999999)}`
             $.randomCode = random(1000000, 9999999)
-            $.activityId = '2205100037674501'
+            $.activityId = '2206100037674501'
             $.activityShopId = '1000376745'
             $.activityUrl = `https://lzkjdz-isv.isvjcloud.com/esteelauder/inviteNew/activityPage?activityId=${$.activityId}&inviterUuid=${encodeURIComponent($.authorCode)}&shareuserid4minipg=${encodeURIComponent($.secretPin)}&sid=&un_area=`
             await member();
@@ -110,6 +107,7 @@ async function member() {
             await taskaccessLog('common/accessLogWithAD', `venderId=${$.activityShopId}&code=99&pin=${encodeURIComponent($.secretPin)}&activityId=${$.activityId}&pageUrl=${$.activityUrl}&subType=app&adSource=null`, 1);
             // await task('wxActionCommon/getUserInfo', `pin=${encodeURIComponent($.secretPin)}`, 1)
             await $.wait(1000)
+            console.log(cookie)
             if ($.index === 1) {
                 await task('inviteNew/activityContent', `activityId=${$.activityId}&pin=${encodeURIComponent($.secretPin)}&inviterUuid=${encodeURIComponent($.authorCode)}`, 0, 1)
             } else {
