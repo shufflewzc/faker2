@@ -85,7 +85,9 @@ if ($.isNode()) {
                     $.keywordsNum = 0
                     if ($.beforeRemove !== "0") {
                         await cartFilter_xh(venderCart);
+												$.retry = 0;
                         if (parseInt($.beforeRemove) !== $.keywordsNum) await removeCart();
+												if($.retry = 2) break;
                         else {
                             console.log('\n由于购物车内的商品均包含关键字，本次执行将不删除购物车数据')
                             break;
@@ -194,6 +196,7 @@ function removeCart() {
                     console.log('删除失败')
                     console.log(data.errMsg)
                     $.error = true;
+										$.retry++;
                 }
             } catch (e) {
                 $.logErr(e, resp);
