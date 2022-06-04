@@ -51,7 +51,11 @@ async function main(ck, code = 'JdhENNw') {
     let jfInfo = await getInfoByUrl($, ck, code);
     ck = jfInfo['ck'];
     let url2 = jfInfo['url'];
-    let UA = getUA();
+    // let UA = getUA();
+    $.ADID = getUUID('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 1);
+    $.UUID = getUUID('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+    let UA = `jdapp;iPhone;9.5.4;13.6;${$.UUID};network/wifi;ADID/${$.ADID};model/iPhone10,3;addressid/0;appBuild/167668;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`;
+
     let actId = url2.match(/mall\/active\/([^/]+)\/index\.html/) && url2.match(/mall\/active\/([^/]+)\/index\.html/)[1] || '2UboZe4RXkJPrpkp6SkpJJgtRmod';
     await getHtml(url2, ck, UA)
     await takeRequest(ck, UA, userName, actId, code);
@@ -71,6 +75,17 @@ function getUA() {
     let build = ["167814", "167841"][randomNum(0, 1)]
     let appVersion = buildMap[build]
     return `jdapp;iPhone;${appVersion};${osVersion};${UUID};${network};model/${mobile};addressid/${randomNum(1e9)};appBuild/${build};jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS ${osVersion.replace(/\./g, "_")} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`
+}
+function getUUID(format = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', UpperCase = 0) {
+    return format.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        if (UpperCase) {
+            uuid = v.toString(36).toUpperCase();
+        } else {
+            uuid = v.toString(36)
+        }
+        return uuid;
+    });
 }
 function randomNum(min, max) {
     if (arguments.length === 0) return Math.random()
