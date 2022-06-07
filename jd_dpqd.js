@@ -3,14 +3,14 @@
 ============Quantumultx===============
 [task_local]
 #店铺签到
-15 2,14 * * * https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js, tag=店铺签到, enabled=true
+15 2,14 * * * https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.js, tag=店铺签到, enabled=true
 ===========Loon============
 [Script]
-cron "15 2,14 * * *" script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js,tag=店铺签到
+cron "15 2,14 * * *" script-path=https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.js,tag=店铺签到
 ============Surge=============
-店铺签到 = type=cron,cronexp="15 2,14 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js
+店铺签到 = type=cron,cronexp="15 2,14 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.js
 ===========小火箭========
-店铺签到 = type=cron,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.jss, cronexpr="15 2,14 * * *", timeout=3600, enable=true
+店铺签到 = type=cron,script-path=https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.jss, cronexpr="15 2,14 * * *", timeout=3600, enable=true
 */
 const $ = new Env('店铺签到');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -27,10 +27,10 @@ let shopname=''
 const token = [
   "35BA76ED53A953E03F77EE5379C28BE5",
   "4BE1B58FE1360409A5967CAD1127B5A8",
-  "CE4C976E0F6B9C0C10ECCC68A9E2B885",
+  "60454759577C6664C8AAAFEEBE25B7A1",
   "3B27B2B9E70249C339D66F27B7E133F0",
   "C031053EDBD2C047C072C53F80D82577",
-  "3458BF494FAEA0AEA7C34E36EB587A33",
+  "572B5331C2303ABFF034700EDDFE2B41",
   "979F3F329012E8BE0D64DA1B7D6F024B",
   "3B864BF96848A44E170A26D2791E0AE3",
   "1C963AA3BBBD0396784BD0CA527BCDF8",
@@ -41,8 +41,8 @@ const token = [
   "451389BCDC4E8B258DD3F21CDB827589",
   "57970BD464D679B43A7A0F5585F42677",
   "8029DFB0D9ADF5C6E96AF7D542B3E715",
-  "A47418AED7F226A649E8886FCE2E02B3",
-  "65604889E08858A41E2DDB76D075C3BA",
+  "7C54AE28BAEDCBB8C927768AE71CA0EF",
+  "3B864BF96848A44E170A26D2791E0AE3",
   "4706B9DB78BBCC66BCB76862EB147AD2",
   "F96D0FC8CC217B855988CA26E2A8BE74",
   "809569E3816B2C76210BFF8DB3F2766E",
