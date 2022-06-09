@@ -738,7 +738,7 @@ async function showMsg() {
 		ReturnMessage += `【京东秒杀】${$.JdMsScore}币(≈${($.JdMsScore / 1000).toFixed(2)}元)\n`;
 	}
 	if($.ECardinfo)
-		ReturnMessage += `【京东E卡】${$.ECardinfo}\n`;
+		ReturnMessage += `【礼卡余额】${$.ECardinfo}\n`;
 
 	if ($.joylevel || $.jdCash || $.JoyRunningAmount) {
 		ReturnMessage += `【其他信息】`;

@@ -54,7 +54,7 @@ if ($.isNode()) {
             }
 			for (let j = 0; j < lottery.length; j++) {
 			$.configCode = lottery[j]
-			console.log(`抽奖机ID就位: ${$.configCode}，准备开始薅豆`);
+			console.log(`活动ID: ${$.configCode}`);
             await getUA()
 			await jdmodule();
             //await showMsg();
@@ -79,6 +79,7 @@ function showMsg() {
 
 async function jdmodule() {
     let runTime = 0;
+    console.log('\n开始做任务：');
     do {
         await getinfo(); //获取任务
         $.hasFinish = true;
@@ -86,10 +87,16 @@ async function jdmodule() {
         runTime++;
     } while (!$.hasFinish && runTime < 10);
     await getinfo();
-    console.log("开始抽奖");
+    var num=1;
+    if ($.chanceLeft >= 1) {
+        console.log('\n开始抽奖');
+    } else {
+        console.log('\n没有抽奖机会了');
+    }
     for (let x = 0; x < $.chanceLeft; x++) {
-        await join();
+        await join(num);
         await $.wait(1500)
+        num++
     }
 }
 
@@ -100,25 +107,29 @@ async function run() {
             if (vo.hasFinish === true) {
                 continue;
             }
+            if (!vo.taskItem) {
+                continue;
+            }
+            //console.log(vo);
             if (vo.taskName == '每日签到') {
-                console.log(`开始做${vo.taskName}:${vo.taskItem.itemName}`);
+                console.log(`${vo.taskName} => ${vo.taskItem.itemName}`);
                 await doTask(vo.taskType, vo.taskItem.itemId, vo.id);
                 await getReward(vo.taskType, vo.taskItem.itemId, vo.id);
             }
             if (vo.taskType == 3) {
-                console.log(`开始做${vo.taskName}:${vo.taskItem.itemName}`);
+                console.log(`${vo.taskName} => ${vo.taskItem.itemName}`);
                 await getinfo2(vo.taskItem.itemLink);
                 await $.wait(1000 * vo.viewTime)
                 await doTask(vo.taskType, vo.taskItem.itemId, vo.id);
                 await getReward(vo.taskType, vo.taskItem.itemId, vo.id);
             }
             if (vo.taskType == 4) {
-                console.log(`开始做${vo.taskName}:${vo.taskItem.itemName}`);
+                console.log(`${vo.taskName} => ${vo.taskItem.itemName}`);
                 await doTask(vo.taskType, vo.taskItem.itemId, vo.id);
                 await getReward(vo.taskType, vo.taskItem.itemId, vo.id);
             }
             if (vo.taskType == 2) {
-                console.log(`开始做${vo.taskName}:${vo.taskItem.itemName}`);
+                console.log(`${vo.taskName} => ${vo.taskItem.itemName}`);
                 await doTask(vo.taskType, vo.taskItem.itemId, vo.id);
                 await getReward(vo.taskType, vo.taskItem.itemId, vo.id);
             }
@@ -170,7 +181,7 @@ function getinfo() {
 }
 
 //抽奖
-function join() {
+function join(num) {
     return new Promise(async (resolve) => {
         $.get({
             url: `https://jdjoy.jd.com/module/task/draw/join?configCode=${$.configCode}&fp=${randomWord(false, 32, 32)}&eid=`,
@@ -193,7 +204,11 @@ function join() {
                 } else {
                     data = JSON.parse(data);
                     if (data.success == true) {
-                        console.log(`抽奖结果:${data.data.rewardName}`);
+                        if (data.data.rewardName == null) {
+                            console.log(`第${num}次获得: 空气`);
+                        } else {
+                            console.log(`第${num}次获得: ${data.data.rewardName}`);
+                        }
                     }
                     else {
                         console.log(data.errorMessage);
@@ -220,7 +235,7 @@ function doTask(taskType, itemId, taskid) {
                 } else {
                     data = JSON.parse(data);
                     if (data.success == true) {
-                        console.log("任务成功");
+                        // console.log("任务成功");
                     } else {
                         console.log(data.errorMessage);
                     }
@@ -247,7 +262,7 @@ function getReward(taskType, itemId, taskid) {
                 } else {
                     data = JSON.parse(data);
                     if (data.success == true) {
-                        console.log("任务奖励领取成功");
+                        //console.log("任务奖励领取成功");
                     } else {
                         console.log(data.errorMessage);
                     }
