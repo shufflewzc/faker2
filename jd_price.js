@@ -196,7 +196,7 @@ async function jstoken() {
   };
   const dom = new JSDOM(`<body>
   <script src="https:////static.360buyimg.com/siteppStatic/script/mescroll/map.js"></script>
-  <script src="https://storage.360buyimg.com/webcontainer/js_security_v3.js"></script>
+  <script src="https://storage.360buyimg.com/webcontainer/js_security_v3_0.1.0.js"></script>
   <script src="https://static.360buyimg.com/siteppStatic/script/utils.js"></script>
   <script src="https://js-nocaptcha.jd.com/statics/js/main.min.js"></script>
   </body>`, options);

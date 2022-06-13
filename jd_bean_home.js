@@ -66,6 +66,7 @@ const JD_API_HOST = 'https://api.m.jd.com/';
         continue
       }
       await jdBeanHome();
+			await $.wait(parseInt(Math.random() * 5000 + 8000, 10))
     }
   }
   // for (let i = 0; i < cookiesArr.length; i++) {
@@ -111,11 +112,6 @@ const JD_API_HOST = 'https://api.m.jd.com/';
   //     }
   //   }
   // }
-	if($.outFlag) {
-    let msg = '好像IP黑了，换个IP试试吧'
-    $.msg($.name, ``, `${msg}`);
-    if ($.isNode()) await notify.sendNotify(`${$.name}`, `${msg}`);
-  }
 })()
   .catch((e) => {
     $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
@@ -132,11 +128,11 @@ async function jdBeanHome() {
     //   await $.wait(1000)
     //   if ($.doneState) break
     // }
+		$.outFlag = false
 		do {
-			$.outFlag = false
       await doTask2()
-			if ($.outFlag) return
-      await $.wait(3000)
+			if ($.outFlag) break
+      await $.wait(5000)
     } while (!$.doneState)
     await $.wait(1000)
     await award("feeds")
@@ -150,16 +146,16 @@ async function jdBeanHome() {
     //await $.wait(1000)
 
     await beanTaskList(1)
-    await $.wait(1000)
+    await $.wait(2000)
     await queryCouponInfo()
     $.doneState = false
     let num = 0
     do {
-      await $.wait(2000)
+      await $.wait(3000)
       await beanTaskList(2)
       num++
     } while (!$.doneState && num < 5)
-    await $.wait(2000)
+    await $.wait(3000)
     if ($.doneState) await beanTaskList(3)
 
     await showMsg();
