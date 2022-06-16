@@ -6,7 +6,6 @@ activityId 活动id
 activityUrl 活动url
 pin 用户名
 num 跑多少ck
-againUserIndex 需要重新跑的ck
 
 如果查询活动剩余瓜分为0，请务必手动停止脚本。否则会一直运行，因为 需要重新跑的ck 会一直重复跑。
 
@@ -29,7 +28,7 @@ cron:1 1 1 1 *
 1 1 1 1 * jd_opencardL151.js, tag=微定制瓜分京豆, enabled=true
 */
 
-function openCardActivity(activityId, activityUrl, pin, num, againUserIndex) {
+function openCardActivity(activityId, activityUrl, pin, num) {
   return new Promise((resolve) => {
 	const prefix = activityUrl.includes("cjhydz") ? "cjhydz" : "lzkjdz";
     const $ = new Env("微定制瓜分京豆");
@@ -56,16 +55,12 @@ function openCardActivity(activityId, activityUrl, pin, num, againUserIndex) {
     if(pin) {
       const idx = cookiesArr.findIndex((v) => v.includes(pin));
       const currentCookie = cookiesArr.splice(idx, 1);
-      cookiesArr = [...currentCookie, ...cookiesArr.slice(1, num)];
-    }
-
-
-    if (againUserIndex.length > 0) {
-      cookiesArr = cookiesArr.filter((v, idx) => againUserIndex.includes(idx));
+      cookiesArr = [...currentCookie, ...cookiesArr.slice(0, num)];
     }
 
     !(async () => {
-	console.log("\n【如果显示：奖品与您擦肩而过了哟，可能是 此活动黑了！ 】\n【如果显示：Response code 493 ，可能是 变量不正确！ 】\n【还是显示：Response code 493 ，那么 此容器IP黑了！ 】\n");
+			console.log("\n【如果显示：奖品与您擦肩而过了哟，可能是 此活动黑了！ 】\n【如果显示：Response code 493 ，可能是 变量不正确！ 】\n【还是显示：Response code 493 ，那么 此容器IP黑了！ 】\n");
+			console.log("【当前活动入口】\nhttps://cjhydz-isv.isvjcloud.com/microDz/invite/activity/wx/view/index/8882761?activityId=" + activityId );
       if (!activityId) {
         $.msg($.name, "", "活动id不存在");
         $.done();
@@ -111,18 +106,6 @@ function openCardActivity(activityId, activityUrl, pin, num, againUserIndex) {
           }
         }
       }
-      if (againUserIndex.length > 0) {
-        console.log(
-          `${againUserIndex.join("、")} 用户需要重新跑！即将开始重新跑~`
-        );
-        await openCardActivity(
-          activityId,
-          activityUrl,
-          pin,
-          num,
-          againUserIndex
-        );
-      }
       resolve();
     })()
       .catch((e) => {
@@ -152,7 +135,10 @@ function openCardActivity(activityId, activityUrl, pin, num, againUserIndex) {
       if ($.userId) {
         await $.wait(1000);
         if ($.Token) await getPin();
-        console.log("pin:" + $.Pin);
+				if(!$.Pin){
+				console.log('获取[Pin]失败！')
+				return
+				}
         await accessLog();
         if (prefix !== "cjhydz") {
           await $.wait(1000);
@@ -583,7 +569,6 @@ function joinTeam(count = 0x0) {
 									await joinTeam(1);
 								} else {
 									console.log("异常7：" + JSON.stringify(data));
-									if (!data.data.rewardPoint) againUserIndex.push($.index);
 									if (data.errorMessage.includes("奖品发送完毕"))
 										process.exit(1);
 									message +=
