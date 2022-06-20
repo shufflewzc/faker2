@@ -3,14 +3,14 @@
 ============Quantumultx===============
 [task_local]
 #店铺签到
-15 2,14 * * * https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js, tag=店铺签到, enabled=true
+15 2,14 * * * https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.js, tag=店铺签到, enabled=true
 ===========Loon============
 [Script]
-cron "15 2,14 * * *" script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js,tag=店铺签到
+cron "15 2,14 * * *" script-path=https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.js,tag=店铺签到
 ============Surge=============
-店铺签到 = type=cron,cronexp="15 2,14 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js
+店铺签到 = type=cron,cronexp="15 2,14 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.js
 ===========小火箭========
-店铺签到 = type=cron,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.jss, cronexpr="15 2,14 * * *", timeout=3600, enable=true
+店铺签到 = type=cron,script-path=https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.jss, cronexpr="15 2,14 * * *", timeout=3600, enable=true
 */
 const $ = new Env('店铺签到');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -25,26 +25,25 @@ let vender=''
 let num=0
 let shopname=''
 const token = [
-  "3169D909A54B89AD9365CA5D6DEAE7AE",
-  "4BE1B58FE1360409A5967CAD1127B5A8",
+  "C3BACB3B2B01C4CE1773FAA4D527C558",
+  "9B5EA7F650F292C58811CBF49FB60B2B",
   "DBD58C7DDEB7D5EE3E99C164755C0BEE",
   "3B27B2B9E70249C339D66F27B7E133F0",
-  "83E3C2227A9EEF3CC3A427DD79CB9902",
-  "7900C792CFD20EE96EA96A72D652E664",
-  "979F3F329012E8BE0D64DA1B7D6F024B",
+  "342934FF29611CB62EF78EB90CB0AB29",
+  "EF7855941D2146593FA7411F7994AB4D",
+  "7BDE362C7EC7AD46016A58A0782254C5",
   "1C963AA3BBBD0396784BD0CA527BCDF8",
   "C5FD1482A207F2CC65570F8FBC492C9A",
   "5CF1A3455369BDB3D1153D9FC974CAFA",
   "E29627AF30D59CF7FE7B01C63BD9A975",
   "6456528318873762DF731CE5CC4C1DAF",
   "22E454E7DA34CBA96DFAB150C2882193",
-  "67A72DF4DCE945E561051B08A48594A9",
+  "CAA0FA07FE5FE40329504208C891CF06",
   "7C54AE28BAEDCBB8C927768AE71CA0EF",
   "809569E3816B2C76210BFF8DB3F2766E",
 	"3B864BF96848A44E170A26D2791E0AE3",
-  "0CB602BF5179A3A4670621F3F83C494E",
 	"7D7E23BB728C9D7425C776BDC8943D10",
-	"9F75D813CBE3D1F9B146F002FEA4FF2D"
+	"46D8CB32794AB8EA1F42E83360918961"
 ]
 
 if ($.isNode()) {
