@@ -373,7 +373,12 @@ async function getMyPing(timeout = 500) {
                          $.log(`${JSON.stringify(err)}`);
                      }else {
                          $.data = JSON.parse(data);
-                         // console.log(JSON.stringify($.data,null, '\t'));
+												 rep_cookies = resp.headers['set-cookie'];
+												// console.log(rep_cookies);
+												r_cookie='';
+												for(var c in rep_cookies){
+														r_cookie += rep_cookies[c].split(" ")[0];
+												}
                           if($.data.result){
                               username=$.data.data.nickname;
                               pin=encodeURIComponent($.data.data.secretPin);
