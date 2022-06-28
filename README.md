@@ -1,3 +1,1 @@
-# faker2
-
-https://t.me/scriptalking
+自用
