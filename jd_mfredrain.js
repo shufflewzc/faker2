@@ -84,7 +84,7 @@ async function dotask() {
 
 function taskUrl() {
   return {
-    url: `https://api.m.jd.com/client.action?client=wh5&clientVersion=1.0.0&appid=redrain-2021&functionId=doInteractiveAssignment&body=%7B%22completionFlag%22:true,%22sourceCode%22:%22acehby20210924%22,%22encryptProjectId%22:%223sXXaRM6gCUyJc4LwYU7EZpYhrcq%22,%22encryptAssignmentId%22:%228ppJjFktuVPrJKPVYZin9z6fgtv%22%7D`,
+    url: `https://api.m.jd.com/client.action?client=wh5&clientVersion=1.0.0&appid=redrain-2021&functionId=doInteractiveAssignment&body=%7B%22completionFlag%22:true,%22sourceCode%22:%22acehby20210924%22,%22encryptProjectId%22:%22uyuXxVVy8C3AarwZ2VAHecYNat6%22,%22encryptAssignmentId%22:%2246xcZZ1QaAG7ykQzpDNtSwarHxSk%22%7D`,
     headers: {
       'Host': 'api.m.jd.com',
       'accept':'application/json, text/plain, */*',
