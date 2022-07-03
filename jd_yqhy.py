@@ -94,7 +94,7 @@ async def plogin(ua,cookie):
         'Referer': 'https://prodev.m.jd.com/',
         'User-Agent':ua
     }
-    response = requests.get(url=url,headers=header,timeout=5).text
+    response = requests.get(url=url,headers=header,timeout=30).text
     return response
 
 # 活动接口
