@@ -1,7 +1,10 @@
 /**
- * 京东-新品-魔方
- * rabbit log
- * cron: 10 9,12,15 * * *
+ * const $ = new Env('京东新品-集魔方兑换-本地log版');
+ * cron: 10 8 * * *
+ * Fix by HarbourJ
+ * TG: https://t.me/HarbourToulu
+ * 默认魔方满3/6自动兑换
+ * 已内置log，不定时更新，若火爆请在HarbourTouluChat反馈以便及时更新log。
  */
 
 import {requireConfig, wait, post, get} from './TS_USER_AGENTS'
@@ -9,14 +12,14 @@ import {existsSync} from "fs";
 import * as dotenv from 'dotenv'
 
 let cookie: string = '', res: any = '', UserName: string, index: number, log: string = ''
-let rabbitToken: string = process.env.RABBIT_TOKEN || '', tg_id: string = process.env.TG_ID || '', mf_logs: any
+let mf_logs: any, logApi: boolean = false // 若有log接口请改为true并修改line174接口地址
 
 !(async () => {
   dotenv.config()
-  if (existsSync('./test/mf_log.ts')) {
-    mf_logs = require('./test/mf_log').mf_logs
+  if (existsSync('./utils/mf_log.ts')) {
+    mf_logs = require('./utils/mf_log').mf_logs
   } else {
-    console.log('./test/mf_log not found')
+    console.log('./utils/mf_log not found')
   }
   let cookiesArr: any = await requireConfig()
   for (let i = 0; i < cookiesArr.length; i++) {
@@ -24,9 +27,11 @@ let rabbitToken: string = process.env.RABBIT_TOKEN || '', tg_id: string = proces
     UserName = decodeURIComponent(cookie.match(/pt_pin=([^;]*)/)![1])
     index = i + 1
     console.log(`\n开始【京东账号${index}】${UserName}\n`)
-
+    if (logApi === true) {
+      console.log("开启船长🛳偷撸模式")
+    }
     res = await api("functionId=getInteractionHomeInfo&body=%7B%22sign%22%3A%22u6vtLQ7ztxgykLEr%22%7D&appid=content_ecology&client=wh5&clientVersion=1.0.0")
-    let sign: string = res.result.taskConfig.projectId
+    let sign: string = res.result.taskConfig.projectId, reward: string = res.result.taskConfig.projectPoolId, rewardSign: string = res.result.giftConfig.projectId
 
     res = await api(`functionId=queryInteractiveInfo&body=%7B%22encryptProjectId%22%3A%22${sign}%22%2C%22sourceCode%22%3A%22acexinpin0823%22%2C%22ext%22%3A%7B%7D%7D&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
     for (let t of res.assignmentList) {
@@ -101,9 +106,53 @@ let rabbitToken: string = process.env.RABBIT_TOKEN || '', tg_id: string = proces
             }
           }
         } else if (t.assignmentName === '去新品频道逛逛') {
-
         }
       }
+    }
+
+    res = await api(`functionId=queryInteractiveRewardInfo&body=${encodeURIComponent(JSON.stringify({"encryptProjectPoolId":reward,"sourceCode":"acexinpin0823","ext":{"needPoolRewards":1,"needExchangeRestScore":1}}))}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
+    let sum: number = res.exchangeRestScoreMap["368"]
+    console.log('当前碎片', sum+'片')
+    if (sum >= 6) {
+        for (let k = 1; k <= Math.floor(sum / 6); k++) {
+            console.log(`开始第${k}次收集魔方`)
+            log = await getLog()
+            res = await api(`functionId=doInteractiveAssignment&body=${JSON.stringify({"encryptProjectId": rewardSign, "encryptAssignmentId": "wE62TwscdA52Z4WkpTJq7NaMvfw", "sourceCode": "acexinpin0823", "itemId": "", "actionType": "", "completionFlag": "", "ext": {"exchangeNum": 1}, "extParam": {"businessData": {"random": log.match(/"random":"(\d+)"/)[1]}, "signStr": log.match(/"log":"(.*)"/)[1], "sceneid": "XMFDHh5"}})}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
+            if (res.subCode === '0') {
+            console.log('收集成功')
+            } else {
+            console.log('收集失败', res.msg)
+            }
+            await wait(3000)
+        }
+    }
+
+    res = await api(`functionId=queryInteractiveRewardInfo&body=${encodeURIComponent(JSON.stringify({"encryptProjectId": rewardSign, "sourceCode": "acexinpin0823", "ext": {"needExchangeRestScore": "1"}}))}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
+    let score: number = res.exchangeRestScoreMap["367"]
+    console.log('当前魔方', score+'个')
+    if (score >= 6) {
+      log = await getLog()
+      res = await api(`functionId=doInteractiveAssignment&body=${JSON.stringify({"encryptProjectId": rewardSign, "encryptAssignmentId": "42pP1FaQ4FTMurVsJpZhiFJXCZox", "sourceCode": "acexinpin0823", "itemId": "", "actionType": "", "completionFlag": "", "ext": {"exchangeNum": 1}, "extParam": {"businessData": {"random": log.match(/"random":"(\d+)"/)[1]}, "signStr": log.match(/"log":"(.*)"/)[1], "sceneid": "XMFDHh5"}})}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
+      if (res.subCode === '0') {
+        console.log('兑换6魔方成功:', res.rewardsInfo.successRewards['3'][0].rewardName)
+        score -= 6
+      } else {
+        console.log('兑换6魔方失败:', res.msg)
+      }
+    }
+    if (score >= 3) {
+      log = await getLog()
+      res = await api(`functionId=doInteractiveAssignment&body=${JSON.stringify({"encryptProjectId": rewardSign, "encryptAssignmentId": "khdCzL9YRdYjh3dWFXfZLteUTYu", "sourceCode": "acexinpin0823", "itemId": "", "actionType": "", "completionFlag": "", "ext": {"exchangeNum": 1}, "extParam": {"businessData": {"random": log.match(/"random":"(\d+)"/)[1]}, "signStr": log.match(/"log":"(.*)"/)[1], "sceneid": "XMFDHh5"}})}&client=wh5&clientVersion=1.0.0&appid=content_ecology`)
+      if (res.subCode === '0') {
+        console.log('兑换3魔方成功:', res.rewardsInfo.successRewards['3'][0].rewardName)
+        score -= 3
+        console.log('剩余魔方', score+'个')
+      } else {
+        console.log('兑换3魔方失败:', res.msg)
+        console.log('剩余魔方', score+'个')
+      }
+    } else {
+        console.log(`当前只有${score}个魔方,不够兑换`)
     }
   }
 })()
@@ -121,9 +170,8 @@ async function api(params: string) {
 }
 
 async function getLog() {
-  if (rabbitToken && tg_id) {
-    console.log('rabbit log api')
-    let {data} = await get(`http://www.madrabbit.cf:8080/license/log?tg_id=${tg_id}&token=${rabbitToken}`)
+  if (logApi === true) {
+    let data = await get("此处填写logApi") //若有,请把log接口填写在此处
     return `'"random":"${data.random}","log":"${data.log}"'`
   } else if (mf_logs) {
     return mf_logs[Math.floor(Math.random() * mf_logs.length)]
