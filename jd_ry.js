@@ -164,9 +164,9 @@ async function run() {
         if(i.rewardType != 2){
           let msg = `【京东账号${$.index}】${$.nickName || $.UserName}\n类型:${i.rewardType} ${i.rewardName} ${i.limitStr}\n`
           if ($.isNode()){
-            await notify.sendNotify(`${$.name}`, `${msg}`);
+            //await notify.sendNotify(`${$.name}`, `${msg}`);
           }else{
-            $.msg($.name, ``, `${msg}`);
+            //$.msg($.name, ``, `${msg}`);
           }
         }
       }
