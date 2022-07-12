@@ -21,7 +21,7 @@ try:
     from jdCookie import get_cookies
     getCk = get_cookies()
 except:
-    print("请先下载依赖脚本，\n下载链接：https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/JDCookie.py")
+    print("请先下载依赖脚本，\n下载链接：https://raw.githubusercontent.com/shufflewzc/faker2/main/jdCookie.py")
     sys.exit(3)
 print = partial(print, flush=True)
 activatyname = '邀请赢大礼'
