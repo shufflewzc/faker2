@@ -6,7 +6,7 @@
  * 上一作者说了每天最多300个商店，总上限为500个，jd_unsubscribe.js我已更新为批量取关版
  * 请提前取关至少250个商店确保京东试用脚本正常运行
  * @Address: https://github.com/X1a0He/jd_scripts_fixed/blob/main/jd_try_xh.js
-cron "4 1-22/8 * * *" jd_try.js, tag:京东试用
+cron "44 1-22/8 * * *" jd_try.js, tag:京东试用
 
  */
 const $ = new Env('京东试用')
@@ -120,7 +120,7 @@ let args_xh = {
      * 可设置环境变量：JD_TRY_APPLYINTERVAL
      * 默认为3000，也就是3秒
      * */
-    applyInterval: process.env.JD_TRY_APPLYINTERVAL * 1 || 10000,
+    applyInterval: process.env.JD_TRY_APPLYINTERVAL * 1 || 30000,
     /*
      * 商品数组的最大长度，通俗来说就是即将申请的商品队列长度
      * 例如设置为20，当第一次获取后获得12件，过滤后剩下5件，将会进行第二次获取，过滤后加上第一次剩余件数
@@ -184,7 +184,7 @@ let args_xh = {
                 $.index = i + 1;
                 $.isLogin = true;
                 $.nickName = '';
-                await totalBean();
+                //await totalBean();
                 console.log(`\n开始【京东账号${$.index}】${$.nickName || $.UserName}\n`);
                 $.except = false;
                 if(args_xh.except.includes($.UserName)){
