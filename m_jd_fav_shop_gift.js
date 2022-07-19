@@ -1,9 +1,5 @@
-
-/*
-2 10 7 6 *  m_jd_fav_shop_gift.js
- */
 let mode = __dirname.includes('magic')
-const {Env} = mode ? require('./function/magic') : require('./function/magic')
+const {Env} = mode ? require('./magic') : require('./magic')
 const $ = new Env('M收藏有礼');
 $.favShopArgv = process.env.M_FAV_SHOP_ARGV
     ? process.env.M_FAV_SHOP_ARGV
@@ -67,7 +63,7 @@ $.logic = async function () {
     }
     await DelShopFav()
 };
-$.run({wait: [300, 1000],whitelist: ['1-5']})
+$.run({wait: [300, 1000],whitelist: ['1-99']})
 .catch(reason => $.log(reason))
 
 async function GiveShopGift() {

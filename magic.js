@@ -13,6 +13,9 @@ let testMode = process.env.TEST_MODE?.includes('on') ? true
 
 let mode = process.env.MODE ? process.env.MODE : "local"
 
+let apiToken = process.env.M_API_TOKEN ? process.env.M_API_TOKEN : ""
+let apiSignUrl = process.env.M_API_SIGN_URL ? process.env.M_API_SIGN_URL : "http://ailoveu.eu.org:19840/sign"
+
 let wxBlackCookiePin = process.env.M_WX_BLACK_COOKIE_PIN
     ? process.env.M_WX_BLACK_COOKIE_PIN : ''
 
@@ -851,14 +854,13 @@ class Env {
 
     async sign(fn, body = {}) {
         let b = {"fn": fn, "body": body};
-        let h = {"key": "fMQ8sw1y5zF4RZgT"}
+        let h = {"token": apiToken}
         try {
-            let {data} = await this.request(`http://140.238.59.174:17840/sign`,
-                h, b);
+            let {data} = await this.request(apiSignUrl, h, b);
+            console.log(data)
             return {fn: data.fn, sign: data.body};
         } catch (e) {
             console.log("sign接口异常")
-            //console.log("请自行配置sign实现")
         }
         return {fn: "", sign: ""};
     }

@@ -9,19 +9,13 @@
 变量：
 ## 入会开卡
 //export VENDER_ID=""
-## 最小入会值 （默认10）
-//export OPENCARD_BEAN=""
-
-cron:10 10 10 10 *
-============Quantumultx===============
-[task_local]
-#入会开卡领取礼包(通用)
-1 1 1 1 * jd_OpenCard_Force.js, tag=入会开卡领取礼包(通用), enabled=true
+## 最小入会值 （默认5）
+1 1 1 1 1 1 jd_OpenCard_Force.js, tag=入会开卡领取礼包(通用), enabled=true
 
 
 */
 
-const $ = new Env('入会开卡领取礼包通用');
+const $ = new Env('入会开卡领取礼包');
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const notify = $.isNode() ? require('./sendNotify') : '';
 //IOS等用户直接用NobyDa的jd cookie
@@ -29,7 +23,7 @@ CryptoScripts()
 $.CryptoJS = $.isNode() ? require('crypto-js') : CryptoJS;
 var timestamp = new Date().getTime()
 const VENDER_ID = process.env.VENDER_ID || "";
-const OPENCARD_BEAN = process.env.OPENCARD_BEAN || "10";
+const OPENCARD_BEAN = process.env.OPENCARD_BEAN || "5";
 
 let cookiesArr = [],
     cookie = '';

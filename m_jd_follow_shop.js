@@ -1,6 +1,6 @@
 /*
-7 7 7 7 7 m_jd_follow_shop.js
-*/
+1 1 1 1 1 1 m_jd_follow_shop.js
+ */
 let mode = __dirname.includes('magic')
 const {Env} = mode ? require('./magic') : require('./magic')
 const $ = new Env('M关注有礼');
@@ -59,7 +59,7 @@ $.after = async function () {
         $.msg.push($.activityUrl);
     }
 }
-$.run({whitelist: ['1-5'], wait: [1000, 3000]}).catch(reason => $.log(reason))
+$.run({whitelist: ['1-99'], wait: [1000, 3000]}).catch(reason => $.log(reason))
 
 async function drawShopGift() {
     $.log('店铺信息', $.shopId, $.venderId, $.activityId)
@@ -122,4 +122,3 @@ async function getShopHomeActivityInfo() {
     let {status, data} = await $.request(url, headers, newVar.sign);
     return data;
 }
-

@@ -1,6 +1,16 @@
 /*
-店铺签到
-15 2,14 * * * jd_dpqd.js
+店铺签到，各类店铺签到，有新的店铺直接添加token即可
+============Quantumultx===============
+[task_local]
+#店铺签到
+15 2,14 * * * https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js, tag=店铺签到, enabled=true
+===========Loon============
+[Script]
+cron "15 2,14 * * *" script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js,tag=店铺签到
+============Surge=============
+店铺签到 = type=cron,cronexp="15 2,14 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js
+===========小火箭========
+店铺签到 = type=cron,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.jss, cronexpr="15 2,14 * * *", timeout=3600, enable=true
 */
 const $ = new Env('店铺签到');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -15,20 +25,17 @@ let vender=''
 let num=0
 let shopname=''
 const token = [
-  "374951B8D50E5D4E01E40153413F00E9",
+  "7B5E686A0CAF1C144620A3FFE04AFF1E",
   "44C33E9D3144110A9FEE634A4888D31B",
   "3949F55A02AA8A345409AFD9821C861F",
-  "C387DE3A3F4381FB3E451F0C40069FE6",
   "05451231AF1DE95AC10FC3A56C3F8A73",
   "A92269DC92DDD73CC5EB38B3BACF51E3",
   "94C7B64A6137E339AAA79DC3A6465C1B",
-	"2ED2F283E4640130BA5128E8BBDC3DDA",
 	"1DD46671387EAC6FDC14B753E01D5E30",
 	"BD0D2682B13A75E0AAF7D8E78844F07C",
 	"662E62C629FB6B20CED938E41A0DC026",
 	"F573A078062F9F18BFCC39080864D7F5",
   "D7DCB5D6D847EB0167C2B0A180B95F68",
-	"D9831E95344C483C6B6B7D8FB314E0D7",
 	"582EA3EA048A3D49961766498A136F9C",
 	"2B9B07D1D14E821744F7BA63F94CD6F2",
 	"67D2D5824D043A5C2EA9C53B900B932C",
@@ -38,8 +45,6 @@ const token = [
 	"205E1E703925C48276C0DEBF16C6CBAD",
 	"D35923E942C11178C38BD29E783695B8",
 	"921478C146E5C60F2444E3978AC8E94F",
-	"F327D3978F47808803FD532F19BE3696",
-	"DCD4903E0278DBA70A302612F411876F",
 	"DB872465EDEB653BB501819F9B9DD326",
 	"D4BE8025929E6D662FBCB9F946BF4215",
 	"BC28601FD2C5B9A5D50038825C842358"
@@ -73,7 +78,7 @@ if ($.isNode()) {
       $.isLogin = true;
       $.nickName = '';
       message = '';
-      await TotalBean();
+      //await TotalBean();
       console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
       if (!$.isLogin) {
         $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
