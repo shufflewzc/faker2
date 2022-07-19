@@ -3,14 +3,14 @@
 ============Quantumultx===============
 [task_local]
 #店铺签到
-15 2,14 * * * https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js, tag=店铺签到, enabled=true
+15 2,14 * * * https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.js, tag=店铺签到, enabled=true
 ===========Loon============
 [Script]
-cron "15 2,14 * * *" script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js,tag=店铺签到
+cron "15 2,14 * * *" script-path=https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.js,tag=店铺签到
 ============Surge=============
-店铺签到 = type=cron,cronexp="15 2,14 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.js
+店铺签到 = type=cron,cronexp="15 2,14 * * *",wake-system=1,timeout=3600,script-path=https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.js
 ===========小火箭========
-店铺签到 = type=cron,script-path=https://raw.githubusercontent.com/shufflewzc/faker2/main/jd_shop_sign.jss, cronexpr="15 2,14 * * *", timeout=3600, enable=true
+店铺签到 = type=cron,script-path=https://raw.githubusercontent.com/KingRan/KR/main/jd_shop_sign.jss, cronexpr="15 2,14 * * *", timeout=3600, enable=true
 */
 const $ = new Env('店铺签到');
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -26,9 +26,9 @@ let num=0
 let shopname=''
 const token = [
   "7B5E686A0CAF1C144620A3FFE04AFF1E",
-  "44C33E9D3144110A9FEE634A4888D31B",
+  "8CD869EFF46D7EAB899C0FB67AEA8D5C",
   "3949F55A02AA8A345409AFD9821C861F",
-  "05451231AF1DE95AC10FC3A56C3F8A73",
+  "FBBDFE44FCD20A18A7D736DC3F640BCA",
   "A92269DC92DDD73CC5EB38B3BACF51E3",
   "94C7B64A6137E339AAA79DC3A6465C1B",
 	"1DD46671387EAC6FDC14B753E01D5E30",
@@ -37,12 +37,11 @@ const token = [
 	"F573A078062F9F18BFCC39080864D7F5",
   "D7DCB5D6D847EB0167C2B0A180B95F68",
 	"582EA3EA048A3D49961766498A136F9C",
-	"2B9B07D1D14E821744F7BA63F94CD6F2",
+	"A44D1CA090231A92D24F0B1E5B38BD5A",
 	"67D2D5824D043A5C2EA9C53B900B932C",
 	"2C8CBED431A4A275155387ABDF958427",
 	"833CE1B5158A097598C07D4B2B5B314E",
 	"37D0FAA99892A9E613A1B46E5A55973B",
-	"205E1E703925C48276C0DEBF16C6CBAD",
 	"D35923E942C11178C38BD29E783695B8",
 	"921478C146E5C60F2444E3978AC8E94F",
 	"DB872465EDEB653BB501819F9B9DD326",
