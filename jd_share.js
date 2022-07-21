@@ -1,23 +1,41 @@
 /* 
-1 1 1 1 1 1 jd_share.js
-注意控制ck数量
-车头数量OWN_COOKIE_NUM，默认为1
+活动地址为：https://lzkjdz-isv.isvjcloud.com/wxShareActivity/activity/6432842?activityId=xxxxx
+一共有2个变量
+jd_fxyl_activityId  活动ID 必需
+
+
+其他变量：
+OWN_COOKIE_NUM  需要被助力的人数
+HELP_COOKIE_NUM 助力的人数
+
+作者：小埋
+
+cron:1 1 1 1 *
+============Quantumultx===============
+[task_local]
+#LZ分享有礼
+1 1 1 1 * jd_share.js, tag=LZ分享有礼, enabled=true
+
 */
-const $ = new Env("分享有礼");
+const $ = new Env("LZ分享有礼");
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const notify = $.isNode() ? require('./sendNotify') : '';
 let cookiesArr = [], cookie = '', message = '';
 let authorCodeList = [];
-let ownCookieNum = 1;
+let ownCookieNum = 3;
+let helpCookieNum = 5;
 let isGetAuthorCodeList = true
 let activityId = ''
 let activityShopId = ''
 
-if (process.env.OWN_COOKIE_NUM && process.env.OWN_COOKIE_NUM != 4) {
+if (process.env.HELP_COOKIE_NUM && process.env.HELP_COOKIE_NUM != 5) {
+    helpCookieNum = process.env.HELP_COOKIE_NUM;
+}
+if (process.env.OWN_COOKIE_NUM && process.env.OWN_COOKIE_NUM != 3) {
     ownCookieNum = process.env.OWN_COOKIE_NUM;
 }
-if (process.env.SHARE_ACTIVITY_ID && process.env.SHARE_ACTIVITY_ID != "") {
-    activityId = process.env.SHARE_ACTIVITY_ID;
+if (process.env.jd_fxyl_activityId && process.env.jd_fxyl_activityId != "") {
+    activityId = process.env.jd_fxyl_activityId;
 }
 
 if ($.isNode()) {
@@ -34,13 +52,13 @@ if ($.isNode()) {
     cookiesArr.reverse();
     cookiesArr = cookiesArr.filter(item => !!item);
 }
-
 !(async () => {
     if (!cookiesArr[0]) {
         $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
         return;
     }
     isGetAuthorCodeList = true;
+	console.log(`【入口:\nhttps://lzkjdz-isv.isvjcloud.com/wxShareActivity/activity/activity?activityId=${activityId}】`)
     for (let i = 0; i < ownCookieNum; i++) {
         if (cookiesArr[i]) {
             cookie = cookiesArr[i]
@@ -73,9 +91,9 @@ if ($.isNode()) {
         }
     }
     isGetAuthorCodeList = false;
-    console.log('需要助力的助力码')
+    console.log('需要助力助力码')
     console.log(authorCodeList)
-    for (let i = 0; i < cookiesArr.length; i++) {
+    for (let i = 0; i < helpCookieNum; i++) {
         if (cookiesArr[i]) {
             cookie = cookiesArr[i]
             originCookie = cookiesArr[i]
@@ -83,7 +101,7 @@ if ($.isNode()) {
             $.index = i + 1;
             $.isLogin = true;
             $.nickName = '';
-            $.errorMessage = ''
+			$.errorMessage = ''
             await checkCookie();
             console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
             if (!$.isLogin) {
@@ -106,16 +124,14 @@ if ($.isNode()) {
             for(let i in authorCodeList){
                 $.authorCode = authorCodeList[i]
                 console.log('去助力: '+$.authorCode)
-                
                 await share();
 				await $.wait(1000)
                 if ($.errorMessage === '活动太火爆，还是去买买买吧') {
                     break
                 }
-                //await $.wait(2000)
+				
             }
         }
-        //await $.wait(2000)
     }
     for (let i = 0; i < ownCookieNum; i++) {
         if (cookiesArr[i]) {
@@ -241,7 +257,7 @@ function taskUrl(function_id, body, isCommon) {
             'User-Agent': `jdapp;iPhone;9.5.4;13.6;${$.UUID};network/wifi;ADID/${$.ADID};model/iPhone10,3;addressid/0;appBuild/167668;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`,
             Connection: 'keep-alive',
             Referer: $.activityUrl,
-            Cookie: $.cookie
+            Cookie: cookie
         },
         body: body
 
@@ -351,7 +367,7 @@ function getFirstLZCK() {
                             }
                         }
                     }
-				$.cookie = cookie
+						$.cookie = cookie
                 }
             } catch (error) {
                 console.log(error)
