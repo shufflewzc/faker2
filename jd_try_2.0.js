@@ -606,7 +606,7 @@ function try_MyTrials(page, selected) {
 function taskurl_xh(appid, functionId, body = JSON.stringify({})) {
 
     return {
-        "url": `${URL}?appid=${appid}&functionId=${functionId}&clientVersion=10.3.4&client=wh5&body=${encodeURIComponent(body)}&h5st=''`,
+        "url": `${URL}?appid=${appid}&functionId=${functionId}&clientVersion=10.3.4&client=wh5&body=${encodeURIComponent(body)}&h5st=20220722121040045%3B9421011440284653%3Ba8ade%3Btk02wc1be1c1818nImmWYyJpQbdlQKevRRwnfH9j6FYPxZraJFFaTc74KP%2F6zXmRHA%2Bb1%2FlrvS60uWUfeCcXA5odZNg5%3B793d2cd94263363f67c9f610642b2e1078a70425fa792b2aacd491161a64b90b%3B3.1%3B1658463040045%3B62f4d401ae05799f14989d31956d3c5f0a269d1342e4ecb6ab00268fc69555cdc3295f00e681fd72cd76a48b9fb3faf3579d80b37c85b023e9e8ba94d8d2b852b9cbef42726bbe41ffd8c74540f4a1ced584468ba9e46bfbef62144b678f5532e02456edc95e6131cb12c2dd5fa5c6c034d2be6091a30ab76acf5da1cf34ef7451e044c9f9f9ce19cc0279b5846e0d92`,
         'headers': {
             'Cookie': $.cookie + $.jda,
             'user-agent': 'jdapp;iPhone;10.1.2;15.0;ff2caa92a8529e4788a34b3d8d4df66d9573f499;network/wifi;model/iPhone13,4;addressid/2074196292;appBuild/167802;jdSupportDarkMode/1;Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1',

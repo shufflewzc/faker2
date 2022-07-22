@@ -14,7 +14,7 @@ const querystring = require('querystring');
 const exec = require('child_process').exec;
 const $ = new Env();
 const timeout = 15000; //超时时间(单位毫秒)
-console.log("加载sendNotify，当前版本: 20220523");
+console.log("加载sendNotify，当前版本: 20220722");
 // =======================================go-cqhttp通知设置区域===========================================
 //gobot_url 填写请求地址http://127.0.0.1/send_private_msg
 //gobot_token 填写在go-cqhttp文件设置的访问密钥
@@ -473,893 +473,210 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         }
 		
         //检查脚本名称是否需要通知到Group2,Group2读取原环境配置的变量名后加2的值.例如: QYWX_AM2
-        const notifyGroup2List = process.env.NOTIFY_GROUP2_LIST ? process.env.NOTIFY_GROUP2_LIST.split('&') : [];
-        const titleIndex2 = notifyGroup2List.findIndex((item) => item === strTitle);
-        const notifyGroup3List = process.env.NOTIFY_GROUP3_LIST ? process.env.NOTIFY_GROUP3_LIST.split('&') : [];
-        const titleIndexGp3 = notifyGroup3List.findIndex((item) => item === strTitle);
-        const notifyGroup4List = process.env.NOTIFY_GROUP4_LIST ? process.env.NOTIFY_GROUP4_LIST.split('&') : [];
-        const titleIndexGp4 = notifyGroup4List.findIndex((item) => item === strTitle);
-        const notifyGroup5List = process.env.NOTIFY_GROUP5_LIST ? process.env.NOTIFY_GROUP5_LIST.split('&') : [];
-        const titleIndexGp5 = notifyGroup5List.findIndex((item) => item === strTitle);
-        const notifyGroup6List = process.env.NOTIFY_GROUP6_LIST ? process.env.NOTIFY_GROUP6_LIST.split('&') : [];
-        const titleIndexGp6 = notifyGroup6List.findIndex((item) => item === strTitle);
-		const notifyGroup7List = process.env.NOTIFY_GROUP7_LIST ? process.env.NOTIFY_GROUP7_LIST.split('&') : [];
-        const titleIndexGp7 = notifyGroup7List.findIndex((item) => item === strTitle);
-		
-        if (titleIndex2 !== -1) {
-            console.log(`${strTitle} 在群组2推送名单中，初始化群组推送`);
-            UseGroupNotify = 2;
-        }
-        if (titleIndexGp3 !== -1) {
-            console.log(`${strTitle} 在群组3推送名单中，初始化群组推送`);
-            UseGroupNotify = 3;
-        }
-        if (titleIndexGp4 !== -1) {
-            console.log(`${strTitle} 在群组4推送名单中，初始化群组推送`);
-            UseGroupNotify = 4;
-        }
-        if (titleIndexGp5 !== -1) {
-            console.log(`${strTitle} 在群组5推送名单中，初始化群组推送`);
-            UseGroupNotify = 5;
-        }
-        if (titleIndexGp6 !== -1) {
-            console.log(`${strTitle} 在群组6推送名单中，初始化群组推送`);
-            UseGroupNotify = 6;
-        }
-		if (titleIndexGp7 !== -1) {
-            console.log(`${strTitle} 在群组7推送名单中，初始化群组推送`);
-            UseGroupNotify = 7;
-        }
-        if (process.env.NOTIFY_CUSTOMNOTIFY) {
-            strCustom = process.env.NOTIFY_CUSTOMNOTIFY;
-        }
-        if (strCustom) {
-            strCustomArr = strCustom.replace(/^\[|\]$/g, "").split(",");
-            strCustomTempArr = [];
-            for (var Tempj in strCustomArr) {
-                strCustomTempArr = strCustomArr[Tempj].split("&");
-                if (strCustomTempArr.length > 1) {
-                    if (strTitle == strCustomTempArr[0]) {
-                        console.log("检测到自定义设定,开始执行配置...");
-                        if (strCustomTempArr[1] == "组1") {
-                            console.log("自定义设定强制使用组1配置通知...");
-                            UseGroupNotify = 1;
-                        }
-                        if (strCustomTempArr[1] == "组2") {
-                            console.log("自定义设定强制使用组2配置通知...");
-                            UseGroupNotify = 2;
-                        }
-                        if (strCustomTempArr[1] == "组3") {
-                            console.log("自定义设定强制使用组3配置通知...");
-                            UseGroupNotify = 3;
-                        }
-                        if (strCustomTempArr[1] == "组4") {
-                            console.log("自定义设定强制使用组4配置通知...");
-                            UseGroupNotify = 4;
-                        }
-                        if (strCustomTempArr[1] == "组5") {
-                            console.log("自定义设定强制使用组5配置通知...");
-                            UseGroupNotify = 5;
-                        }
-                        if (strCustomTempArr[1] == "组6") {
-                            console.log("自定义设定强制使用组6配置通知...");
-                            UseGroupNotify = 6;
-                        }
-						if (strCustomTempArr[1] == "组7") {
-                            console.log("自定义设定强制使用组6配置通知...");
-                            UseGroupNotify = 7;
-                        }
-                        if (strCustomTempArr.length > 2) {
-                            console.log("关闭所有通知变量...");
-                            Use_serverNotify = false;
-                            Use_pushPlusNotify = false;
-                            Use_pushPlushxtripNotify = false;
-                            Use_BarkNotify = false;
-                            Use_tgBotNotify = false;
-                            Use_ddBotNotify = false;
-                            Use_qywxBotNotify = false;
-                            Use_qywxamNotify = false;
-                            Use_iGotNotify = false;
-                            Use_gobotNotify = false;
+		for (lncount = 2; lncount < 20; lncount++) {
+		    if (process.env["NOTIFY_GROUP" + lncount + "_LIST"]) {
+		        const strtemp = process.env["NOTIFY_GROUP" + lncount + "_LIST"];
+		        const notifyGroupList = strtemp ? strtemp.split('&') : [];
+		        const titleIndex = notifyGroupList.findIndex((item) => item === strTitle);
+		        if (titleIndex !== -1) {
+		            console.log(`${strTitle} 在群组${lncount}推送名单中，初始化群组推送`);
+		            UseGroupNotify = lncount;
+		        }
+		    }
+		}
 
-                            for (let Tempk = 2; Tempk < strCustomTempArr.length; Tempk++) {
-                                var strTrmp = strCustomTempArr[Tempk];
-                                switch (strTrmp) {
-                                case "Server酱":
-                                    Use_serverNotify = true;
-                                    console.log("自定义设定启用Server酱进行通知...");
-                                    break;
-                                case "pushplus":
-                                    Use_pushPlusNotify = true;
-                                    console.log("自定义设定启用pushplus(推送加)进行通知...");
-                                    break;
-                                case "pushplushxtrip":
-                                    Use_pushPlushxtripNotify = true;
-                                    console.log("自定义设定启用pushplus_hxtrip(推送加)进行通知...");
-                                    break;
-                                case "Bark":
-                                    Use_BarkNotify = true;
-                                    console.log("自定义设定启用Bark进行通知...");
-                                    break;
-                                case "TG机器人":
-                                    Use_tgBotNotify = true;
-                                    console.log("自定义设定启用telegram机器人进行通知...");
-                                    break;
-                                case "钉钉":
-                                    Use_ddBotNotify = true;
-                                    console.log("自定义设定启用钉钉机器人进行通知...");
-                                    break;
-                                case "企业微信机器人":
-                                    Use_qywxBotNotify = true;
-                                    console.log("自定义设定启用企业微信机器人进行通知...");
-                                    break;
-                                case "企业微信应用消息":
-                                    Use_qywxamNotify = true;
-                                    console.log("自定义设定启用企业微信应用消息进行通知...");
-                                    break;
-                                case "iGotNotify":
-                                    Use_iGotNotify = true;
-                                    console.log("自定义设定启用iGot进行通知...");
-                                    break;
-                                case "gobotNotify":
-                                    Use_gobotNotify = true;
-                                    console.log("自定义设定启用go-cqhttp进行通知...");
-                                    break;
-                                case "WxPusher":
-                                    Use_WxPusher = true;
-                                    console.log("自定义设定启用WxPusher进行通知...");
-                                    break;
+		if (process.env.NOTIFY_CUSTOMNOTIFY) {
+		    strCustom = process.env.NOTIFY_CUSTOMNOTIFY;
+		    strCustomArr = strCustom.replace(/^\[|\]$/g, "").split(",");
+		    strCustomTempArr = [];
+		    for (var Tempj in strCustomArr) {
+		        strCustomTempArr = strCustomArr[Tempj].split("&");
+		        if (strCustomTempArr.length > 1) {
+		            if (strTitle == strCustomTempArr[0]) {
+		                console.log("检测到自定义设定,开始执行配置...");
+						if(strCustomTempArr[1].indexOf("组")!=-1){
+							UseGroupNotify = strCustomTempArr[1].replace("组","") * 1;
+							console.log("自定义设定强制使用组"+UseGroupNotify+"配置通知...");
+						} else {
+							UseGroupNotify = 1;
+						}
+		                if (strCustomTempArr.length > 2) {
+		                    console.log("关闭所有通知变量...");
+		                    Use_serverNotify = false;
+		                    Use_pushPlusNotify = false;
+		                    Use_pushPlushxtripNotify = false;
+		                    Use_BarkNotify = false;
+		                    Use_tgBotNotify = false;
+		                    Use_ddBotNotify = false;
+		                    Use_qywxBotNotify = false;
+		                    Use_qywxamNotify = false;
+		                    Use_iGotNotify = false;
+		                    Use_gobotNotify = false;
 
-                                }
-                            }
+		                    for (let Tempk = 2; Tempk < strCustomTempArr.length; Tempk++) {
+		                        var strTrmp = strCustomTempArr[Tempk];
+		                        switch (strTrmp) {
+		                        case "Server酱":
+		                            Use_serverNotify = true;
+		                            console.log("自定义设定启用Server酱进行通知...");
+		                            break;
+		                        case "pushplus":
+		                            Use_pushPlusNotify = true;
+		                            console.log("自定义设定启用pushplus(推送加)进行通知...");
+		                            break;
+		                        case "pushplushxtrip":
+		                            Use_pushPlushxtripNotify = true;
+		                            console.log("自定义设定启用pushplus_hxtrip(推送加)进行通知...");
+		                            break;
+		                        case "Bark":
+		                            Use_BarkNotify = true;
+		                            console.log("自定义设定启用Bark进行通知...");
+		                            break;
+		                        case "TG机器人":
+		                            Use_tgBotNotify = true;
+		                            console.log("自定义设定启用telegram机器人进行通知...");
+		                            break;
+		                        case "钉钉":
+		                            Use_ddBotNotify = true;
+		                            console.log("自定义设定启用钉钉机器人进行通知...");
+		                            break;
+		                        case "企业微信机器人":
+		                            Use_qywxBotNotify = true;
+		                            console.log("自定义设定启用企业微信机器人进行通知...");
+		                            break;
+		                        case "企业微信应用消息":
+		                            Use_qywxamNotify = true;
+		                            console.log("自定义设定启用企业微信应用消息进行通知...");
+		                            break;
+		                        case "iGotNotify":
+		                            Use_iGotNotify = true;
+		                            console.log("自定义设定启用iGot进行通知...");
+		                            break;
+		                        case "gobotNotify":
+		                            Use_gobotNotify = true;
+		                            console.log("自定义设定启用go-cqhttp进行通知...");
+		                            break;
+		                        case "WxPusher":
+		                            Use_WxPusher = true;
+		                            console.log("自定义设定启用WxPusher进行通知...");
+		                            break;
 
-                        }
-                    }
-                }
-            }
+		                        }
+		                    }
 
-        }
+		                }
+		            }
+		        }
+		    }
+		}
+        
 
         //console.log("UseGroup2 :"+UseGroup2);
         //console.log("UseGroup3 :"+UseGroup3);
 
-
-        switch (UseGroupNotify) {
-        case 1:
-            if (process.env.GOBOT_URL && Use_gobotNotify) {
-                GOBOT_URL = process.env.GOBOT_URL;
-            }
-            if (process.env.GOBOT_TOKEN && Use_gobotNotify) {
-                GOBOT_TOKEN = process.env.GOBOT_TOKEN;
-            }
-            if (process.env.GOBOT_QQ && Use_gobotNotify) {
-                GOBOT_QQ = process.env.GOBOT_QQ;
-            }
-
-            if (process.env.PUSH_KEY && Use_serverNotify) {
-                SCKEY = process.env.PUSH_KEY;
-            }
-
-            if (process.env.WP_APP_TOKEN && Use_WxPusher) {
-                WP_APP_TOKEN = process.env.WP_APP_TOKEN;
-            }
-
-            if (process.env.WP_TOPICIDS && Use_WxPusher) {
-                WP_TOPICIDS = process.env.WP_TOPICIDS;
-            }
-
-            if (process.env.WP_UIDS && Use_WxPusher) {
-                WP_UIDS = process.env.WP_UIDS;
-            }
-
-            if (process.env.WP_URL && Use_WxPusher) {
-                WP_URL = process.env.WP_URL;
-            }
-            if (process.env.BARK_PUSH && Use_BarkNotify) {
-                if (process.env.BARK_PUSH.indexOf('https') > -1 || process.env.BARK_PUSH.indexOf('http') > -1) {
-                    //兼容BARK自建用户
-                    BARK_PUSH = process.env.BARK_PUSH;
-                } else {
-                    BARK_PUSH = `https://api.day.app/${process.env.BARK_PUSH}`;
-                }
-                if (process.env.BARK_SOUND) {
-                    BARK_SOUND = process.env.BARK_SOUND;
-                }
-                if (process.env.BARK_GROUP) {
-                    BARK_GROUP = process.env.BARK_GROUP;
-                }
-            } else {
-                if (BARK_PUSH && BARK_PUSH.indexOf('https') === -1 && BARK_PUSH.indexOf('http') === -1 && Use_BarkNotify) {
-                    //兼容BARK本地用户只填写设备码的情况
-                    BARK_PUSH = `https://api.day.app/${BARK_PUSH}`;
-                }
-            }
-            if (process.env.TG_BOT_TOKEN && Use_tgBotNotify) {
-                TG_BOT_TOKEN = process.env.TG_BOT_TOKEN;
-            }
-            if (process.env.TG_USER_ID && Use_tgBotNotify) {
-                TG_USER_ID = process.env.TG_USER_ID;
-            }
-            if (process.env.TG_PROXY_AUTH && Use_tgBotNotify)
-                TG_PROXY_AUTH = process.env.TG_PROXY_AUTH;
-            if (process.env.TG_PROXY_HOST && Use_tgBotNotify)
-                TG_PROXY_HOST = process.env.TG_PROXY_HOST;
-            if (process.env.TG_PROXY_PORT && Use_tgBotNotify)
-                TG_PROXY_PORT = process.env.TG_PROXY_PORT;
-            if (process.env.TG_API_HOST && Use_tgBotNotify)
-                TG_API_HOST = process.env.TG_API_HOST;
-
-            if (process.env.DD_BOT_TOKEN && Use_ddBotNotify) {
-                DD_BOT_TOKEN = process.env.DD_BOT_TOKEN;
-                if (process.env.DD_BOT_SECRET) {
-                    DD_BOT_SECRET = process.env.DD_BOT_SECRET;
-                }
-            }
-
-            if (process.env.QYWX_KEY && Use_qywxBotNotify) {
-                QYWX_KEY = process.env.QYWX_KEY;
-            }
-
-            if (process.env.QYWX_AM && Use_qywxamNotify) {
-                QYWX_AM = process.env.QYWX_AM;
-            }
-
-            if (process.env.IGOT_PUSH_KEY && Use_iGotNotify) {
-                IGOT_PUSH_KEY = process.env.IGOT_PUSH_KEY;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN && Use_pushPlusNotify) {
-                PUSH_PLUS_TOKEN = process.env.PUSH_PLUS_TOKEN;
-            }
-            if (process.env.PUSH_PLUS_USER && Use_pushPlusNotify) {
-                PUSH_PLUS_USER = process.env.PUSH_PLUS_USER;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN_hxtrip && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_TOKEN_hxtrip = process.env.PUSH_PLUS_TOKEN_hxtrip;
-            }
-            if (process.env.PUSH_PLUS_USER_hxtrip && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_USER_hxtrip = process.env.PUSH_PLUS_USER_hxtrip;
-            }
-            if (process.env.GOTIFY_URL) {
-                GOTIFY_URL = process.env.GOTIFY_URL;
-            }
-            if (process.env.GOTIFY_TOKEN) {
-                GOTIFY_TOKEN = process.env.GOTIFY_TOKEN;
-            }
-            if (process.env.GOTIFY_PRIORITY) {
-                GOTIFY_PRIORITY = process.env.GOTIFY_PRIORITY;
-            }
-
-            break;
-
-        case 2:
-            //==========================第二套环境变量赋值=========================
-
-            if (process.env.GOBOT_URL2 && Use_gobotNotify) {
-                GOBOT_URL = process.env.GOBOT_URL2;
-            }
-            if (process.env.GOBOT_TOKEN2 && Use_gobotNotify) {
-                GOBOT_TOKEN = process.env.GOBOT_TOKEN2;
-            }
-            if (process.env.GOBOT_QQ2 && Use_gobotNotify) {
-                GOBOT_QQ = process.env.GOBOT_QQ2;
-            }
-
-            if (process.env.PUSH_KEY2 && Use_serverNotify) {
-                SCKEY = process.env.PUSH_KEY2;
-            }
-
-            if (process.env.WP_APP_TOKEN2 && Use_WxPusher) {
-                WP_APP_TOKEN = process.env.WP_APP_TOKEN2;
-            }
-
-            if (process.env.WP_TOPICIDS2 && Use_WxPusher) {
-                WP_TOPICIDS = process.env.WP_TOPICIDS2;
-            }
-
-            if (process.env.WP_UIDS2 && Use_WxPusher) {
-                WP_UIDS = process.env.WP_UIDS2;
-            }
-
-            if (process.env.WP_URL2 && Use_WxPusher) {
-                WP_URL = process.env.WP_URL2;
-            }
-            if (process.env.BARK_PUSH2 && Use_BarkNotify) {
-                if (process.env.BARK_PUSH2.indexOf('https') > -1 || process.env.BARK_PUSH2.indexOf('http') > -1) {
-                    //兼容BARK自建用户
-                    BARK_PUSH = process.env.BARK_PUSH2;
-                } else {
-                    BARK_PUSH = `https://api.day.app/${process.env.BARK_PUSH2}`;
-                }
-                if (process.env.BARK_SOUND2) {
-                    BARK_SOUND = process.env.BARK_SOUND2;
-                }
-                if (process.env.BARK_GROUP2) {
-                    BARK_GROUP = process.env.BARK_GROUP2;
-                }
-            }
-            if (process.env.TG_BOT_TOKEN2 && Use_tgBotNotify) {
-                TG_BOT_TOKEN = process.env.TG_BOT_TOKEN2;
-            }
-            if (process.env.TG_USER_ID2 && Use_tgBotNotify) {
-                TG_USER_ID = process.env.TG_USER_ID2;
-            }
-            if (process.env.TG_PROXY_AUTH2 && Use_tgBotNotify)
-                TG_PROXY_AUTH = process.env.TG_PROXY_AUTH2;
-            if (process.env.TG_PROXY_HOST2 && Use_tgBotNotify)
-                TG_PROXY_HOST = process.env.TG_PROXY_HOST2;
-            if (process.env.TG_PROXY_PORT2 && Use_tgBotNotify)
-                TG_PROXY_PORT = process.env.TG_PROXY_PORT2;
-            if (process.env.TG_API_HOST2 && Use_tgBotNotify)
-                TG_API_HOST = process.env.TG_API_HOST2;
-
-            if (process.env.DD_BOT_TOKEN2 && Use_ddBotNotify) {
-                DD_BOT_TOKEN = process.env.DD_BOT_TOKEN2;
-                if (process.env.DD_BOT_SECRET2) {
-                    DD_BOT_SECRET = process.env.DD_BOT_SECRET2;
-                }
-            }
-
-            if (process.env.QYWX_KEY2 && Use_qywxBotNotify) {
-                QYWX_KEY = process.env.QYWX_KEY2;
-            }
-
-            if (process.env.QYWX_AM2 && Use_qywxamNotify) {
-                QYWX_AM = process.env.QYWX_AM2;
-            }
-
-            if (process.env.IGOT_PUSH_KEY2 && Use_iGotNotify) {
-                IGOT_PUSH_KEY = process.env.IGOT_PUSH_KEY2;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN2 && Use_pushPlusNotify) {
-                PUSH_PLUS_TOKEN = process.env.PUSH_PLUS_TOKEN2;
-            }
-            if (process.env.PUSH_PLUS_USER2 && Use_pushPlusNotify) {
-                PUSH_PLUS_USER = process.env.PUSH_PLUS_USER2;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN_hxtrip2 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_TOKEN_hxtrip = process.env.PUSH_PLUS_TOKEN_hxtrip2;
-            }
-            if (process.env.PUSH_PLUS_USER_hxtrip2 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_USER_hxtrip = process.env.PUSH_PLUS_USER_hxtrip2;
-            }
-            if (process.env.GOTIFY_URL2) {
-                GOTIFY_URL = process.env.GOTIFY_URL2;
-            }
-            if (process.env.GOTIFY_TOKEN2) {
-                GOTIFY_TOKEN = process.env.GOTIFY_TOKEN2;
-            }
-            if (process.env.GOTIFY_PRIORITY2) {
-                GOTIFY_PRIORITY = process.env.GOTIFY_PRIORITY2;
-            }
-            break;
-
-        case 3:
-            //==========================第三套环境变量赋值=========================
-
-            if (process.env.GOBOT_URL3 && Use_gobotNotify) {
-                GOBOT_URL = process.env.GOBOT_URL3;
-            }
-            if (process.env.GOBOT_TOKEN3 && Use_gobotNotify) {
-                GOBOT_TOKEN = process.env.GOBOT_TOKEN3;
-            }
-            if (process.env.GOBOT_QQ3 && Use_gobotNotify) {
-                GOBOT_QQ = process.env.GOBOT_QQ3;
-            }
-
-            if (process.env.PUSH_KEY3 && Use_serverNotify) {
-                SCKEY = process.env.PUSH_KEY3;
-            }
-
-            if (process.env.WP_APP_TOKEN3 && Use_WxPusher) {
-                WP_APP_TOKEN = process.env.WP_APP_TOKEN3;
-            }
-
-            if (process.env.WP_TOPICIDS3 && Use_WxPusher) {
-                WP_TOPICIDS = process.env.WP_TOPICIDS3;
-            }
-
-            if (process.env.WP_UIDS3 && Use_WxPusher) {
-                WP_UIDS = process.env.WP_UIDS3;
-            }
-
-            if (process.env.WP_URL3 && Use_WxPusher) {
-                WP_URL = process.env.WP_URL3;
-            }
-
-            if (process.env.BARK_PUSH3 && Use_BarkNotify) {
-                if (process.env.BARK_PUSH3.indexOf('https') > -1 || process.env.BARK_PUSH3.indexOf('http') > -1) {
-                    //兼容BARK自建用户
-                    BARK_PUSH = process.env.BARK_PUSH3;
-                } else {
-                    BARK_PUSH = `https://api.day.app/${process.env.BARK_PUSH3}`;
-                }
-                if (process.env.BARK_SOUND3) {
-                    BARK_SOUND = process.env.BARK_SOUND3;
-                }
-                if (process.env.BARK_GROUP3) {
-                    BARK_GROUP = process.env.BARK_GROUP3;
-                }
-            }
-            if (process.env.TG_BOT_TOKEN3 && Use_tgBotNotify) {
-                TG_BOT_TOKEN = process.env.TG_BOT_TOKEN3;
-            }
-            if (process.env.TG_USER_ID3 && Use_tgBotNotify) {
-                TG_USER_ID = process.env.TG_USER_ID3;
-            }
-            if (process.env.TG_PROXY_AUTH3 && Use_tgBotNotify)
-                TG_PROXY_AUTH = process.env.TG_PROXY_AUTH3;
-            if (process.env.TG_PROXY_HOST3 && Use_tgBotNotify)
-                TG_PROXY_HOST = process.env.TG_PROXY_HOST3;
-            if (process.env.TG_PROXY_PORT3 && Use_tgBotNotify)
-                TG_PROXY_PORT = process.env.TG_PROXY_PORT3;
-            if (process.env.TG_API_HOST3 && Use_tgBotNotify)
-                TG_API_HOST = process.env.TG_API_HOST3;
-
-            if (process.env.DD_BOT_TOKEN3 && Use_ddBotNotify) {
-                DD_BOT_TOKEN = process.env.DD_BOT_TOKEN3;
-                if (process.env.DD_BOT_SECRET3) {
-                    DD_BOT_SECRET = process.env.DD_BOT_SECRET3;
-                }
-            }
-
-            if (process.env.QYWX_KEY3 && Use_qywxBotNotify) {
-                QYWX_KEY = process.env.QYWX_KEY3;
-            }
-
-            if (process.env.QYWX_AM3 && Use_qywxamNotify) {
-                QYWX_AM = process.env.QYWX_AM3;
-            }
-
-            if (process.env.IGOT_PUSH_KEY3 && Use_iGotNotify) {
-                IGOT_PUSH_KEY = process.env.IGOT_PUSH_KEY3;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN3 && Use_pushPlusNotify) {
-                PUSH_PLUS_TOKEN = process.env.PUSH_PLUS_TOKEN3;
-            }
-            if (process.env.PUSH_PLUS_USER3 && Use_pushPlusNotify) {
-                PUSH_PLUS_USER = process.env.PUSH_PLUS_USER3;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN_hxtrip3 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_TOKEN_hxtrip = process.env.PUSH_PLUS_TOKEN_hxtrip3;
-            }
-            if (process.env.PUSH_PLUS_USER_hxtrip3 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_USER_hxtrip = process.env.PUSH_PLUS_USER_hxtrip3;
-            }
-            if (process.env.GOTIFY_URL3) {
-                GOTIFY_URL = process.env.GOTIFY_URL3;
-            }
-            if (process.env.GOTIFY_TOKEN3) {
-                GOTIFY_TOKEN = process.env.GOTIFY_TOKEN3;
-            }
-            if (process.env.GOTIFY_PRIORITY3) {
-                GOTIFY_PRIORITY = process.env.GOTIFY_PRIORITY3;
-            }
-            break;
-
-        case 4:
-            //==========================第四套环境变量赋值=========================
-
-            if (process.env.GOBOT_URL4 && Use_gobotNotify) {
-                GOBOT_URL = process.env.GOBOT_URL4;
-            }
-            if (process.env.GOBOT_TOKEN4 && Use_gobotNotify) {
-                GOBOT_TOKEN = process.env.GOBOT_TOKEN4;
-            }
-            if (process.env.GOBOT_QQ4 && Use_gobotNotify) {
-                GOBOT_QQ = process.env.GOBOT_QQ4;
-            }
-
-            if (process.env.PUSH_KEY4 && Use_serverNotify) {
-                SCKEY = process.env.PUSH_KEY4;
-            }
-
-            if (process.env.WP_APP_TOKEN4 && Use_WxPusher) {
-                WP_APP_TOKEN = process.env.WP_APP_TOKEN4;
-            }
-
-            if (process.env.WP_TOPICIDS4 && Use_WxPusher) {
-                WP_TOPICIDS = process.env.WP_TOPICIDS4;
-            }
-
-            if (process.env.WP_UIDS4 && Use_WxPusher) {
-                WP_UIDS = process.env.WP_UIDS4;
-            }
-
-            if (process.env.WP_URL4 && Use_WxPusher) {
-                WP_URL = process.env.WP_URL4;
-            }
-
-            if (process.env.BARK_PUSH4 && Use_BarkNotify) {
-                if (process.env.BARK_PUSH4.indexOf('https') > -1 || process.env.BARK_PUSH4.indexOf('http') > -1) {
-                    //兼容BARK自建用户
-                    BARK_PUSH = process.env.BARK_PUSH4;
-                } else {
-                    BARK_PUSH = `https://api.day.app/${process.env.BARK_PUSH4}`;
-                }
-                if (process.env.BARK_SOUND4) {
-                    BARK_SOUND = process.env.BARK_SOUND4;
-                }
-                if (process.env.BARK_GROUP4) {
-                    BARK_GROUP = process.env.BARK_GROUP4;
-                }
-            }
-            if (process.env.TG_BOT_TOKEN4 && Use_tgBotNotify) {
-                TG_BOT_TOKEN = process.env.TG_BOT_TOKEN4;
-            }
-            if (process.env.TG_USER_ID4 && Use_tgBotNotify) {
-                TG_USER_ID = process.env.TG_USER_ID4;
-            }
-            if (process.env.TG_PROXY_AUTH4 && Use_tgBotNotify)
-                TG_PROXY_AUTH = process.env.TG_PROXY_AUTH4;
-            if (process.env.TG_PROXY_HOST4 && Use_tgBotNotify)
-                TG_PROXY_HOST = process.env.TG_PROXY_HOST4;
-            if (process.env.TG_PROXY_PORT4 && Use_tgBotNotify)
-                TG_PROXY_PORT = process.env.TG_PROXY_PORT4;
-            if (process.env.TG_API_HOST4 && Use_tgBotNotify)
-                TG_API_HOST = process.env.TG_API_HOST4;
-
-            if (process.env.DD_BOT_TOKEN4 && Use_ddBotNotify) {
-                DD_BOT_TOKEN = process.env.DD_BOT_TOKEN4;
-                if (process.env.DD_BOT_SECRET4) {
-                    DD_BOT_SECRET = process.env.DD_BOT_SECRET4;
-                }
-            }
-
-            if (process.env.QYWX_KEY4 && Use_qywxBotNotify) {
-                QYWX_KEY = process.env.QYWX_KEY4;
-            }
-
-            if (process.env.QYWX_AM4 && Use_qywxamNotify) {
-                QYWX_AM = process.env.QYWX_AM4;
-            }
-
-            if (process.env.IGOT_PUSH_KEY4 && Use_iGotNotify) {
-                IGOT_PUSH_KEY = process.env.IGOT_PUSH_KEY4;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN4 && Use_pushPlusNotify) {
-                PUSH_PLUS_TOKEN = process.env.PUSH_PLUS_TOKEN4;
-            }
-            if (process.env.PUSH_PLUS_USER4 && Use_pushPlusNotify) {
-                PUSH_PLUS_USER = process.env.PUSH_PLUS_USER4;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN_hxtrip4 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_TOKEN_hxtrip = process.env.PUSH_PLUS_TOKEN_hxtrip4;
-            }
-            if (process.env.PUSH_PLUS_USER_hxtrip4 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_USER_hxtrip = process.env.PUSH_PLUS_USER_hxtrip4;
-            }
-            if (process.env.GOTIFY_URL4) {
-                GOTIFY_URL = process.env.GOTIFY_URL4;
-            }
-            if (process.env.GOTIFY_TOKEN4) {
-                GOTIFY_TOKEN = process.env.GOTIFY_TOKEN4;
-            }
-            if (process.env.GOTIFY_PRIORITY4) {
-                GOTIFY_PRIORITY = process.env.GOTIFY_PRIORITY4;
-            }
-            break;
-
-        case 5:
-            //==========================第五套环境变量赋值=========================
-
-            if (process.env.GOBOT_URL5 && Use_gobotNotify) {
-                GOBOT_URL = process.env.GOBOT_URL5;
-            }
-            if (process.env.GOBOT_TOKEN5 && Use_gobotNotify) {
-                GOBOT_TOKEN = process.env.GOBOT_TOKEN5;
-            }
-            if (process.env.GOBOT_QQ5 && Use_gobotNotify) {
-                GOBOT_QQ = process.env.GOBOT_QQ5;
-            }
-
-            if (process.env.PUSH_KEY5 && Use_serverNotify) {
-                SCKEY = process.env.PUSH_KEY5;
-            }
-
-            if (process.env.WP_APP_TOKEN5 && Use_WxPusher) {
-                WP_APP_TOKEN = process.env.WP_APP_TOKEN5;
-            }
-
-            if (process.env.WP_TOPICIDS5 && Use_WxPusher) {
-                WP_TOPICIDS = process.env.WP_TOPICIDS5;
-            }
-
-            if (process.env.WP_UIDS5 && Use_WxPusher) {
-                WP_UIDS = process.env.WP_UIDS5;
-            }
-
-            if (process.env.WP_URL5 && Use_WxPusher) {
-                WP_URL = process.env.WP_URL5;
-            }
-            if (process.env.BARK_PUSH5 && Use_BarkNotify) {
-                if (process.env.BARK_PUSH5.indexOf('https') > -1 || process.env.BARK_PUSH5.indexOf('http') > -1) {
-                    //兼容BARK自建用户
-                    BARK_PUSH = process.env.BARK_PUSH5;
-                } else {
-                    BARK_PUSH = `https://api.day.app/${process.env.BARK_PUSH5}`;
-                }
-                if (process.env.BARK_SOUND5) {
-                    BARK_SOUND = process.env.BARK_SOUND5;
-                }
-                if (process.env.BARK_GROUP5) {
-                    BARK_GROUP = process.env.BARK_GROUP5;
-                }
-            }
-            if (process.env.TG_BOT_TOKEN5 && Use_tgBotNotify) {
-                TG_BOT_TOKEN = process.env.TG_BOT_TOKEN5;
-            }
-            if (process.env.TG_USER_ID5 && Use_tgBotNotify) {
-                TG_USER_ID = process.env.TG_USER_ID5;
-            }
-            if (process.env.TG_PROXY_AUTH5 && Use_tgBotNotify)
-                TG_PROXY_AUTH = process.env.TG_PROXY_AUTH5;
-            if (process.env.TG_PROXY_HOST5 && Use_tgBotNotify)
-                TG_PROXY_HOST = process.env.TG_PROXY_HOST5;
-            if (process.env.TG_PROXY_PORT5 && Use_tgBotNotify)
-                TG_PROXY_PORT = process.env.TG_PROXY_PORT5;
-            if (process.env.TG_API_HOST5 && Use_tgBotNotify)
-                TG_API_HOST = process.env.TG_API_HOST5;
-
-            if (process.env.DD_BOT_TOKEN5 && Use_ddBotNotify) {
-                DD_BOT_TOKEN = process.env.DD_BOT_TOKEN5;
-                if (process.env.DD_BOT_SECRET5) {
-                    DD_BOT_SECRET = process.env.DD_BOT_SECRET5;
-                }
-            }
-
-            if (process.env.QYWX_KEY5 && Use_qywxBotNotify) {
-                QYWX_KEY = process.env.QYWX_KEY5;
-            }
-
-            if (process.env.QYWX_AM5 && Use_qywxamNotify) {
-                QYWX_AM = process.env.QYWX_AM5;
-            }
-
-            if (process.env.IGOT_PUSH_KEY5 && Use_iGotNotify) {
-                IGOT_PUSH_KEY = process.env.IGOT_PUSH_KEY5;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN5 && Use_pushPlusNotify) {
-                PUSH_PLUS_TOKEN = process.env.PUSH_PLUS_TOKEN5;
-            }
-            if (process.env.PUSH_PLUS_USER5 && Use_pushPlusNotify) {
-                PUSH_PLUS_USER = process.env.PUSH_PLUS_USER5;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN_hxtrip5 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_TOKEN_hxtrip = process.env.PUSH_PLUS_TOKEN_hxtrip5;
-            }
-            if (process.env.PUSH_PLUS_USER_hxtrip5 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_USER_hxtrip = process.env.PUSH_PLUS_USER_hxtrip5;
-            }
-            if (process.env.GOTIFY_URL5) {
-                GOTIFY_URL = process.env.GOTIFY_URL5;
-            }
-            if (process.env.GOTIFY_TOKEN5) {
-                GOTIFY_TOKEN = process.env.GOTIFY_TOKEN5;
-            }
-            if (process.env.GOTIFY_PRIORITY5) {
-                GOTIFY_PRIORITY = process.env.GOTIFY_PRIORITY5;
-            }
-            break;
-
-        case 6:
-            //==========================第六套环境变量赋值=========================
-
-            if (process.env.GOBOT_URL6 && Use_gobotNotify) {
-                GOBOT_URL = process.env.GOBOT_URL6;
-            }
-            if (process.env.GOBOT_TOKEN6 && Use_gobotNotify) {
-                GOBOT_TOKEN = process.env.GOBOT_TOKEN6;
-            }
-            if (process.env.GOBOT_QQ6 && Use_gobotNotify) {
-                GOBOT_QQ = process.env.GOBOT_QQ6;
-            }
-
-            if (process.env.PUSH_KEY6 && Use_serverNotify) {
-                SCKEY = process.env.PUSH_KEY6;
-            }
-
-            if (process.env.WP_APP_TOKEN6 && Use_WxPusher) {
-                WP_APP_TOKEN = process.env.WP_APP_TOKEN6;
-            }
-
-            if (process.env.WP_TOPICIDS6 && Use_WxPusher) {
-                WP_TOPICIDS = process.env.WP_TOPICIDS6;
-            }
-
-            if (process.env.WP_UIDS6 && Use_WxPusher) {
-                WP_UIDS = process.env.WP_UIDS6;
-            }
-
-            if (process.env.WP_URL6 && Use_WxPusher) {
-                WP_URL = process.env.WP_URL6;
-            }
-            if (process.env.BARK_PUSH6 && Use_BarkNotify) {
-                if (process.env.BARK_PUSH6.indexOf('https') > -1 || process.env.BARK_PUSH6.indexOf('http') > -1) {
-                    //兼容BARK自建用户
-                    BARK_PUSH = process.env.BARK_PUSH6;
-                } else {
-                    BARK_PUSH = `https://api.day.app/${process.env.BARK_PUSH6}`;
-                }
-                if (process.env.BARK_SOUND6) {
-                    BARK_SOUND = process.env.BARK_SOUND6;
-                }
-                if (process.env.BARK_GROUP6) {
-                    BARK_GROUP = process.env.BARK_GROUP6;
-                }
-            }
-            if (process.env.TG_BOT_TOKEN6 && Use_tgBotNotify) {
-                TG_BOT_TOKEN = process.env.TG_BOT_TOKEN6;
-            }
-            if (process.env.TG_USER_ID6 && Use_tgBotNotify) {
-                TG_USER_ID = process.env.TG_USER_ID6;
-            }
-            if (process.env.TG_PROXY_AUTH6 && Use_tgBotNotify)
-                TG_PROXY_AUTH = process.env.TG_PROXY_AUTH6;
-            if (process.env.TG_PROXY_HOST6 && Use_tgBotNotify)
-                TG_PROXY_HOST = process.env.TG_PROXY_HOST6;
-            if (process.env.TG_PROXY_PORT6 && Use_tgBotNotify)
-                TG_PROXY_PORT = process.env.TG_PROXY_PORT6;
-            if (process.env.TG_API_HOST6 && Use_tgBotNotify)
-                TG_API_HOST = process.env.TG_API_HOST6;
-
-            if (process.env.DD_BOT_TOKEN6 && Use_ddBotNotify) {
-                DD_BOT_TOKEN = process.env.DD_BOT_TOKEN6;
-                if (process.env.DD_BOT_SECRET6) {
-                    DD_BOT_SECRET = process.env.DD_BOT_SECRET6;
-                }
-            }
-
-            if (process.env.QYWX_KEY6 && Use_qywxBotNotify) {
-                QYWX_KEY = process.env.QYWX_KEY6;
-            }
-
-            if (process.env.QYWX_AM6 && Use_qywxamNotify) {
-                QYWX_AM = process.env.QYWX_AM6;
-            }
-
-            if (process.env.IGOT_PUSH_KEY6 && Use_iGotNotify) {
-                IGOT_PUSH_KEY = process.env.IGOT_PUSH_KEY6;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN6 && Use_pushPlusNotify) {
-                PUSH_PLUS_TOKEN = process.env.PUSH_PLUS_TOKEN6;
-            }
-            if (process.env.PUSH_PLUS_USER6 && Use_pushPlusNotify) {
-                PUSH_PLUS_USER = process.env.PUSH_PLUS_USER6;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN_hxtrip6 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_TOKEN_hxtrip = process.env.PUSH_PLUS_TOKEN_hxtrip6;
-            }
-            if (process.env.PUSH_PLUS_USER_hxtrip6 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_USER_hxtrip = process.env.PUSH_PLUS_USER_hxtrip6;
-            }
-            if (process.env.GOTIFY_URL6) {
-                GOTIFY_URL = process.env.GOTIFY_URL6;
-            }
-            if (process.env.GOTIFY_TOKEN6) {
-                GOTIFY_TOKEN = process.env.GOTIFY_TOKEN6;
-            }
-            if (process.env.GOTIFY_PRIORITY6) {
-                GOTIFY_PRIORITY = process.env.GOTIFY_PRIORITY6;
-            }
-            break;
-			
-		case 7:
-            //==========================第七套环境变量赋值=========================
-
-            if (process.env.GOBOT_URL7 && Use_gobotNotify) {
-                GOBOT_URL = process.env.GOBOT_URL7;
-            }
-            if (process.env.GOBOT_TOKEN7 && Use_gobotNotify) {
-                GOBOT_TOKEN = process.env.GOBOT_TOKEN7;
-            }
-            if (process.env.GOBOT_QQ7 && Use_gobotNotify) {
-                GOBOT_QQ = process.env.GOBOT_QQ7;
-            }
-
-            if (process.env.PUSH_KEY7 && Use_serverNotify) {
-                SCKEY = process.env.PUSH_KEY7;
-            }
-
-            if (process.env.WP_APP_TOKEN7 && Use_WxPusher) {
-                WP_APP_TOKEN = process.env.WP_APP_TOKEN7;
-            }
-
-            if (process.env.WP_TOPICIDS7 && Use_WxPusher) {
-                WP_TOPICIDS = process.env.WP_TOPICIDS7;
-            }
-
-            if (process.env.WP_UIDS7 && Use_WxPusher) {
-                WP_UIDS = process.env.WP_UIDS7;
-            }
-
-            if (process.env.WP_URL7 && Use_WxPusher) {
-                WP_URL = process.env.WP_URL7;
-            }
-            if (process.env.BARK_PUSH7 && Use_BarkNotify) {
-                if (process.env.BARK_PUSH7.indexOf('https') > -1 || process.env.BARK_PUSH7.indexOf('http') > -1) {
-                    //兼容BARK自建用户
-                    BARK_PUSH = process.env.BARK_PUSH7;
-                } else {
-                    BARK_PUSH = `https://api.day.app/${process.env.BARK_PUSH7}`;
-                }
-                if (process.env.BARK_SOUND7) {
-                    BARK_SOUND = process.env.BARK_SOUND7;
-                }
-                if (process.env.BARK_GROUP7) {
-                    BARK_GROUP = process.env.BARK_GROUP7;
-                }
-            }
-            if (process.env.TG_BOT_TOKEN7 && Use_tgBotNotify) {
-                TG_BOT_TOKEN = process.env.TG_BOT_TOKEN7;
-            }
-            if (process.env.TG_USER_ID7 && Use_tgBotNotify) {
-                TG_USER_ID = process.env.TG_USER_ID7;
-            }
-            if (process.env.TG_PROXY_AUTH7 && Use_tgBotNotify)
-                TG_PROXY_AUTH = process.env.TG_PROXY_AUTH7;
-            if (process.env.TG_PROXY_HOST7 && Use_tgBotNotify)
-                TG_PROXY_HOST = process.env.TG_PROXY_HOST7;
-            if (process.env.TG_PROXY_PORT7 && Use_tgBotNotify)
-                TG_PROXY_PORT = process.env.TG_PROXY_PORT7;
-            if (process.env.TG_API_HOST7 && Use_tgBotNotify)
-                TG_API_HOST = process.env.TG_API_HOST7;
-
-            if (process.env.DD_BOT_TOKEN7 && Use_ddBotNotify) {
-                DD_BOT_TOKEN = process.env.DD_BOT_TOKEN7;
-                if (process.env.DD_BOT_SECRET7) {
-                    DD_BOT_SECRET = process.env.DD_BOT_SECRET7;
-                }
-            }
-
-            if (process.env.QYWX_KEY7 && Use_qywxBotNotify) {
-                QYWX_KEY = process.env.QYWX_KEY7;
-            }
-
-            if (process.env.QYWX_AM7 && Use_qywxamNotify) {
-                QYWX_AM = process.env.QYWX_AM7;
-            }
-
-            if (process.env.IGOT_PUSH_KEY7 && Use_iGotNotify) {
-                IGOT_PUSH_KEY = process.env.IGOT_PUSH_KEY7;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN7 && Use_pushPlusNotify) {
-                PUSH_PLUS_TOKEN = process.env.PUSH_PLUS_TOKEN7;
-            }
-            if (process.env.PUSH_PLUS_USER7 && Use_pushPlusNotify) {
-                PUSH_PLUS_USER = process.env.PUSH_PLUS_USER7;
-            }
-
-            if (process.env.PUSH_PLUS_TOKEN_hxtrip7 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_TOKEN_hxtrip = process.env.PUSH_PLUS_TOKEN_hxtrip7;
-            }
-            if (process.env.PUSH_PLUS_USER_hxtrip7 && Use_pushPlushxtripNotify) {
-                PUSH_PLUS_USER_hxtrip = process.env.PUSH_PLUS_USER_hxtrip7;
-            }
-            if (process.env.GOTIFY_URL7) {
-                GOTIFY_URL = process.env.GOTIFY_URL7;
-            }
-            if (process.env.GOTIFY_TOKEN7) {
-                GOTIFY_TOKEN = process.env.GOTIFY_TOKEN7;
-            }
-            if (process.env.GOTIFY_PRIORITY7) {
-                GOTIFY_PRIORITY = process.env.GOTIFY_PRIORITY7;
-            }
-            break;
-        }
-
+		if (UseGroupNotify == 1)
+		    UseGroupNotify = "";
+
+		if (process.env["GOBOT_URL" + UseGroupNotify] && Use_gobotNotify) {
+		    GOBOT_URL = process.env["GOBOT_URL" + UseGroupNotify];
+		}
+		if (process.env["GOBOT_TOKEN" + UseGroupNotify] && Use_gobotNotify) {
+		    GOBOT_TOKEN = process.env["GOBOT_TOKEN" + UseGroupNotify];
+		}
+		if (process.env["GOBOT_QQ" + UseGroupNotify] && Use_gobotNotify) {
+		    GOBOT_QQ = process.env["GOBOT_QQ" + UseGroupNotify];
+		}
+
+		if (process.env["PUSH_KEY" + UseGroupNotify] && Use_serverNotify) {
+		    SCKEY = process.env["PUSH_KEY" + UseGroupNotify];
+		}
+
+		if (process.env["WP_APP_TOKEN" + UseGroupNotify] && Use_WxPusher) {
+		    WP_APP_TOKEN = process.env["WP_APP_TOKEN" + UseGroupNotify];
+		}
+
+		if (process.env["WP_TOPICIDS" + UseGroupNotify] && Use_WxPusher) {
+		    WP_TOPICIDS = process.env["WP_TOPICIDS" + UseGroupNotify];
+		}
+
+		if (process.env["WP_UIDS" + UseGroupNotify] && Use_WxPusher) {
+		    WP_UIDS = process.env["WP_UIDS" + UseGroupNotify];
+		}
+
+		if (process.env["WP_URL" + UseGroupNotify] && Use_WxPusher) {
+		    WP_URL = process.env["WP_URL" + UseGroupNotify];
+		}
+		if (process.env["BARK_PUSH" + UseGroupNotify] && Use_BarkNotify) {
+		    if (process.env["BARK_PUSH" + UseGroupNotify].indexOf('https') > -1 || process.env["BARK_PUSH" + UseGroupNotify].indexOf('http') > -1) {
+		        //兼容BARK自建用户
+		        BARK_PUSH = process.env["BARK_PUSH" + UseGroupNotify];
+		    } else {
+				//兼容BARK本地用户只填写设备码的情况
+		        BARK_PUSH = `https://api.day.app/${process.env["BARK_PUSH" + UseGroupNotify]}`;
+		    }
+		    if (process.env["BARK_SOUND" + UseGroupNotify]) {
+		        BARK_SOUND = process.env["BARK_SOUND" + UseGroupNotify];
+		    }
+		    if (process.env["BARK_GROUP" + UseGroupNotify]) {
+		        BARK_GROUP = process.env;
+		    }
+		} 
+		if (process.env["TG_BOT_TOKEN" + UseGroupNotify] && Use_tgBotNotify) {
+		    TG_BOT_TOKEN = process.env["TG_BOT_TOKEN" + UseGroupNotify];
+		}
+		if (process.env["TG_USER_ID" + UseGroupNotify] && Use_tgBotNotify) {
+		    TG_USER_ID = process.env["TG_USER_ID" + UseGroupNotify];
+		}
+		if (process.env["TG_PROXY_AUTH" + UseGroupNotify] && Use_tgBotNotify)
+		    TG_PROXY_AUTH = process.env["TG_PROXY_AUTH" + UseGroupNotify];
+		if (process.env["TG_PROXY_HOST" + UseGroupNotify] && Use_tgBotNotify)
+		    TG_PROXY_HOST = process.env["TG_PROXY_HOST" + UseGroupNotify];
+		if (process.env["TG_PROXY_PORT" + UseGroupNotify] && Use_tgBotNotify)
+		    TG_PROXY_PORT = process.env["TG_PROXY_PORT" + UseGroupNotify];
+		if (process.env["TG_API_HOST" + UseGroupNotify] && Use_tgBotNotify)
+		    TG_API_HOST = process.env["TG_API_HOST" + UseGroupNotify];
+
+		if (process.env["DD_BOT_TOKEN" + UseGroupNotify] && Use_ddBotNotify) {
+		    DD_BOT_TOKEN = process.env["DD_BOT_TOKEN" + UseGroupNotify];
+		    if (process.env["DD_BOT_SECRET" + UseGroupNotify]) {
+		        DD_BOT_SECRET = process.env["DD_BOT_SECRET" + UseGroupNotify];
+		    }
+		}
+
+		if (process.env["QYWX_KEY" + UseGroupNotify] && Use_qywxBotNotify) {
+		    QYWX_KEY = process.env["QYWX_KEY" + UseGroupNotify];
+		}
+
+		if (process.env["QYWX_AM" + UseGroupNotify] && Use_qywxamNotify) {
+		    QYWX_AM = process.env["QYWX_AM" + UseGroupNotify];
+		}
+
+		if (process.env["IGOT_PUSH_KEY" + UseGroupNotify] && Use_iGotNotify) {
+		    IGOT_PUSH_KEY = process.env["IGOT_PUSH_KEY" + UseGroupNotify];
+		}
+
+		if (process.env["PUSH_PLUS_TOKEN" + UseGroupNotify] && Use_pushPlusNotify) {
+		    PUSH_PLUS_TOKEN = process.env["PUSH_PLUS_TOKEN" + UseGroupNotify];
+		}
+		if (process.env["PUSH_PLUS_USER" + UseGroupNotify] && Use_pushPlusNotify) {
+		    PUSH_PLUS_USER = process.env["PUSH_PLUS_USER" + UseGroupNotify];
+		}
+
+		if (process.env["PUSH_PLUS_TOKEN_hxtrip" + UseGroupNotify] && Use_pushPlushxtripNotify) {
+		    PUSH_PLUS_TOKEN_hxtrip = process.env["PUSH_PLUS_TOKEN_hxtrip" + UseGroupNotify];
+		}
+		if (process.env["PUSH_PLUS_USER_hxtrip" + UseGroupNotify] && Use_pushPlushxtripNotify) {
+		    PUSH_PLUS_USER_hxtrip = process.env["PUSH_PLUS_USER_hxtrip" + UseGroupNotify];
+		}
+		if (process.env["GOTIFY_URL" + UseGroupNotify]) {
+		    GOTIFY_URL = process.env["GOTIFY_URL" + UseGroupNotify];
+		}
+		if (process.env["GOTIFY_TOKEN" + UseGroupNotify]) {
+		    GOTIFY_TOKEN = process.env["GOTIFY_TOKEN" + UseGroupNotify];
+		}
+		if (process.env["GOTIFY_PRIORITY" + UseGroupNotify]) {
+		    GOTIFY_PRIORITY = process.env["GOTIFY_PRIORITY" + UseGroupNotify];
+		}
         //检查是否在不使用Remark进行名称替换的名单
         const notifySkipRemarkList = process.env.NOTIFY_SKIP_NAMETYPELIST ? process.env.NOTIFY_SKIP_NAMETYPELIST.split('&') : [];
         const titleIndex3 = notifySkipRemarkList.findIndex((item) => item === strTitle);
