@@ -64,7 +64,7 @@ async function shangou() {
              data = JSON.parse(data)
              if (data.subCode == 0){
                console.log(data.msg)
-               console.log(data.rewardsInfo?.successRewards[3][0]?.quantity+'豆'||'空气')
+               console.log(data.rewardsInfo?.successRewards[3][0]?.quantity||'空气')
             }else{
               console.log(data.msg)
             }
