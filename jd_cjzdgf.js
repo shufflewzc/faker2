@@ -533,7 +533,7 @@ function saveTeam(_0xd519d7 = 0) {
     return new Promise(_0x270eca => {
         let _0x1a0f79 = encodeURIComponent(encodeURIComponent($.Pin));
         if (_0xd519d7 == 1) _0x1a0f79 = encodeURIComponent(encodeURIComponent($.Pin));
-        let _0x44652e = 'activityId=' + activityId + '&pin=' + _0x1a0f79 + '&pinImg=' + encodeURIComponent(encodeURIComponent($.attrTouXiang));
+        let _0x44652e = 'activityId=' + activityId + '&pin=' + _0x1a0f79 + '&pinImg=' + encodeURIComponent(encodeURIComponent($.attrTouXiang))+'&venderId='+$.userId;
         $.post(taskPostUrl('/wxTeam/saveCaptain', _0x44652e), async (_0x767d7b, _0x17080e, _0x1070a3) => {
             try {
                 if (_0x767d7b) {
@@ -589,7 +589,7 @@ function joinTeam(_0x5a3500 = 0) {
     return new Promise(_0x40dede => {
         let _0x5d51ce = encodeURIComponent(encodeURIComponent($.Pin));
         if (_0x5a3500 == 1) _0x5d51ce = encodeURIComponent(encodeURIComponent($.Pin));
-        let _0x14deba = 'activityId=' + activityId + '&signUuid=' + $.signUuid + '&pin=' + _0x5d51ce + '&pinImg=' + encodeURIComponent(encodeURIComponent($.attrTouXiang));
+        let _0x14deba = 'activityId=' + activityId + '&signUuid=' + $.signUuid + '&pin=' + _0x5d51ce + '&pinImg=' + encodeURIComponent(encodeURIComponent($.attrTouXiang))+'&venderId='+$.userId;
         $.post(taskPostUrl('/wxTeam/saveMember', _0x14deba), async (_0x53be06, _0x5ed55f, _0x19a125) => {
             try {
                 if (_0x53be06) {
