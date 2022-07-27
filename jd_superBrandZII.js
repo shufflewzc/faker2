@@ -157,6 +157,7 @@ async function doTask(){
                     await $.wait(3000);
                 }
             }
+			$.runFlag = true;
             //}
         }
     }
