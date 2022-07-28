@@ -3,7 +3,7 @@
 支付一元才能参与打卡，填写环境变量morningScPins给指定CK打卡
 15 6,7 * * * jd_morningSc.js
 */
-const $ = new Env("生鲜早起打卡")
+const $ = new Env("早起生鲜打卡")
 const ua = `jdltapp;iPhone;3.1.0;${Math.ceil(Math.random()*4+10)}.${Math.ceil(Math.random()*4)};${randomString(40)}`
 let cookiesArr = []
 var pins = process.env.morningScPins ?? ""
@@ -61,7 +61,7 @@ let cookie = '';
             }
             data = await clockIn()
             if (data?.head?.code == 200) {
-                notify.sendNotify(`早起赢现金打卡成功，记得参与明天的打卡活动哦`,'');
+                notify.sendNotify(`早起赢现金打卡成功，记得参与明天的打卡活动哦`);
             } else {
                 notify.sendNotify(`早起赢现金打卡错误`, data);
             }
