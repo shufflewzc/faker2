@@ -4,7 +4,7 @@ cron:1 10 * * *
 ============Quantumultx===============
 [task_local]
 #魔方红包雨
-1 10 * * * jd_mfredrain.js, tag=魔方红包雨, enabled=true
+1 12 * * * jd_mfredrain.js, tag=魔方红包雨, enabled=true
  */
 
 const $ = new Env('魔方红包雨');
