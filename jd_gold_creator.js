@@ -54,7 +54,7 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
       $.beans = 0
       $.nickName = '';
       message = '';
-      await TotalBean();
+      //await TotalBean();
       console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
       if (!$.isLogin) {
         $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/`, {"open-url": "https://bean.m.jd.com/"});
@@ -100,7 +100,7 @@ async function getDetail() {
   for (let item of $.subTitleInfos) {
     console.log(`\n开始给【${item['longTitle']}】主题下的商品进行投票`);
     await goldCreatorDetail(item['matGrpId'], item['subTitleId'], item['taskId'], item['batchId']);
-    await $.wait(2000);
+    await $.wait(4000);
   }
 }
 function goldCreatorTab() {
@@ -211,7 +211,7 @@ async function doTask2(batchId) {
         body['type'] = 2;
       }
       await goldCreatorDoTask(body);
-      await $.wait(2000);
+      await $.wait(4000);
     }
   }
   if ($.signTask['taskStatus'] === 1) {

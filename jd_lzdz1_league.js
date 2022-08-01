@@ -1,9 +1,9 @@
 /**
-京东粉丝联盟福利社
+京东超店会员福利社
 
 **/
 
-const $ = new Env("京东粉丝联盟福利社");
+const $ = new Env("京东超店会员福利社");
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const notify = $.isNode() ? require('./sendNotify') : '';
 let cookiesArr = [], cookie = '', message = '';
@@ -54,30 +54,30 @@ if ($.isNode()) {
             $.ADID = getUUID('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 1);
             $.UUID = getUUID('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
             authorCodeList = [
-                '72c063179e01411fa87e404c9ab6bcb2',
-                // '18a76a8d1b7644568c1a357b240b3444',
+                '8e07c72a5686489e8fb2785d3abdcf70',
+                'bc8c2618444f4b64baee1497a8418870',
                 // '12958ed848ea42c9a0d9d8df6e9199ad',
             ]
             // $.authorCode = authorCodeList[random(0, authorCodeList.length)]
             $.authorCode = ownCode ? ownCode : authorCodeList[random(0, authorCodeList.length)]
             $.authorNum = `${random(1000000, 9999999)}`
-            $.activityId = 'dza044fb424c3fa1bd9e4415e0shop'
-            $.activityShopId = '1000083681'
-            $.activityUrl = `https://lzdz1-isv.isvjcloud.com/dingzhi/shop/league/activity?activityId=${$.activityId}&shareUuid=${encodeURIComponent($.authorCode)}&adsource=null&shareuserid4minipg=null&shopid=${$.activityShopId}&lng=00.000000&lat=00.000000&sid=&un_area=`
+            $.activityId = '4a4b4c2e46dd80c1d89bd445shop'
+            $.activityShopId = '1000077045'
+            $.activityUrl = `https://lzdz1-isv.isvjcloud.com/dingzhi/shop/league/activity/${$.authorNum}?activityId=${$.activityId}&shareUuid=${encodeURIComponent($.authorCode)}&adsource=null&shareuserid4minipg=${encodeURIComponent($.secretPin)}&shopid=${$.activityShopId}&lng=00.000000&lat=00.000000&sid=&un_area=`
             await superFans();
-            await $.wait(3000);
-            // if ($.bean > 0) {
-            //     message += `\n【京东账号${$.index}】${$.nickName || $.UserName} \n       └ 获得 ${$.bean} 京豆。`
-            // }
+            await $.wait(2000);
+            if ($.bean > 0) {
+                message += `\n【京东账号${$.index}】${$.nickName || $.UserName} \n       └ 获得 ${$.bean} 京豆。`
+            }
         }
     }
-    // if (message !== '') {
-    //     if ($.isNode()) {
-    //         await notify.sendNotify($.name, message, '', `\n`);
-    //     } else {
-    //         $.msg($.name, '有点儿收获', message);
-    //     }
-    // }
+    if (message !== '') {
+        if ($.isNode()) {
+            await notify.sendNotify($.name, message, '', `\n`);
+        } else {
+            $.msg($.name, '有点儿收获', message);
+        }
+    }
 })()
     .catch((e) => {
         $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
@@ -146,7 +146,7 @@ async function superFans() {
                                 vo.value
                             );
                         }
-                        await $.wait(1000);
+                        await $.wait(2000);
                         // await $.wait(1000);
                     }
                     // await getFirstLZCK()

@@ -1,9 +1,11 @@
-/**
- 特务Z，默认选择左边战队
+/*
+ 特务集卡
  脚本没有自动开卡，会尝试领取开卡奖励
-5 10,18,20 * * * https://raw.githubusercontent.com/star261/jd/main/scripts/jd_superBrand.js
- */
-const $ = new Env('特务Z');
+cron:35 10,18,20 * * *
+
+35 10,18,20 * * * jd_superBrand.js
+* */
+const $ = new Env('特务Z-II');
 const notify = $.isNode() ? require('./sendNotify') : '';
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 let cookiesArr = [];
@@ -11,6 +13,7 @@ let UA = ``;
 $.allInvite = [];
 let useInfo = {};
 $.helpEncryptAssignmentId = '';
+$.flag = false
 if ($.isNode()) {
     Object.keys(jdCookieNode).forEach((item) => {
         cookiesArr.push(jdCookieNode[item])
@@ -27,7 +30,6 @@ if ($.isNode()) {
         $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
         return;
     }
-    $.teamName = "left"
     for (let i = 0; i < cookiesArr.length; i++) {
         UA = `jdapp;iPhone;10.0.8;14.6;${randomWord(false,40,40)};network/wifi;JDEbook/openapp.jdreader;model/iPhone9,2;addressid/2214222493;appBuild/168841;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/16E158;supportJDSHWK/1`;
         $.index = i + 1;
@@ -35,7 +37,7 @@ if ($.isNode()) {
         $.isLogin = true;
         $.nickName = '';
         $.UserName = decodeURIComponent($.cookie.match(/pt_pin=([^; ]+)(?=;?)/) && $.cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
-        await TotalBean();
+        //await TotalBean();
         console.log(`\n*****开始【京东账号${$.index}】${$.nickName || $.UserName}*****\n`);
         if (!$.isLogin) {
             $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
@@ -50,9 +52,9 @@ if ($.isNode()) {
         }catch (e) {
             console.log(JSON.stringify(e));
         }
+		if ($.flag) return;
         await $.wait(1000);
     }
-    //return ;	
     if($.allInvite.length > 0 ){
         console.log(`\n开始脚本内互助\n`);
     }
@@ -68,7 +70,7 @@ if ($.isNode()) {
         for (let j = 0; j < $.allInvite.length && $.canHelp; j++) {
             $.codeInfo = $.allInvite[j];
             $.code = $.codeInfo.code;
-            if($.UserName ===  $.codeInfo.userName || $.codeInfo.time === 999){
+            if($.UserName ===  $.codeInfo.userName || $.codeInfo.time === 3){
                 continue;
             }
             $.encryptAssignmentId = $.codeInfo.encryptAssignmentId;
@@ -82,44 +84,34 @@ if ($.isNode()) {
 async function main() {
     $.runFlag = false;
     $.activityInfo = {};
-    await takeRequest('showSecondFloorPkInfo');
-    if(JSON.stringify($.activityInfo) === '{}'){
-        console.log(`获取活动详情失败`);
+    await takeRequest('superBrandSecondFloorMainPage');
+    if($.bizCode == 'MP001'){
+        console.log(`本期活动结束，期待下期。。。`);
+		$.flag = true
         return ;
     }
     console.log(`获取活动详情成功`);
     $.activityId = $.activityInfo.activityBaseInfo.activityId;
     $.activityName = $.activityInfo.activityBaseInfo.activityName;
-    console.log(`当前活动:${$.activityName},ID：${$.activityId}`);
+    $.callNumber = $.activityInfo.activityUserInfo.userStarNum;
+    console.log(`当前活动:${$.activityName},ID：${$.activityId},可抽奖次数:${$.callNumber}`);
     $.encryptProjectId = $.activityInfo.activityBaseInfo.encryptProjectId;
     useInfo[$.UserName] = $.encryptProjectId;
+    await $.wait(1000);
     $.taskList = [];
-    await takeRequest('superBrandTaskList',{"source":"pk","activityId":$.activityId,"assistInfoFlag":1});
-    if($.activityInfo.activityPkInfo.userTeamStatus === 0){
-        console.log(`去加入战队,选择:${$.teamName}`);
-        await takeRequest('superBrandPkJoinTeam',{"source":"pk","activityId":$.activityId,"pre":"pre","teamName":$.teamName.toString()});
-    }else{
-        console.log(`已加入战队`);
-    }
-    if (new Date().getHours() >= 20){
-         if($.activityInfo.activityPkInfo.userTeamName === $.activityInfo.activityPkInfo.winTeamName && $.activityInfo.activityPkInfo.divideStatus === 0){
-             console.log(`去瓜分`);
-             await takeRequest('superBrandTaskLottery',{"source":"pk","activityId":$.activityId,"encryptProjectId":$.encryptProjectId,"encryptAssignmentId":"2v8f6JzBBTjrvzwZbYztuV9MVWv7","tag":"divide"});
-             return ;
-         }
-    } else {
-      console.log('晚上8点后瓜分！')
-    }
-    if($.activityInfo.activityPkInfo.divideStatus === 1){
-        console.log(`已瓜分`);
-        return ;
-    }	
-    if($.activityInfo.activityPkInfo.userTeamStatus !== 0 && $.activityInfo.activityPkInfo.userTeamStatus !== 1){
-        return ;
-    }
-    await $.wait(3000);
+    await takeRequest('superBrandTaskList');
+    await $.wait(1000);
     await doTask();
-
+    if($.runFlag){
+        await takeRequest('superBrandSecondFloorMainPage');
+        $.callNumber = $.activityInfo.activityUserInfo.userStarNum;
+        console.log(`可抽奖次数:${$.callNumber}`);
+    }
+    for (let i = 0; i < $.callNumber; i++) {
+        console.log(`进行抽奖`);
+        await takeRequest('superBrandTaskLottery');//抽奖
+        await $.wait(1000);
+    }
 }
 async function doTask(){
     for (let i = 0; i < $.taskList.length; i++) {
@@ -128,27 +120,19 @@ async function doTask(){
             console.log(`任务：${$.oneTask.assignmentName}，已完成`);
             continue;
         }
-        if($.oneTask.assignmentType === 1 || $.oneTask.assignmentType === 3 || $.oneTask.assignmentType === 0 || $.oneTask.assignmentType === 7){
+        if($.oneTask.assignmentType === 3  || $.oneTask.assignmentType === 7 || $.oneTask.assignmentType === 1){  //7是开卡  3是关注店铺 1是浏览会场
             if($.oneTask.assignmentType === 7){
                 console.log(`任务：${$.oneTask.assignmentName}，尝试领取开卡奖励；（不会自动开卡，如果你已经是会员，则会领取成功）`);
             }else{
                 console.log(`任务：${$.oneTask.assignmentName}，去执行`);
             }
-            let subInfo = $.oneTask.ext.followShop || $.oneTask.ext.brandMemberList || $.oneTask.ext.productsInfo || $.oneTask.ext.shoppingActivity ||'';
+            let subInfo = $.oneTask.ext.followShop || $.oneTask.ext.brandMemberList || $.oneTask.ext.shoppingActivity;
             if(subInfo && subInfo[0]){
-                for (let j = 0; j < subInfo.length; j++) {
-                    $.runInfo = subInfo[j];
-                    if($.runInfo.status !== 1){
-                        continue;
-                    }
-                    console.log(`任务：${$.runInfo.title || $.runInfo.shopName || $.runInfo.itemId},去执行`);
-                    await takeRequest('superBrandDoTask');
-                    await $.wait(1000);
-                }
+                $.runInfo = subInfo[0];
             }else{
                 $.runInfo = {'itemId':null};
-                await takeRequest('superBrandDoTask');
             }
+            await takeRequest('superBrandDoTask');
             await $.wait(1000);
             $.runFlag = true;
         }else if($.oneTask.assignmentType === 2){
@@ -175,44 +159,40 @@ async function doTask(){
                     await $.wait(3000);
                 }
             }
+						$.runFlag = true;
             //}
         }
     }
 }
-async function takeRequest(type,bodyInfo = '') {
+async function takeRequest(type) {
     let url = ``;
     let myRequest = ``;
-    if(bodyInfo){
-        url = `https://api.m.jd.com/?uuid=&client=wh5&area=&appid=ProductZ4Brand&functionId=${type}&t=${Date.now()}&body=${encodeURIComponent(JSON.stringify(bodyInfo))}`;
-    }else{
-        switch (type) {
-            case 'showSecondFloorPkInfo':
-                url = `https://api.m.jd.com/?uuid=&client=wh5&area=&appid=ProductZ4Brand&functionId=showSecondFloorPkInfo&t=${Date.now()}&body=%7B%22source%22:%22pk%22%7D`;
-                break;
-            case 'superBrandTaskList':
-                url = `https://api.m.jd.com/api?functionId=superBrandTaskList&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22pk%22,%22activityId%22:${$.activityId},%22assistInfoFlag%22:1%7D`;
-                break;
-            case 'superBrandDoTask':
-                if($.runInfo.itemId === null){
-                    url = `https://api.m.jd.com/api?functionId=superBrandDoTask&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22pk%22,%22activityId%22:${$.activityId},%22encryptProjectId%22:%22${$.encryptProjectId}%22,%22encryptAssignmentId%22:%22${$.oneTask.encryptAssignmentId}%22,%22assignmentType%22:${$.oneTask.assignmentType},%22completionFlag%22:1,%22itemId%22:%22${$.runInfo.itemId}%22,%22actionType%22:0%7D`;
-                }else{
-                    url = `https://api.m.jd.com/api?functionId=superBrandDoTask&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22pk%22,%22activityId%22:${$.activityId},%22encryptProjectId%22:%22${$.encryptProjectId}%22,%22encryptAssignmentId%22:%22${$.oneTask.encryptAssignmentId}%22,%22assignmentType%22:${$.oneTask.assignmentType},%22itemId%22:%22${$.runInfo.itemId}%22,%22actionType%22:0%7D`;
-                }
-                if($.oneTask.assignmentType === 5){
-                    url = `https://api.m.jd.com/api?functionId=superBrandDoTask&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22pk%22,%22activityId%22:${$.activityId},%22encryptProjectId%22:%22${$.encryptProjectId}%22,%22encryptAssignmentId%22:%22${$.oneTask.encryptAssignmentId}%22,%22assignmentType%22:${$.oneTask.assignmentType},%22itemId%22:%22${$.runInfo.itemId}%22,%22actionType%22:0,%22dropDownChannel%22:1%7D`;
-                }
-                break;
-            case 'superBrandTaskLottery':
-                url = `https://api.m.jd.com/api?functionId=superBrandTaskLottery&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22pk%22,%22activityId%22:${$.activityId}%7D`;
-                break;
-            case 'help':
-                url = `https://api.m.jd.com/api?functionId=superBrandDoTask&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22pk%22,%22activityId%22:${$.activityId},%22encryptProjectId%22:%22${$.encryptProjectId}%22,%22encryptAssignmentId%22:%22${$.encryptAssignmentId}%22,%22assignmentType%22:2,%22itemId%22:%22${$.code}%22,%22actionType%22:0%7D`;
-                break;
-            default:
-                console.log(`错误${type}`);
-        }
+    switch (type) {
+        case 'superBrandSecondFloorMainPage':
+            url = `https://api.m.jd.com/api?functionId=superBrandSecondFloorMainPage&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22secondfloor%22%7D`;
+            break;
+        case 'superBrandTaskList':
+            url = `https://api.m.jd.com/api?functionId=superBrandTaskList&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22secondfloor%22,%22activityId%22:${$.activityId},%22assistInfoFlag%22:1%7D`;
+            break;
+        case 'superBrandDoTask':
+            if($.runInfo.itemId === null){
+                url = `https://api.m.jd.com/api?functionId=superBrandDoTask&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22secondfloor%22,%22activityId%22:${$.activityId},%22encryptProjectId%22:%22${$.encryptProjectId}%22,%22encryptAssignmentId%22:%22${$.oneTask.encryptAssignmentId}%22,%22assignmentType%22:${$.oneTask.assignmentType},%22completionFlag%22:1,%22itemId%22:%22${$.runInfo.itemId}%22,%22actionType%22:0%7D`;
+            }else{
+                url = `https://api.m.jd.com/api?functionId=superBrandDoTask&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22secondfloor%22,%22activityId%22:${$.activityId},%22encryptProjectId%22:%22${$.encryptProjectId}%22,%22encryptAssignmentId%22:%22${$.oneTask.encryptAssignmentId}%22,%22assignmentType%22:${$.oneTask.assignmentType},%22itemId%22:%22${$.runInfo.itemId}%22,%22actionType%22:0%7D`;
+            }
+            if($.oneTask.assignmentType === 5){
+                url = `https://api.m.jd.com/api?functionId=superBrandDoTask&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22secondfloor%22,%22activityId%22:${$.activityId},%22encryptProjectId%22:%22${$.encryptProjectId}%22,%22encryptAssignmentId%22:%22${$.oneTask.encryptAssignmentId}%22,%22assignmentType%22:${$.oneTask.assignmentType},%22itemId%22:%22${$.runInfo.itemId}%22,%22actionType%22:0,%22dropDownChannel%22:1%7D`;
+            }
+            break;
+        case 'superBrandTaskLottery':
+            url = `https://api.m.jd.com/api?functionId=superBrandTaskLottery&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22secondfloor%22,%22activityId%22:${$.activityId}%7D`;
+            break;
+        case 'help':
+            url = `https://api.m.jd.com/api?functionId=superBrandDoTask&appid=ProductZ4Brand&client=wh5&t=${Date.now()}&body=%7B%22source%22:%22secondfloor%22,%22activityId%22:${$.activityId},%22encryptProjectId%22:%22${$.encryptProjectId}%22,%22encryptAssignmentId%22:%22${$.encryptAssignmentId}%22,%22assignmentType%22:2,%22itemId%22:%22${$.code}%22,%22actionType%22:0%7D`;
+            break;
+        default:
+            console.log(`错误${type}`);
     }
-
     myRequest = getRequest(url);
     return new Promise(async resolve => {
         $.post(myRequest, (err, resp, data) => {
@@ -236,14 +216,10 @@ function dealReturn(type, data) {
         return;
     }
     switch (type) {
-        case 'showSecondFloorPkInfo':
+        case 'superBrandSecondFloorMainPage':
+						$.bizCode = data.data.bizCode;	
             if(data.code === '0' &&  data.data && data.data.result){
                 $.activityInfo = data.data.result;
-            }
-            break;
-        case 'superBrandPkJoinTeam':
-            if(data.code === '0' &&  data.data && data.data.success){
-                console.log(`加入成功`);
             }
             break;
         case 'superBrandTaskList':
@@ -272,7 +248,7 @@ function dealReturn(type, data) {
                 $.runFlag = false;
                 console.log(`抽奖失败`);
             }
-            console.log(JSON.stringify(data));
+            //console.log(JSON.stringify(data));
             break;
 
         case 'help':
@@ -287,7 +263,7 @@ function dealReturn(type, data) {
                 console.log(`助力次数已用完`);
             }else if (data.code === '0' && data.data.bizCode === '103'){
                 console.log(`助力已满`);
-                $.codeInfo.time = 999;
+                $.codeInfo.time = 3;
             }else if (data.code === '0' && data.data.bizCode === '2001'){
                 $.canHelp = false;
                 console.log(`黑号`);
@@ -302,11 +278,11 @@ function dealReturn(type, data) {
 
 function getRequest(url) {
     const headers = {
-        'Origin' : `https://prodev.m.jd.com`,
+        'Origin' : `https://pro.m.jd.com`,
         'Cookie' : $.cookie ,
         'Connection' : `keep-alive`,
         'Accept' : `application/json, text/plain, */*`,
-        'Referer' : `https://prodev.m.jd.com/mall/active/3XbzM8XrNaiKRVuD9jHZhj9vYG8d/index.html`,
+        'Referer' : `https://pro.m.jd.com/mall/active/4UgUvnFebXGw6CbzvN6cadmfczuP/index.html`,
         'Host' : `api.m.jd.com`,
         'User-Agent' : UA,
         'Accept-Language' : `zh-cn`,

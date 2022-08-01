@@ -88,7 +88,7 @@ let args_xh = {
                 $.index = i + 1;
                 $.isLogin = true;
                 $.nickName = '';
-                await TotalBean();
+                //await TotalBean();
                 console.log(`\n****开始【京东账号${$.index}】${$.nickName || $.UserName}*****\n`);
                 if(args_xh.except.includes($.UserName)){
                     console.log(`跳过账号：${$.nickName || $.UserName}`)
