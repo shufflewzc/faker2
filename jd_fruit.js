@@ -824,12 +824,6 @@ async function masterHelpShare() {
             console.log(`【今日助力次数还剩】${$.helpResult.helpResult.remainTimes}次\n`);
             remainTimes = $.helpResult.helpResult.remainTimes;
             if ($.helpResult.helpResult.remainTimes === 0) {
-                helpStatisticStatus = 3;
-                if (!(helpStatisticStatus in helpStatisticArr['results'])) {
-                    helpStatisticArr['results'][helpStatisticStatus] = [code]
-                } else {
-                    helpStatisticArr['results'][helpStatisticStatus].push(code)
-                }
                 console.log(`您当前助力次数已耗尽，跳出助力`);
                 break
             }
