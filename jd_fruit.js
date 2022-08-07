@@ -825,7 +825,12 @@ async function masterHelpShare() {
             remainTimes = $.helpResult.helpResult.remainTimes;
             if ($.helpResult.helpResult.remainTimes === 0) {
                 console.log(`您当前助力次数已耗尽，跳出助力`);
-                break
+                if (!(helpStatisticStatus in helpStatisticArr['results'])) {
+                    helpStatisticArr['results'][helpStatisticStatus] = [code]
+                } else {
+                    helpStatisticArr['results'][helpStatisticStatus].push(code)
+                }
+                break;
             }
         } else {
             helpStatisticStatus = 2;
