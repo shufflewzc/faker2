@@ -73,7 +73,6 @@ let NoNeedCodes = [];
         return;
     }
     // if (llhelp) {
-    console.log('开始收集您的互助码，用于账号内部互助，请稍等...');
     for (let i = 0; i < cookiesArr.length; i++) {
         if (cookiesArr[i]) {
             cookie = cookiesArr[i];
@@ -825,7 +824,12 @@ async function masterHelpShare() {
             remainTimes = $.helpResult.helpResult.remainTimes;
             if ($.helpResult.helpResult.remainTimes === 0) {
                 console.log(`您当前助力次数已耗尽，跳出助力`);
-                break
+                if (!(helpStatisticStatus in helpStatisticArr['results'])) {
+                    helpStatisticArr['results'][helpStatisticStatus] = [code]
+                } else {
+                    helpStatisticArr['results'][helpStatisticStatus].push(code)
+                }
+                break;
             }
         } else {
             helpStatisticStatus = 2;
@@ -1143,30 +1147,6 @@ async function GetCollect() {
         newShareCodes = [];
         shareCodesArr = [];
 
-        if (process.env.FRUITSHARECODES) {
-            if (process.env.FRUITSHARECODES.indexOf('&') > -1) {
-                console.log(`您的东东农场互助码选择的是用&隔开\n`)
-                shareCodesArr = process.env.FRUITSHARECODES.split('&');
-            } else if (process.env.FRUITSHARECODES.indexOf('\n') > -1) {
-                console.log(`您的东东农场互助码选择的是用换行隔开\n`)
-                shareCodesArr = process.env.FRUITSHARECODES.split('\n');
-            } else {
-                shareCodesArr = process.env.FRUITSHARECODES.split();
-            }
-        }
-
-        if (shareCodesArr[$.index - 1]) {
-            newShareCodes = shareCodesArr[$.index - 1].split('@');
-        } else {
-            const tempIndex = $.index > shareCodes.length ? (shareCodes.length - 1) : ($.index - 1);
-            if (shareCodes.length > 0) {
-                newShareCodes = shareCodes[tempIndex].split('@');
-            }
-        }
-        if ($.isNode() && !process.env.FRUITSHARECODES) {
-            console.log(`您未填写助力码变量，优先进行账号内互助，再帮【zero205】助力`);
-            newShareCodes = [...(jdFruitShareArr || []), ...(newShareCodes || [])]
-        }
         const readShareCodeRes = await readShareCode(jdFruitShareArr[$.index - 1]);
         if (readShareCodeRes && readShareCodeRes.code === 200) {
             newShareCodes = [...new Set([...newShareCodes, ...(readShareCodeRes.data || [])])];
