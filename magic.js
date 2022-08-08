@@ -675,7 +675,7 @@ class Env {
             return;
         }
         let LZ_TOKEN_KEY = '', LZ_TOKEN_VALUE = '', JSESSIONID = '',
-            jcloud_alb_route = '', ci_session = ''
+            jcloud_alb_route = '', ci_session = '', LZ_AES_PIN= ''
         let sc = typeof scs != 'object' ? scs.split(',') : scs
         for (let ck of sc) {
             let name = ck.split(";")[0].trim()
@@ -690,19 +690,16 @@ class Env {
                     ? jcloud_alb_route = name.replace(/ /g, '') + ';' : ''
                 name.includes('ci_session=') ? ci_session = name.replace(/ /g,
                     '') + ';' : ''
+                name.includes('LZ_AES_PIN=') ? this.LZ_AES_PIN = name.replace(/ /g, '')
+                    + ';' : ''
+
             }
         }
+
         if (JSESSIONID && LZ_TOKEN_KEY && LZ_TOKEN_VALUE) {
-            this.lz = `${JSESSIONID}${LZ_TOKEN_KEY}${LZ_TOKEN_VALUE}`
+            this.lz = `${JSESSIONID}${LZ_TOKEN_KEY}${LZ_TOKEN_VALUE}${this.LZ_AES_PIN||''}`
         } else if (LZ_TOKEN_KEY && LZ_TOKEN_VALUE) {
-            this.lz = `${LZ_TOKEN_KEY}${LZ_TOKEN_VALUE}`
-        } else if (JSESSIONID && jcloud_alb_route) {
-            this.lz = `${JSESSIONID}${jcloud_alb_route}`
-        } else if (JSESSIONID) {
-            this.lz = `${JSESSIONID}`
-        }
-        if (ci_session) {
-            this.lz = `${ci_session}`
+            this.lz = `${LZ_TOKEN_KEY}${LZ_TOKEN_VALUE}${this.LZ_AES_PIN||''}`
         }
         // testMode ? this.log('lz', this.lz) : ''
     }
@@ -853,16 +850,27 @@ class Env {
     }
 
     async sign(fn, body = {}) {
-        let b = {"fn": fn, "body": body};
-        let h = {"token": apiToken}
-        try {
-            let {data} = await this.request(apiSignUrl, h, b);
-            console.log(data)
-            return {fn: data.fn, sign: data.body};
-        } catch (e) {
-            console.log("sign接口异常")
+        if ('isvObfuscator'===fn){
+            let b = {"functionId": fn, "body": JSON.stringify(body)};
+            let  h= {"Content-Type": "application/json","Cookie":"HELLO WORLD"}
+            try {
+                let {data} = await this.request('https://api.lfyouse.org/jdsign', h, b);
+                console.log(data)
+                return {fn: fn, sign: data};
+            } catch (e) {
+                console.log("isvObfuscator sign接口异常")
+            }
+        }else {
+            let b = {"fn": fn, "body": body};
+            let h = {"token": apiToken}
+            try {
+                let {data} = await this.request(apiSignUrl, h, b);
+                return {fn: data.fn, sign: data.body};
+            } catch (e) {
+                console.log("sign接口异常")
+            }
+            return {fn: "", sign: ""};
         }
-        return {fn: "", sign: ""};
     }
 
     async _algo() {
@@ -914,19 +922,12 @@ class Env {
     }
 
     async isvObfuscator() {
-        let url = `https://api.m.jd.com/client.action?functionId=isvObfuscator`
         let body = ''
-        switch (this.domain) {
-            case 'cjhy-isv.isvjcloud.com':
-            case 'lzkj-isv.isvjcloud.com':
-            case 'txzj-isv.isvjcloud.com':
-            case 'lzdz-isv.isvjcloud.com':
-            case 'cjhydz-isv.isvjcloud.com':
-                body = this.randomArray(ISV_OBFUSCATOR[this.domain], 1)[0]
-                break
-            default:
-                body = 'adid=7B411CD9-D62C-425B-B083-9AFC49B94228&area=16_1332_42932_43102&body=%7B%22url%22%3A%22https%3A%5C/%5C/cjhydz-isv.isvjcloud.com%22%2C%22id%22%3A%22%22%7D&build=167541&client=apple&clientVersion=9.4.0&d_brand=apple&d_model=iPhone8%2C1&eid=eidId10b812191seBCFGmtbeTX2vXF3lbgDAVwQhSA8wKqj6OA9J4foPQm3UzRwrrLdO23B3E2wCUY/bODH01VnxiEnAUvoM6SiEnmP3IPqRuO%2By/%2BZo&isBackground=N&joycious=48&lang=zh_CN&networkType=wifi&networklibtype=JDNetworkBaseAF&openudid=2f7578cb634065f9beae94d013f172e197d62283&osVersion=13.1.2&partner=apple&rfs=0000&scope=11&screen=750%2A1334&sign=60bde51b4b7f7ff6e1bc1f473ecf3d41&st=1613720203903&sv=110&uts=0f31TVRjBStG9NoZJdXLGd939Wv4AlsWNAeL1nxafUsZqiV4NLsVElz6AjC4L7tsnZ1loeT2A8Z5/KfI/YoJAUfJzTd8kCedfnLG522ydI0p40oi8hT2p2sNZiIIRYCfjIr7IAL%2BFkLsrWdSiPZP5QLptc8Cy4Od6/cdYidClR0NwPMd58K5J9narz78y9ocGe8uTfyBIoA9aCd/X3Muxw%3D%3D&uuid=hjudwgohxzVu96krv/T6Hg%3D%3D&wifiBssid=9cf90c586c4468e00678545b16176ed2'
+        let newVar = await this.sign('isvObfuscator', {'id': '', 'url': `https://${this.domain}`});
+        if (newVar.sign) {
+            body = newVar.sign;
         }
+        let url = `https://api.m.jd.com/client.action?functionId=isvObfuscator`
         let headers = {
             "Accept": "*/*",
             "Accept-Encoding": "gzip, deflate, br",
@@ -959,6 +960,7 @@ class Env {
             "User-Agent": this.UA
         }
         let {data} = await this.request(url, headers, body);
+        console.log(JSON.stringify(data))
         return data;
     }
 
