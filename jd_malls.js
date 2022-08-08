@@ -1,9 +1,14 @@
 /*
-逛京东会场 领大额优惠券
-变量格式 ACT_URL="https://xxx.mall.json" 
-建议监听
+逛京东会场
 
-10 * * * * jd_mall.js
+只能刷浏览量，其他未知，测试脚本
+只能刷浏览量，其他未知，测试脚本
+只能刷浏览量，其他未知，测试脚本
+
+变量格式 ACT_URL="https://xxx.mall.json" 
+参考文件 docker文件里里面 mall.json
+
+10 0,20 * * * jd_malls.js
 */
 const $ = new Env("逛会场领卷");
 const jdCookieNode = $.isNode() ? require("./jdCookie.js") : "";
