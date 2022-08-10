@@ -10,6 +10,7 @@ import os
 import sys
 import time
 import traceback
+
 import requests
 
 logger = logging.getLogger(name=None)  # 创建一个日志对象
@@ -82,6 +83,17 @@ def get_index(lst: list, item: str) -> list:
     return [index for (index, value) in enumerate(lst) if value == item]
 
 
+def getversion():
+    url = f"http://{ipport}/api/system"
+    response = requests.get(url=url)
+    data = json.loads(response.content.decode("utf-8"))
+    version = data.get("data").get("version")
+    if int(version.split('.')[0]) >= 2:
+        if int(version.split('.')[1]) >= 12:
+            return 1
+    return 0
+
+
 def get_duplicate_list(tasklist: list) -> tuple:
     logger.info("\n=== 第一轮初筛开始 ===")
 
@@ -89,7 +101,14 @@ def get_duplicate_list(tasklist: list) -> tuple:
     names = []
     cmds = []
     for task in tasklist:
-        ids.append(task.get("_id"))
+        url = f"http://{ipport}/api/system"
+        response = requests.get(url=url)
+        data = json.loads(response.content.decode("utf-8"))
+        version = data.get("data").get("version")
+        if getversion() == 1:
+            ids.append(task.get("id"))
+        else:
+            ids.append(task.get("_id"))
         names.append(task.get("name"))
         cmds.append(task.get("command"))
 
@@ -154,17 +173,9 @@ def disable_duplicate_tasks(ids: list) -> None:
 
 def get_token() -> str or None:
     try:
-        url = f"http://{ipport}/api/system"
-        response = requests.get(url=url)
-        data = json.loads(response.content.decode("utf-8"))
-        version=data.get("data").get("version")
-        if int(version.split('.')[0])>=2:
-            if int(version.split('.')[1])>=12:
-                with open("/ql/data/config/auth.json", "r", encoding="utf-8") as f:
-                    data = json.load(f)
-            else:
-                with open("/ql/config/auth.json", "r", encoding="utf-8") as f:
-                    data = json.load(f)
+        if getversion() == 1:
+            with open("/ql/data/config/auth.json", "r", encoding="utf-8") as f:
+                data = json.load(f)
         else:
             with open("/ql/config/auth.json", "r", encoding="utf-8") as f:
                 data = json.load(f)
