@@ -24,7 +24,7 @@ if not ipport:
     logger.info(
         "如果报错请在环境变量中添加你的真实 IP:端口\n名称：IPPORT\t值：127.0.0.1:5700\n或在 config.sh 中添加 export IPPORT='127.0.0.1:5700'"
     )
-    ipport = "localhost:5600"
+    ipport = "localhost:5700"
 else:
     ipport = ipport.lstrip("http://").rstrip("/")
 sub_str = os.getenv("RES_SUB", "shufflewzc_faker2")
