@@ -10,7 +10,6 @@ import os
 import sys
 import time
 import traceback
-
 import requests
 
 logger = logging.getLogger(name=None)  # 创建一个日志对象
@@ -25,7 +24,7 @@ if not ipport:
     logger.info(
         "如果报错请在环境变量中添加你的真实 IP:端口\n名称：IPPORT\t值：127.0.0.1:5700\n或在 config.sh 中添加 export IPPORT='127.0.0.1:5700'"
     )
-    ipport = "localhost:5700"
+    ipport = "localhost:5600"
 else:
     ipport = ipport.lstrip("http://").rstrip("/")
 sub_str = os.getenv("RES_SUB", "shufflewzc_faker2")
@@ -155,8 +154,21 @@ def disable_duplicate_tasks(ids: list) -> None:
 
 def get_token() -> str or None:
     try:
-        with open("/ql/config/auth.json", "r", encoding="utf-8") as f:
-            data = json.load(f)
+        url = f"http://{ipport}/api/system"
+        response = requests.get(url=url)
+        data = json.loads(response.content.decode("utf-8"))
+        datas = data.get("data")
+        version=datas.get("version")
+        if int(version.split('.')[0])>=2:
+            if int(version.split('.')[1])>=12:
+                with open("/ql/data/config/auth.json", "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            else:
+                with open("/ql/config/auth.json", "r", encoding="utf-8") as f:
+                    data = json.load(f)
+        else:
+            with open("/ql/config/auth.json", "r", encoding="utf-8") as f:
+                data = json.load(f)
     except Exception:
         logger.info(f"❌无法获取 token!!!\n{traceback.format_exc()}")
         send("💔禁用重复任务失败", "无法获取 token!!!")
