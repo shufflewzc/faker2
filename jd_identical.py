@@ -157,8 +157,7 @@ def get_token() -> str or None:
         url = f"http://{ipport}/api/system"
         response = requests.get(url=url)
         data = json.loads(response.content.decode("utf-8"))
-        datas = data.get("data")
-        version=datas.get("version")
+        version=data.get("data").get("version")
         if int(version.split('.')[0])>=2:
             if int(version.split('.')[1])>=12:
                 with open("/ql/data/config/auth.json", "r", encoding="utf-8") as f:
