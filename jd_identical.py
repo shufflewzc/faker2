@@ -155,7 +155,7 @@ def disable_duplicate_tasks(ids: list) -> None:
 
 def get_token() -> str or None:
     try:
-        with open("/ql/config/auth.json", "r", encoding="utf-8") as f:
+        with open("/ql/data/config/auth.json", "r", encoding="utf-8") as f:
             data = json.load(f)
     except Exception:
         logger.info(f"❌无法获取 token!!!\n{traceback.format_exc()}")
