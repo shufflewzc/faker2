@@ -101,10 +101,6 @@ def get_duplicate_list(tasklist: list) -> tuple:
     names = []
     cmds = []
     for task in tasklist:
-        url = f"http://{ipport}/api/system"
-        response = requests.get(url=url)
-        data = json.loads(response.content.decode("utf-8"))
-        version = data.get("data").get("version")
         if getversion() == 1:
             ids.append(task.get("id"))
         else:
