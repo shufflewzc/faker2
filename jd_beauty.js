@@ -4,10 +4,11 @@
 https://raw.githubusercontent.com/aTenb/jdOpenSharePicker/master/jd_beautyStudy.js
 更新时间:2021-12-03
 活动入口：京东app首页-美妆馆-底部中间按钮
-20 7,12,19 * * * jd_beautyStudy.js, tag=美丽研究院, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
+定时自定义，集中访问可能炸
  */
 const $ = new Env('美丽研究院');
 const notify = $.isNode() ? require('./sendNotify') : '';
+console.log('连接服务器不稳定,能不能用随缘!!!')
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const WebSocket = require('ws');
 const UA = process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)
@@ -49,7 +50,7 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
       $.nickName = '';
       message = '';
       $.token = '';
-      //await TotalBean();
+      await TotalBean();
       console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
       if (!$.isLogin) {
         $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/`, {"open-url": "https://bean.m.jd.com/"});
@@ -142,6 +143,7 @@ async function jdBeauty() {
 async function mr() {
   $.coins = 0
   let positionList = ['b1', 'h1', 's1', 'b2', 'h2', 's2']
+  let positionList2 = ['b2', 'h2', 's2']
   $.tokens = []
   $.pos = []
   $.helpInfo = []
@@ -293,7 +295,6 @@ async function mr() {
               await $.wait(2500)
             }
           }
-
           if ($.taskState.today_answered === 0) {
             console.log(`去做每日问答任务`)
             client.send(`{"msg":{"type":"action","args":{"source":1},"action":"get_question"}}`)
@@ -364,7 +365,7 @@ async function mr() {
                 client.send(`{"msg":{"type":"action","args":{"position":"${vo.data.position}","material_id":${ma.id}},"action":"material_produce_v2"}}`)
                 await $.wait(5000);
               } else {
-                ma = $.material.base[1]['items'][positionList.indexOf(vo.data.position)]
+                ma = $.material.base[1]['items'][positionList2.indexOf(vo.data.position)]
                 if (ma) {
                   console.log(`else去生产${ma.name}`)
                   client.send(`{"msg":{"type":"action","args":{"position":"${vo.data.position}","material_id":${ma.id}},"action":"material_produce_v2"}}`)
@@ -410,7 +411,7 @@ async function mr() {
         case "product_lists":
           let need_material = []
           if (vo.code === '200' || vo.code === 200) {
-            $.products = vo.data.filter(vo=>vo.level===$.level)
+            $.products = vo.data.filter(vo=>vo.level===$.level-1)
             console.log(`========可生产商品信息========`)
             for (let product of $.products) {
               let num = Infinity
@@ -503,9 +504,9 @@ async function mr() {
           for (let benefit of vo.data) {
             if (benefit.type === 1) { //type 1 是京豆
               //console.log(`benefit:${JSON.stringify(benefit)}`);
-              if(benefit.description === "1 京豆" && parseInt(benefit.day_exchange_count) < 10 && $.total > benefit.coins){
+              if(benefit.description === "1 京豆" && parseInt(benefit.day_exchange_count) < 5 && $.total > benefit.coins){
                 $timenum = parseInt($.total / benefit.coins);
-                if ($timenum > 10) $timenum = 10;
+                if ($timenum > 5) $timenum = 5;
                 console.log(`\n可兑换${$timenum}次京豆:`)
                 for (let i = 0; i < $timenum; i++){
                   client.send(`{"msg":{"type":"action","args":{"benefit_id":${benefit.id}},"action":"to_exchange"}}`);
@@ -527,7 +528,7 @@ async function mr() {
           break
         case "to_exchange":
           if(oc(() => vo.data.coins)){
-            console.log(`兑换${vo.data.coins/-1000}京豆成功`)
+            console.log(`兑换${vo.data.coins/-10000}京豆成功`)
           }else{
             console.log(`兑换京豆失败`)
           }
@@ -585,19 +586,25 @@ function getIsvToken() {
   })
 }
 
-function getIsvToken2() {
+async function getIsvToken2() {
+  for (let i=0; i<3; i++){
+  var body = await getSignfromDY('isvObfuscator',{"id":"","url":"https://xinruimz-isv.isvjcloud.com"})
+  if(body) break;
+  await $.wait(5000)
+  } 
   let config = {
     url: 'https://api.m.jd.com/client.action?functionId=isvObfuscator',
-    body: 'body=%7B%22url%22%3A%22https%3A%5C/%5C/xinruimz-isv.isvjcloud.com%22%2C%22id%22%3A%22%22%7D&build=167490&client=apple&clientVersion=9.3.2&openudid=53f4d9c70c1c81f1c8769d2fe2fef0190a3f60d2&osVersion=14.2&partner=apple&rfs=0000&scope=01&sign=6eb3237cff376c07a11c1e185761d073&st=1610161927336&sv=102&uuid=hjudwgohxzVu96krv/T6Hg%3D%3D',
+    body: body,
     headers: {
       'Host': 'api.m.jd.com',
       'accept': '*/*',
       'user-agent': UA,
-      'accept-language': 'zh-Hans-JP;q=1, en-JP;q=0.9, zh-Hant-TW;q=0.8, ja-JP;q=0.7, en-US;q=0.6',
-      'content-type': 'application/x-www-form-urlencoded',
+      //'accept-language': 'zh-Hans-JP;q=1, en-JP;q=0.9, zh-Hant-TW;q=0.8, ja-JP;q=0.7, en-US;q=0.6',
+      //'content-type': 'application/x-www-form-urlencoded',
       'Cookie': cookie
     }
   }
+
   return new Promise(resolve => {
     $.post(config, async (err, resp, data) => {
       try {
@@ -619,11 +626,48 @@ function getIsvToken2() {
     })
   })
 }
-
+function getSignfromDY(functionId, body) {	
+var strsign = '';
+let data = `functionId=${functionId}&body=${encodeURIComponent(JSON.stringify(body))}`
+  return new Promise((resolve) => {
+      let opt = {
+          url: "https://jd.nbplay.xyz/dylan/getsign",
+          body: data,
+      headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+      }
+      ,timeout: 30000
+      }
+      $.post(opt, async(err, resp, data) => {
+          try {
+            if (data){
+              data = JSON.parse(data);
+      if (data && data.code == 0) {
+                  console.log("连接DY服务成功" );
+                  if (data.data){
+                      strsign = data.data || '';
+        }
+                  if (strsign != ''){
+                      resolve(strsign);
+        }
+                  else
+                      console.log("签名获取失败,换个时间再试.");
+              } else {
+                  console.log(data.msg);
+              }
+            }else{console.log('连接连接DY服务失败，重试。。。')}	
+          }catch (e) {
+              $.logErr(e, resp);
+          }finally {
+      resolve(strsign);
+    }
+      })
+  })
+}
 function getToken() {
   let config = {
     url: 'https://xinruimz-isv.isvjcloud.com/api/auth',
-    body: JSON.stringify({"token":$.token2,"source":"01"}),
+    body: JSON.stringify({"token":$.token2,"source":"01","channel":"meizhuangguandibudaohang"}),
     headers: {
       'Host': 'xinruimz-isv.isvjcloud.com',
       'Accept': 'application/x.jd-school-island.v1+json',
