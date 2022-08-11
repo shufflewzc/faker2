@@ -506,7 +506,7 @@ function try_apply(title, activityId) {
             "activityId": activityId,
             "previewTime": ""
         });
-        $.h5st = await _0x550607(body);
+        $.h5st = await _0x101939(body);
         let option = taskurl_xh('newtry', 'try_apply', body)
         $.get(option, (err, resp, data) => {
             try {
