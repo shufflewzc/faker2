@@ -209,7 +209,7 @@ class Env {
                 this.cookie = cookie;
                 this.username = decodeURIComponent(
                     cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
-                $.defaults.headers['Cookie'] = this.cookie;
+                $.defaults.headers['Cookie'] = this.cookie;17840
                 this.index = i + 1;
                 try {
                     await this.logic()
@@ -850,27 +850,15 @@ class Env {
     }
 
     async sign(fn, body = {}) {
-        if ('isvObfuscator'===fn){
-            let b = {"functionId": fn, "body": JSON.stringify(body)};
-            let  h= {"Content-Type": "application/json","Cookie":"HELLO WORLD"}
-            try {
-                let {data} = await this.request('https://api.lfyouse.org/jdsign', h, b);
-                console.log(data)
-                return {fn: fn, sign: data};
-            } catch (e) {
-                console.log("isvObfuscator sign接口异常")
-            }
-        }else {
-            let b = {"fn": fn, "body": body};
-            let h = {"token": apiToken}
-            try {
-                let {data} = await this.request(apiSignUrl, h, b);
-                return {fn: data.fn, sign: data.body};
-            } catch (e) {
-                console.log("sign接口异常")
-            }
-            return {fn: "", sign: ""};
+        let b = {"fn": fn, "body": body};
+        let h = {"token": apiToken}
+        try {
+            let {data} = await this.request(apiSignUrl, h, b);
+            return {fn: data.fn, sign: data.body};
+        } catch (e) {
+            console.log("sign接口异常")
         }
+        return {fn: "", sign: ""};
     }
 
     async _algo() {
