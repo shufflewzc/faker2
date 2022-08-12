@@ -21,10 +21,7 @@ export JD_TRY_UNIFIED="false" 默认采用不同试用组
 
 定时自定义，能用多久随缘了！！！
  */
-if (!process.env.APITOKEN) {
-    console.log('请到https://t.me/jd_api获取token，设置变量export APITOKEN=你的Token来运行')
-    return;
-}
+
 const $ = new Env('京东试用')
 const URL = 'https://api.m.jd.com/client.action'
 let trialActivityIdList = []
