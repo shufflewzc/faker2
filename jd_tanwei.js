@@ -14,7 +14,7 @@ const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 let jdNotify = true;
 //IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '', message = '';
-let encryptProjectId = '3NhNqgKD5WYkmLLsudX1Z2vVS5pP';
+let encryptProjectId = 'YnxEZcUsgLzE5dukqb7vrmjPnaN';
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
     cookiesArr.push(jdCookieNode[item])
@@ -63,19 +63,17 @@ async function twqyj() {
     let tk = await queryInteractiveInfo();
     for (let key of Object.keys(tk.assignmentList).reverse()){
         let vo = tk.assignmentList[key]
-        if (vo.completionFlag && vo.assignmentType != 30) {
+        if (vo.completionFlag || vo.assignmentType == 30) {
             console.log('此任务已完成')
         } else if (new Date(vo.assignmentStartTime).getTime() > Date.now()) {
             console.log('此任务还没到开放时间:',vo.assignmentStartTime)
-        } else if (vo.assignmentType == 30) {
-            await dotask(encryptProjectId,vo.encryptAssignmentId,{"ext":{"exchangeNum":1}})
         } else {
-		    if (vo.ext && vo.ext.extraType == 'sign1') {
+		    if (vo.ext && vo.ext.extraType == 'sign1'){
 	              await sign(encryptProjectId,vo.encryptAssignmentId)
             } else {
 			      await dotask(encryptProjectId,vo.encryptAssignmentId)
-	          }
-          }
+	               }
+               }
 	    await $.wait(1000)    
 	}
   } catch (e) {
@@ -135,10 +133,9 @@ async function sign(encryptProjectId, AssignmentId) {
   })
 }
 
-async function dotask(encryptProjectId, AssignmentId, body1 = {}) {
-  let body = { "encryptProjectId": encryptProjectId, "encryptAssignmentId": AssignmentId, "sourceCode": "acemsg0406", "completionFlag": true,...body1}
+async function dotask(encryptProjectId, AssignmentId) {
   return new Promise(async (resolve) => {
-    $.post(taskUrl("doInteractiveAssignment", body), async (err, resp, data) => {
+    $.post(taskUrl("doInteractiveAssignment", { "encryptProjectId": encryptProjectId, "encryptAssignmentId": AssignmentId, "sourceCode": "acemsg0406", "completionFlag": true }), async (err, resp, data) => {
       try {
         if (err) {
           console.log(`${JSON.stringify(err)}`)

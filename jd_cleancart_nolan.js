@@ -1,13 +1,11 @@
 /*
 清空购物车
-更新时间：2022-05-26
+更新时间：2022-08-12
 因其他脚本会加入商品到购物车，故此脚本用来清空购物车
 包括预售
 需要算法支持
 默认：不执行 如需要请添加环境变量
-gua_cleancart_Run="true"
-gua_cleancart_SignUrl="" # 算法url
-gua_cleancart_Authorization="" # 算法url token 有则填
+JD_CART_REMOVE="true"
 
 ——————————————
 1.@&@ 前面加数字 指定账号pin
@@ -20,7 +18,7 @@ gua_cleancart_Authorization="" # 算法url token 有则填
 7.|-| 👉 账号之间隔开
 ——————————————
 
-商品名称规则
+商品名称规则,默认所有账号全清空
 ——————gua_cleancart_products————————
 pin2@&@商品1,商品2👉该pin这几个商品名不清空
 pin5@&@👉该pin全清
@@ -35,13 +33,17 @@ pin3@&@不清空👉该pin不清空
 如果有不清空的一定要加上"*@&@不清空"
 防止没指定的账号购物车全清空
 
+cron:8 8 8 8 *
+============Quantumultx===============
+[task_local]
+#清空购物车-Sign版
+8 8 8 8 * jd_cleancart_nolan.js, tag=清空购物车-Sign版, enabled=true
+
 */
-let jdSignUrl = '' // 算法url
-let Authorization = '' // 算法url token 有则填
+let jdSignUrl = 'https://api.nolanstore.top/sign'
 let cleancartRun = 'false'
 let cleancartProducts = ''
-
-const $ = new Env('清空购物车');
+const $ = new Env('清空购物车-Sign版');
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const notify = $.isNode() ? require('./sendNotify') : '';
 //IOS等用户直接用NobyDa的jd cookie
@@ -58,14 +60,9 @@ if ($.isNode()) {
 
 message = ''
 
-jdSignUrl = $.isNode() ? (process.env.gua_cleancart_SignUrl ? process.env.gua_cleancart_SignUrl : `${jdSignUrl}`) : ($.getdata('gua_cleancart_SignUrl') ? $.getdata('gua_cleancart_SignUrl') : `${jdSignUrl}`);
+cleancartRun = $.isNode() ? (process.env.JD_CART_REMOVE ? process.env.JD_CART_REMOVE : `${cleancartRun}`) : ($.getdata('JD_CART_REMOVE') ? $.getdata('JD_CART_REMOVE') : `${cleancartRun}`);
 
-Authorization = process.env.gua_cleancart_Authorization ? process.env.gua_cleancart_Authorization : `${Authorization}`
-if(Authorization && Authorization.indexOf("Bearer ") === -1) Authorization = `Bearer ${Authorization}`
-
-cleancartRun = $.isNode() ? (process.env.gua_cleancart_Run ? process.env.gua_cleancart_Run : `${cleancartRun}`) : ($.getdata('gua_cleancart_Run') ? $.getdata('gua_cleancart_Run') : `${cleancartRun}`);
-
-cleancartProducts = $.isNode() ? (process.env.gua_cleancart_products ? process.env.gua_cleancart_products : `${cleancartProducts}`) : ($.getdata('gua_cleancart_products') ? $.getdata('gua_cleancart_products') : `${cleancartProducts}`);
+cleancartProducts = $.isNode() ? (process.env.gua_cleancart_products ? process.env.gua_cleancart_products : '*@&@') : ($.getdata('gua_cleancart_products') ? $.getdata('gua_cleancart_products') : `${cleancartProducts}`);
 
 let productsArr = []
 let cleancartProductsAll = []
@@ -81,6 +78,7 @@ for (let i in productsArr) {
     cleancartProductsAll[arr[0]] = arr[1].split(',')
   }
 }
+
 !(async () => {
   if (!cookiesArr[0]) {
     $.msg($.name, '【提示】请先获取cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/', {
@@ -89,20 +87,22 @@ for (let i in productsArr) {
     return;
   }
   if(cleancartRun !== 'true'){
-    console.log('脚本停止\n请添加环境变量[gua_cleancart_Run]为"true"')
+    console.log('脚本停止\n请添加环境变量JD_CART_REMOVE为"true"')
     return
   }
   if(!cleancartProducts){
     console.log('脚本停止\n请添加环境变量[gua_cleancart_products]\n清空商品\n内容规则看脚本文件')
     return
   }
+
   $.out = false
+  console.log('\n==此脚本使用的签名接口来自Nolan提供的公益服务,大伙记得给他点赞==');
   for (let i = 0; i < cookiesArr.length; i++) {
     cookie = cookiesArr[i];
     if (cookie) {
       $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
       $.index = i + 1;
-      console.log(`\n\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
+      console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
       if(cleancartProductsAll[$.UserName]){
         $.cleancartProductsArr = cleancartProductsAll[$.UserName]
       }else if(cleancartProductsAll["*"]){
@@ -218,10 +218,7 @@ async function run(){
     if(msg){
       message += `【京东账号${$.index}】${$.nickName || $.UserName}\n${msg}\n`
     }
-    if(!$.out){
-      console.log('等待45秒')
-      await $.wait(parseInt(Math.random() * 2000 + 40000, 10))
-    }
+    await $.wait(parseInt(Math.random() * 2000 + 2000, 10))
   }catch(e){
     console.log(e)
   }
@@ -245,16 +242,12 @@ function jdApi(functionId,body) {
         if (err) {
           console.log(`${$.toStr(err)}`)
           console.log(`${$.name} API请求失败，请检查网路重试`)
-        } else {
-          // console.log(data)
+        } else {          
           let res = $.toObj(data,data);
           if(typeof res == 'object'){
             if(res.mainTitle) console.log(res.mainTitle)
             if(res.resultCode == 0){
               resolve(res);
-            }else if (res.tips && res.tips.includes("正在努力加载")){
-              console.log("请求太快，ip被限制了")
-              $.out = true
             }
           }
         }
@@ -267,61 +260,61 @@ function jdApi(functionId,body) {
   })
 }
 
-function jdSign(fn,body) {
-  let sign = ''
-  let flag = false
-  try{
-    const fs = require('fs');
-    if (fs.existsSync('./gua_encryption_sign.js')) {
-      const encryptionSign = require('./gua_encryption_sign');
-      sign = encryptionSign.getSign(fn, body)
-    }else{
-      flag = true
-    }
-    sign = sign.data && sign.data.sign && sign.data.sign || ''
-  }catch(e){
-    flag = true
-  }
-  if(!flag) return sign
-  if(!jdSignUrl.match(/^https?:\/\//)){
-    console.log('请填写算法url')
-    $.out = true
-    return ''
-  }
-  return new Promise((resolve) => {
-    let options = {
-      url: jdSignUrl,
-      body:`{"fn":"${fn}","body":${body}}`,
-      followRedirect:false,
-      headers: {
-        'Accept':'*/*',
-        "accept-encoding": "gzip, deflate, br",
-        'Content-Type': 'application/json',
-      },
-      timeout:30000
-    }
-    if(Authorization) options["headers"]["Authorization"] = Authorization
-    $.post(options, async (err, resp, data) => {
-      try {
-        // console.log(data)
-        let res = $.toObj(data,data)
-        if(typeof res === 'object' && res){
-          if(res.code && res.code == 200 && res.data){
-            if(res.data.sign) sign = res.data.sign || ''
-            if(sign != '') resolve(sign)
-          }else{
-            console.log(data)
-          }
-        }else{
-          console.log(data)
+function jdSign(fn, body) {
+    let sign = '';
+    let flag = false;
+    try {
+        const fs = require('fs');
+        if (fs.existsSync('./gua_encryption_sign.js')) {
+            const encryptionSign = require('./gua_encryption_sign');
+            sign = encryptionSign.getSign(fn, body)
+        } else {
+            flag = true
         }
-      } catch (e) {
-        $.logErr(e, resp);
-      } finally {
-        resolve('')
-      }
+        sign = sign.data && sign.data.sign && sign.data.sign || ''
+    } catch (e) {
+        flag = true
+    }
+    if (!flag)
+        return sign
+        if (!jdSignUrl.match(/^https?:\/\//)) {
+            console.log('请填写算法url')
+            $.out = true
+                return ''
+        }
+    return new Promise((resolve) => {
+        let url = {
+            url: jdSignUrl,
+            body: `{"fn":"${fn}","body":${body}}`,
+            followRedirect: false,
+            headers: {
+                'Accept': '*/*',
+                "accept-encoding": "gzip, deflate, br",
+                'Content-Type': 'application/json'
+            },
+            timeout: 30000
+        }
+        $.post(url, async(err, resp, data) => {
+            try {				
+                data = JSON.parse(data);
+                if (data && data.body) {                    
+                    if (data.body)
+                        sign = data.body || '';
+                    if (sign != '')
+                        resolve(sign);
+                    else
+                        console.log("签名获取失败.");
+                } else {
+                    console.log("签名获取失败.");
+                }
+            } catch (e) {
+                $.logErr(e, resp);
+            }
+            finally {
+                resolve('')
+            }
+        })
     })
-  })
 }
 
 

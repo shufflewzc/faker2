@@ -1,15 +1,20 @@
 /*
- * 2022-07-20 修复获取试用列表风控问题；  
  * 2022-08-12 修复申请试用风控，更换nolan接口
- * By https://github.com/6dylan6/jdpro/
- * 基于X1a0He版本修改
+ * 2022-05-27 修复优化版  By https://github.com/6dylan6/jdpro/
+ * 如需运行请自行添加环境变量：JD_TRY，值填 true 即可运行
+ * X1a0He by 6dylan6/jdpro/
+ * 脚本是否耗时只看args_xh.maxLength的大小
+ * 上一作者说了每天最多300个商店，总上限为500个，jd_unsubscribe.js我已更新为批量取关版
+ * 请提前取关至少250个商店确保京东试用脚本正常运行
  * @Address: https://github.com/X1a0He/jd_scripts_fixed/blob/main/jd_try_xh.js
 
+如需运行请自行添加环境变量：JD_TRY="true" 即可运行
 脚本是否耗时只看args_xh.maxLength的大小（申请数量），默认50个，申请100个差不多15分钟
 上一作者说每天申请上限300个（自测，没有申请过上限），关注店铺上限500个
 关注店铺满了就无法继续申请，可用批量取关店铺取消关注
 
-部分环境变量说明，详细请参考61行往下：
+部分环境变量说明，详细请参考58行往下：
+export JD_TRY="true"是否允许，默认false
 export JD_TRY_PASSZC="false" #不过滤种草官类试用，默认true过滤
 export JD_TRY_MAXLENGTH="50" #商品数组的最大长度，默认50个
 export JD_TRY_PRICE="XX"#商品原价格，大于XX才申请，默认20
@@ -28,7 +33,7 @@ let trialActivityIdList = []
 let trialActivityTitleList = []
 let notifyMsg = ''
 let size = 1;
-let APITOKEN = process.env.APITOKEN || '';
+let APITOKEN = process.env.APITOKEN ||'';
 $.isPush = true;
 $.isLimit = false;
 $.isForbidden = false;
@@ -40,19 +45,18 @@ $.getNum = 0;
 $.try = true;
 $.sentNum = 0;
 $.cookiesArr = []
-//默认的过滤关键词
 $.innerKeyWords =
     [
         "幼儿园", "教程", "英语", "辅导", "培训",
         "孩子", "小学", "成人用品", "套套", "情趣",
         "自慰", "阳具", "飞机杯", "男士用品", "女士用品",
         "内衣", "高潮", "避孕", "乳腺", "肛塞", "肛门",
-        "宝宝", "芭比", "娃娃", "男用",
+        "宝宝", "玩具", "芭比", "娃娃", "男用",
         "女用", "神油", "足力健", "老年", "老人",
         "宠物", "饲料", "丝袜", "黑丝", "磨脚",
         "脚皮", "除臭", "性感", "内裤", "跳蛋",
         "安全套", "龟头", "阴道", "阴部", "手机卡", "电话卡", "流量卡",
-        "习题", "试卷",
+        "玉坠","和田玉","习题","试卷","手机壳","钢化膜"
     ]
 //下面很重要，遇到问题请把下面注释看一遍再来问
 let args_xh = {
@@ -149,7 +153,7 @@ let args_xh = {
      * 例如B商品是种草官专属试用商品，下面设置为true，即使你是种草官账号，A商品也不会被添加到待提交试用组
      * 可设置环境变量：JD_TRY_PASSZC，默认为true
      * */
-    passZhongCao: process.env.JD_TRY_PASSZC === 'false' || true,
+    passZhongCao: process.env.JD_TRY_PASSZC === 'false' ? false : true,
     /*
      * 是否打印输出到日志，考虑到如果试用组长度过大，例如100以上，如果每个商品检测都打印一遍，日志长度会非常长
      * 打印的优点：清晰知道每个商品为什么会被过滤，哪个商品被添加到了待提交试用组
@@ -159,7 +163,7 @@ let args_xh = {
      * 不打印的缺点：无法清晰知道每个商品为什么会被过滤，哪个商品被添加到了待提交试用组
      * 可设置环境变量：JD_TRY_PLOG，默认为true
      * */
-    printLog: process.env.JD_TRY_PLOG === 'false' || true,
+    printLog: process.env.JD_TRY_PLOG === 'false' ? false : true,
     /*
      * 白名单，是否打开，如果下面为true，那么黑名单会自动失效
      * 白名单和黑名单无法共存，白名单永远优先于黑名单
@@ -183,56 +187,55 @@ let args_xh = {
 !(async () => {
     await $.wait(500)
     // 如果你要运行京东试用这个脚本，麻烦你把环境变量 JD_TRY 设置为 true
-    if (process.env.JD_TRY && process.env.JD_TRY === 'true') {
-    $.log('\n遇到问题请先看脚本内注释；解决不了可联系https://t.me/dylan_jdpro\n');
-    await requireConfig()
-    if (!$.cookiesArr[0]) {
-        $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/', {
-            "open-url": "https://bean.m.jd.com/"
-        })
-        return
-    }
-    args_xh.tabId = args_xh.tabId.sort(() => 0.5 - Math.random())
-    for (let i = 0; i < $.cookiesArr.length; i++) {
-        if ($.cookiesArr[i]) {
-            $.cookie = $.cookiesArr[i];
-            $.UserName = decodeURIComponent($.cookie.match(/pt_pin=(.+?);/) && $.cookie.match(/pt_pin=(.+?);/)[1])
-            $.index = i + 1;
-            $.isLogin = true;
-            $.nickName = '';
-            await totalBean();
-            console.log(`\n开始【京东账号${$.index}】${$.nickName || $.UserName}\n`);
-            $.except = false;
-            if (args_xh.except.includes($.UserName)) {
-                console.log(`跳过账号：${$.nickName || $.UserName}`)
-                $.except = true;
-                continue
-            }
-            if (!$.isLogin) {
-                $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, {
-                    "open-url": "https://bean.m.jd.com/bean/signIndex.action"
-                });
-                await $.notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
-                continue
-            }
-            $.totalTry = 0
-            $.totalSuccess = 0
-            $.nowTabIdIndex = 0;
-            $.nowPage = 1;
-            $.nowItem = 1;
-            $.retrynum = 0
-            $.jda = '__jda=' + _jda('1xxxxxxxx.164xxxxxxxxxxxxxxxxxxx.164xxxxxxx.165xxxxxx.165xxxxxx.1xx')
-            if (!args_xh.unified) {
-                trialActivityIdList = []
-                trialActivityTitleList = []
-            }
-            $.isLimit = false;
-            // 获取tabList的，不知道有哪些的把这里的注释解开跑一遍就行了
-            //await try_tabList();
-            // return;
-            $.isForbidden = false
-            $.wrong = false
-            size = 1
+    if (1) {
+        await requireConfig()
+        if (!$.cookiesArr[0]) {
+            $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/', {
+                "open-url": "https://bean.m.jd.com/"
+            })
+            return
+        }
+        args_xh.tabId = args_xh.tabId.sort(() => 0.5 - Math.random())
+        for (let i = 0; i < $.cookiesArr.length; i++) {
+            if ($.cookiesArr[i]) {
+                $.cookie = $.cookiesArr[i];
+                $.UserName = decodeURIComponent($.cookie.match(/pt_pin=(.+?);/) && $.cookie.match(/pt_pin=(.+?);/)[1])
+                $.index = i + 1;
+                $.isLogin = true;
+                $.nickName = '';
+                //await totalBean();
+                console.log(`\n开始【京东账号${$.index}】${$.nickName || $.UserName}\n`);
+                $.except = false;
+                if(args_xh.except.includes($.UserName)){
+                    console.log(`跳过账号：${$.nickName || $.UserName}`)
+                    $.except = true;
+                    continue
+                }
+                if(!$.isLogin){
+                    $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, {
+                        "open-url": "https://bean.m.jd.com/bean/signIndex.action"
+                    });
+                    await $.notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
+                    continue
+                }
+                $.totalTry = 0
+                $.totalSuccess = 0
+                $.nowTabIdIndex = 0;
+                $.nowPage = 1;
+                $.nowItem = 1;
+                $.retrynum = 0
+                $.jda='__jda='+_jda('1xxxxxxxx.164xxxxxxxxxxxxxxxxxxx.164xxxxxxx.165xxxxxx.165xxxxxx.1xx')
+                if (!args_xh.unified) {
+                    trialActivityIdList = []
+                    trialActivityTitleList = []
+                }
+                $.isLimit = false;
+                // 获取tabList的，不知道有哪些的把这里的注释解开跑一遍就行了
+                 //await try_tabList();
+                // return;
+                $.isForbidden = false
+                $.wrong = false
+                size = 1
 
             while (trialActivityIdList.length < args_xh.maxLength && $.retrynum < 3) {
                 if ($.nowTabIdIndex === args_xh.tabId.length) {
