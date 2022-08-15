@@ -15,6 +15,11 @@ let mode = process.env.MODE ? process.env.MODE : "local"
 
 let apiToken = process.env.M_API_TOKEN ? process.env.M_API_TOKEN : ""
 let apiSignUrl = process.env.M_API_SIGN_URL ? process.env.M_API_SIGN_URL : "http://ailoveu.eu.org:19840/sign"
+let tokenCacheMin = parseInt(process.env?.M_WX_TOKEN_CACHE_MIN || 5)
+let tokenCacheMax = parseInt(process.env?.M_WX_TOKEN_CACHE_MAX || 10)
+let enableCacheToken = parseInt(process.env?.M_WX_ENABLE_CACHE_TOKEN || 1)
+let isvObfuscatorRetry = parseInt(process.env?.M_WX_ISVOBFUSCATOR_RETRY || 2)
+let isvObfuscatorRetryWait = parseInt(process.env?.M_WX_ISVOBFUSCATOR_RETRY_WAIT || 2)
 
 let wxBlackCookiePin = process.env.M_WX_BLACK_COOKIE_PIN
     ? process.env.M_WX_BLACK_COOKIE_PIN : ''
@@ -62,24 +67,6 @@ const JDAPP_USER_AGENTS = [
     `jdapp;android;10.0.2;8.1.0;${uuid()};network/wifi;Mozilla/5.0 (Linux; Android 8.1.0; MI 8 Build/OPM1.171019.026; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/6.2 TBS/045131 Mobile Safari/537.36`,
 ]
 
-//来源于kedaya大佬
-const ISV_OBFUSCATOR = {
-    'lzkj-isv.isvjcloud.com': [
-        'body=%7B%22url%22%3A%22https%3A%2F%2Flzkj-isv.isvjcloud.com%22%2C%22id%22%3A%22%22%7D&uuid=1d9f7760c9ffaad4eb&client=apple&clientVersion=10.0.10&st=1646999134752&sv=112&sign=d14c9517190f8a8b0e253e3dbbdee87a',
-    ],
-    'cjhy-isv.isvjcloud.com': [
-        'body=%7B%22url%22%3A%22https%3A%2F%2Fcjhy-isv.isvjcloud.com%22%2C%22id%22%3A%22%22%7D&uuid=b024526b380d35c9e3&client=apple&clientVersion=10.0.10&st=1646999134786&sv=111&sign=fd9417f9d8e872da6c55102bd69da99f',
-    ],
-    'txzj-isv.isvjcloud.com': [
-        'body=%7B%22url%22%3A%22https%3A%2F%2Ftxzj-isv.isvjcloud.com%22%2C%22id%22%3A%22%22%7D&uuid=f7fc9bef85a8620cdf&client=apple&clientVersion=10.0.10&st=1646999134805&sv=121&sign=bbe137e2f52dbf3a1f10fa2ffe749d05',
-    ],
-    'lzdz1-isv.isvjcloud.com': [
-        'body=%7B%22url%22%3A%20%22https%3A//lzdz1-isv.isvjcloud.com%22%2C%20%22id%22%3A%20%22%22%7D&uuid=72124265217d48b7955781024d65bbc4&client=apple&clientVersion=9.4.0&st=1621796702000&sv=120&sign=14f7faa31356c74e9f4289972db4b988'
-    ],
-    'cjhydz-isv.isvjcloud.com': [
-        'adid=7B411CD9-D62C-425B-B083-9AFC49B94228&area=16_1332_42932_43102&body=%7B%22url%22%3A%22https%3A%5C/%5C/cjhydz-isv.isvjcloud.com%22%2C%22id%22%3A%22%22%7D&build=167541&client=apple&clientVersion=9.4.0&d_brand=apple&d_model=iPhone8%2C1&eid=eidId10b812191seBCFGmtbeTX2vXF3lbgDAVwQhSA8wKqj6OA9J4foPQm3UzRwrrLdO23B3E2wCUY/bODH01VnxiEnAUvoM6SiEnmP3IPqRuO%2By/%2BZo&isBackground=N&joycious=48&lang=zh_CN&networkType=wifi&networklibtype=JDNetworkBaseAF&openudid=2f7578cb634065f9beae94d013f172e197d62283&osVersion=13.1.2&partner=apple&rfs=0000&scope=11&screen=750%2A1334&sign=60bde51b4b7f7ff6e1bc1f473ecf3d41&st=1613720203903&sv=110&uts=0f31TVRjBStG9NoZJdXLGd939Wv4AlsWNAeL1nxafUsZqiV4NLsVElz6AjC4L7tsnZ1loeT2A8Z5/KfI/YoJAUfJzTd8kCedfnLG522ydI0p40oi8hT2p2sNZiIIRYCfjIr7IAL%2BFkLsrWdSiPZP5QLptc8Cy4Od6/cdYidClR0NwPMd58K5J9narz78y9ocGe8uTfyBIoA9aCd/X3Muxw%3D%3D&uuid=hjudwgohxzVu96krv/T6Hg%3D%3D&wifiBssid=9cf90c586c4468e00678545b16176ed2'
-    ],
-}
 const $ = axios.create({timeout: 30000});
 $.defaults.headers['Accept'] = '*/*';
 $.defaults.headers['Connection'] = 'keep-alive';
@@ -909,25 +896,66 @@ class Env {
         }
     }
 
-    async isvObfuscator() {
-        let body = ''
-        let newVar = await this.sign('isvObfuscator', {'id': '', 'url': `https://${this.domain}`});
-        if (newVar.sign) {
-            body = newVar.sign;
+    async isvObfuscator(cache = enableCacheToken, retries = isvObfuscatorRetry) {
+        if (cache) {
+            this.log("当前已启用缓存token")
+            let tokenStr = this.readFileSync("token.json");
+            let tokens = tokenStr ? JSON.parse(tokenStr) : {};
+            let cacheObj = tokens[this.username];
+            this.log(`缓存token结果 ${JSON.stringify(cacheObj)}`)
+            if (cacheObj && cacheObj?.expireTime > this.timestamp()) {
+                this.log(`缓存token有效`)
+                this.putMsg("缓存")
+                return {code: "0", token: cacheObj.token}
+            }
         }
-        let url = `https://api.m.jd.com/client.action?functionId=isvObfuscator`
-        let headers = {
-            "Accept": "*/*",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "zh-cn",
-            "Connection": "keep-alive",
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Host": "api.m.jd.com",
-            "Cookie": this.cookie,
-            "User-Agent": this.UA,
+        this.log(`${this.username} 获取token`)
+        let body = 'body=%7B%22url%22%3A%22https%3A%2F%2Fcjhy-isv.isvjcloud.com%22%2C%22id%22%3A%22%22%7D&uuid=b024526b380d35c9e3&client=apple&clientVersion=10.0.10&st=1646999134786&sv=111&sign=fd9417f9d8e872da6c55102bd69da99f';
+        try {
+            let newVar = await this.sign('isvObfuscator', {'id': '', 'url': `https://${this.domain}`});
+            if (newVar.sign) {
+                body = newVar.sign;
+            }
+            let url = `https://api.m.jd.com/client.action?functionId=isvObfuscator`
+            let headers = {
+                "Accept": "*/*",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Accept-Language": "zh-cn",
+                "Connection": "keep-alive",
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Host": "api.m.jd.com",
+                "Cookie": this.cookie,
+                "User-Agent": "JD4iPhone/168069 (iPhone; iOS 13.7; Scale/3.00)",
+            }
+            let {data} = await this.request(url, headers, body)
+            this.log(`获取token结果`, JSON.stringify(data))
+
+            if (cache && data?.code === '0') {
+                this.putMsg("实时")
+                if (cache) {
+                    let tokenStr = this.readFileSync("token.json");
+                    let tokens = tokenStr ? JSON.parse(tokenStr) : {};
+                    tokens[this.username] = {
+                        expireTime: this.timestamp() + this.random(tokenCacheMin, tokenCacheMax) * 60 * 1000,
+                        token: data.token
+                    }
+                    this.writeFileSync("token.json", JSON.stringify(tokens))
+                    this.log(`获取token成功，更新token完成`)
+                }
+            } else if (data?.code === '3' && data?.errcode === 264) {
+                this.putMsg(`CK过期`);
+            } else {
+                console.log(data)
+            }
+            return data;
+        } catch (e) {
+            if (retries-- > 0) {
+                console.log(`第${isvObfuscatorRetry - retries}去重试isvObfuscator接口,等待${isvObfuscatorRetryWait}秒`)
+                await this.wait(isvObfuscatorRetryWait * 1000)
+                await this.isvObfuscator(cache, retries);
+            }
         }
-        let {data} = await this.request(url, headers, body)
-        return data;
+        return {code: "1", token: ""}
     }
 
     async api(fn, body) {
