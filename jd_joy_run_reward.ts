@@ -1,12 +1,12 @@
 /**
 汪汪赛跑-提现10元
-3 0 0 * * 5 jd_joy_run_reward.ts
+2 0 0 * * 5 jd_joy_run_reward.ts
 new Env('汪汪赛跑提现')
 Modify By Dylan from HW
 updateTime：2022-07-09
 **/
 
-import {get, post, requireConfig, wait} from './TS_USER_AGENTS'
+import {get, post, requireConfig, wait} from './function/TS_USER_AGENTS'
 import {H5ST} from "./function/h5st"
 
 let cookie: string = '', res: any = '', UserName: string = '', fp_448de: string = '' || process.env.FP_448DE, fp_b6ac3: string = '' || process.env.FP_B6AC3
