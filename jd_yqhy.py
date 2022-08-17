@@ -255,6 +255,7 @@ async def main():
                 success += successCount
                 result_data = result['data']['rewards']  # 奖品数据
                 print(f'账号 {invitePin} ，开启{brandName}邀请好友开卡有礼活动\n')
+                Judge_Beans_Mark = True
                 for i in result_data:
                     stage = i['stage']
                     inviteNum = i['inviteNum']  # 单次需要拉新人数
@@ -268,7 +269,6 @@ async def main():
                         rewardslist.append(f'等级{stage}: {rewardName}，奖品已发完，需助力{inviteNum}人')
                     else:
                         rewardslist.append(f'等级{stage}: {rewardName}，还剩{rewardNum}件库存，需助力{inviteNum}人')
-
 
                 if len(rewardslist) != 0:
                     print('活动奖品清单: \n' + str('\n'.join(rewardslist)) +
@@ -286,6 +286,7 @@ async def main():
                     if needinviteNum == []:
                         print('奖励已经全部获取啦，退出程序\n')
                         return
+                num = 1
                 for n, ck in enumerate(cks, 1):
                     ua = randomuserAgent()  # 获取ua
                     try:
@@ -306,7 +307,8 @@ async def main():
                         if needinviteNum == []:
                             print('')
                             return
-                    print(f'\n******开始【京东账号{n}】{pin} ******\n')
+                    print(f'\n******开始【京东账号{num}】{pin} ******\n')
+                    num+=1
                     await plogin(ua, ck)  # 获取登录状态
                     result = await check(ua, ck)  # 检测ck
                     if result['code'] == 200:
