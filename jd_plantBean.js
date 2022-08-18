@@ -32,6 +32,7 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
 //此此内容是IOS用户下载脚本到本地使用，填写互助码的地方，同一京东账号的好友互助码请使用@符号隔开。
 //下面给出两个账号的填写示例（iOS只支持2个京东账号）
 let shareCodes = ['']
+let codeType = 1;
 let allMessage = ``;
 let currentRoundId = null;//本期活动id
 let lastRoundId = null;//上期id
@@ -414,6 +415,14 @@ function showTaskProcess() {
 }
 //助力好友
 async function doHelp() {
+
+    helpStatisticArr = {}
+    helpStatisticArr['fromCode'] = $.myPlantUuid
+    helpStatisticArr['codeType'] = codeType;
+    helpStatisticArr['results'] = {};
+    helpStatisticRemark = ''
+    helpStatisticStatus = 2;
+
     for (let plantUuid of newShareCodes) {
         console.log(`开始助力京东账号${$.index} - ${$.nickName}的好友: ${plantUuid}`);
         await $.wait(3000)
@@ -422,29 +431,69 @@ async function doHelp() {
             console.log(`\n跳过自己的plantUuid\n`)
             continue
         }
+        
         await helpShare(plantUuid);
         if ($.helpResult && $.helpResult.code === '0') {
             // console.log(`助力好友结果: ${JSON.stringify($.helpResult.data.helpShareRes)}`);
             if ($.helpResult.data?.helpShareRes) {
                 if ($.helpResult.data.helpShareRes.state === '1') {
                     console.log(`助力好友${plantUuid}成功`)
+                    helpStatisticStatus = 1;
                     console.log(`${$.helpResult.data.helpShareRes.promptText}\n`);
                 } else if ($.helpResult.data.helpShareRes.state === '2') {
                     console.log('您今日助力的机会已耗尽，已不能再帮助好友助力了\n');
+                    helpStatisticStatus = 3;
+
+                    if (!(helpStatisticStatus in helpStatisticArr['results'])) {
+                        helpStatisticArr['results'][helpStatisticStatus] = [plantUuid]
+                    } else {
+                        helpStatisticArr['results'][helpStatisticStatus].push(plantUuid)
+                    }
                     break;
                 } else if ($.helpResult.data.helpShareRes.state === '3') {
+                    helpStatisticStatus = 4;
                     console.log('该好友今日已满9人助力/20瓶营养液,明天再来为Ta助力吧\n')
                 } else if ($.helpResult.data.helpShareRes.state === '4') {
+                    helpStatisticStatus = 6;
+                    helpStatisticRemark += $.helpResult.data.helpShareRes.promptText
                     console.log(`${$.helpResult.data.helpShareRes.promptText}\n`)
                 } else {
+                    helpStatisticStatus = 6;
+                    helpStatisticRemark += `助力其他情况：${JSON.stringify($.helpResult.data.helpShareRes)}`
                     console.log(`助力其他情况：${JSON.stringify($.helpResult.data.helpShareRes)}`);
                 }
             }
         } else {
+            helpStatisticStatus = 2;
             console.log(`助力好友失败: ${JSON.stringify($.helpResult)}`);
+        }
+
+        if (!(helpStatisticStatus in helpStatisticArr['results'])) {
+            helpStatisticArr['results'][helpStatisticStatus] = [plantUuid]
+        } else {
+            helpStatisticArr['results'][helpStatisticStatus].push(plantUuid)
         }
         await $.wait(2000)
     }
+
+    helpStatisticArr['Remark'] = helpStatisticRemark;
+
+    r = { url: `https://zlc1.chaoyi996.com/api/app/booster-code/submit-real-contribution`, body: JSON.stringify(helpStatisticArr), headers: { "Content-Type": "application/json" } };
+    $.post(r, (err, resp, data) => {
+        try {
+            if (err) {
+                console.log(`${JSON.stringify(err)}`)
+                console.log(`${$.name} 提交助力结果API请求失败`)
+            } else {
+                if (data) {
+                    console.log(`提交成功`)
+                    data = JSON.parse(data);
+                }
+            }
+        } catch (e) {
+            $.logErr(e, resp)
+        }
+    })
 }
 function showMsg() {
     $.log(`\n${message}\n`);
