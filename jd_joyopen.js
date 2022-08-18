@@ -148,6 +148,15 @@ async function run() {
                 }
             }
             await $.wait(parseInt(Math.random() * 1000 + 1000, 10))
+						console.log('\n开始领取完成全部任务奖励')
+            await getActivity(item.configCode, item.configName, 0)
+            if ($.hotFlag) continue;
+            if ($.task.showOrder) {
+                if ($.taskInfo.rewardStatus == 2) continue;
+                $.taskList = $.task.memberList || $.task.taskList || []
+                $.oneTask = ''
+                await getRewards(`{"configCode":"${item.configCode}","groupType":5,"itemId":1,"eid":"${$.eid}","fp":"${$.fp}"}`)
+            }
         }
 
     } catch (e) {
@@ -228,12 +237,49 @@ function getReward(body, flag = 0) {
                 if (err) {
                     console.log(`${$.name} API请求失败，请检查网路重试`)
                 } else {
-                    // console.log(data)
+                    console.log(data)
                     res = $.toObj(data)
                     if (typeof res == 'object') {
                         if (res.success == true) {
                             console.log(`获得${flag == 1 && $.taskInfo.rewardFinish || $.oneTask.rewardQuantity}京豆`)
                             $.bean += Number($.oneTask.rewardQuantity)
+                        } else {
+                            console.log(`${res.errorMessage}`)
+                        }
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(data);
+            }
+        })
+    })
+}
+
+function getRewards(body, flag = 0) {
+    return new Promise(async resolve => {
+        $.post({
+            url: `https://jdjoy.jd.com/module/task/v2/getReward`,
+            body,
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                "Accept-Encoding": "gzip, deflate, br",
+                'Content-Type': 'application/json;charset=UTF-8',
+                "Accept-Language": "zh-cn",
+                "Connection": "keep-alive",
+                'Cookie': cookie,
+                'User-Agent': $.UA,
+            }
+        }, async (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${$.name} API请求失败，请检查网路重试`)
+                } else {
+                    res = $.toObj(data)
+                    if (typeof res == 'object') {
+                        if (res.success == true) {
+                            console.log(`奖励领取成功~`)
                         } else {
                             console.log(`${res.errorMessage}`)
                         }
