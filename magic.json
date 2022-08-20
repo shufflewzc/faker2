@@ -1,15 +1,74 @@
 {
-    "user_id": 9513068,
-    "bot_token": "1657567:AAGO7sxIVvhdSHSJt_k_0u_C1w7U",
-    "api_id": "37419",
-    "api_hash": "f81a30b54255566c15b3d578",
-    "//proxy 需要代理 true 不需要道理 false": 1,
+    "api_id": 3741859,
+    "api_hash": "f81a30b542215b3d578",
+    "bot_id": 1657544667,
+    "bot_token": "1657544667:AAGO7sit_k_0u_C1w7U",
+    "user_id": 951306588,
     "proxy": true,
-    "proxy_add": "127.0.0.1",
+    "proxy_type": "socks5",
+    "proxy_addr": "127.0.0.1",
     "proxy_port": 7890,
-    "proxy_username": "",
-    "proxy_password": "",
-    "//base_path 填脚本所在目录": 1,
-    "base_path": "填脚本所在目录",
-    "car_group_id": -1001533334185
+    "command": "task",
+    "log_path": "/jd/log",
+    "log_send": true,
+    "monitor_cache_size": 30,
+    "monitor_cars": [
+        -1001718319262,
+        -1001533334185,
+        1657544667
+    ],
+    "monitor_auto_stops": [
+        "jd_AutoOpenCard"
+    ],
+    "monitor_scripts_path": "/jd/scripts",
+    "monitor_scripts": {
+        "M_WX_ADD_CART_URL": {
+            "name": "M加购有礼",
+            "file": "m_jd_wx_addCart.js",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_ADD_CART_URL",
+            "enable": true
+        },
+        "M_WX_LUCK_DRAW_URL": {
+            "name": "M幸运抽奖",
+            "file": "m_jd_wx_luckDraw.js",
+            "wait": 5,
+            "queue": true,
+            "queue_name": "M_WX_LUCK_DRAW_URL",
+            "enable": true
+        },
+        "M_WX_CENTER_DRAW_URL": {
+            "name": "M老虎机抽奖",
+            "file": "m_jd_wx_centerDraw.js",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_CENTER_DRAW_URL",
+            "enable": true
+        },
+        "M_FAV_SHOP_ARGV": {
+            "name": "M收藏有礼",
+            "file": "m_jd_fav_shop_gift.js",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_FAV_SHOP_ARGV",
+            "enable": true
+        },
+        "M_FOLLOW_SHOP_ARGV": {
+            "name": "M关注有礼",
+            "file": "m_jd_follow_shop.js",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_FOLLOW_SHOP_ARGV",
+            "enable": true
+        },
+        "M_FANS_RED_PACKET_URL": {
+            "name": "M粉丝红包",
+            "file": "m_jd_fans_redPackt.js",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_FANS_RED_PACKET_URL",
+            "enable": true
+        }
+    }
 }
