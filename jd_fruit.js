@@ -156,6 +156,7 @@ async function jdFruit() {
     try {
         await initForFarm();
         if ($.farmInfo.farmUserPro) {
+            console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}好友互助码】${$.farmInfo.farmUserPro.shareCode}\n`);
             jdFruitShareArr.push($.farmInfo.farmUserPro.shareCode)
             await GetCollect();
             message = `【水果名称】${$.farmInfo.farmUserPro.name}\n`;
@@ -1143,7 +1144,6 @@ async function duck() {
 }
 async function GetCollect() {
     try {
-        console.log(`\n【京东账号${$.index}（${$.UserName}）的${$.name}好友互助码】`);
         newShareCodes = [];
         shareCodesArr = [];
 
@@ -1167,7 +1167,7 @@ function readShareCode(code) {
                     console.log(`${$.name} API请求失败，请检查网路重试`)
                 } else {
                     if (data) {
-                        console.log(`随机取20个码放到您固定的互助码后面(不影响已有固定互助)`)
+                        console.log(`随机取20个码来助力`)
                         data = JSON.parse(data);
                     }
                 }
