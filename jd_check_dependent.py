@@ -99,7 +99,7 @@ def check_ld_libc():
                 os.system('rm -rf ld-linux-aarch64.tar.gz')
                 os.system('rm -rf ld-linux-aarch64.so.1')
             else:
-                print("arm64-ld依赖安装失败,请前往https://github.com/HarbourJ/HarbourToulu/blob/main/README.md,查看依赖安装教程")
+                print("arm64-ld依赖安装失败,网络连接失败了，请调整网络连接或重试")
     if "libc.musl-aarch64.so.1" in (os.listdir('/lib')):
         print("已存在arm64-libc依赖")
         pass
@@ -112,10 +112,10 @@ def check_ld_libc():
                 os.system('rm -rf libc.musl-aarch64.tar.gz')
                 os.system('rm -rf libc.musl-aarch64.so.1')
             else:
-                print("arm64-libc依赖安装失败,请前往https://github.com/HarbourJ/HarbourToulu/blob/main/README.md,查看依赖安装教程")
+                print("arm64-libc依赖安装失败,网络连接失败了，请调整网络连接或重试")
 
 def download(systemFile):
-    raw_url = f"https://ghproxy.com/https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/utils/{systemFile}"
+    raw_url = f"https://git.metauniverse-cn.com/https://raw.githubusercontent.com/shufflewzc/faker2/main/utils/{systemFile}"
     try:
         fileList = os.listdir()
         if systemFile in fileList:
@@ -218,7 +218,7 @@ def main():
         if result:
             print("依赖安装/更新完成")
     except:
-        print("依赖安装/更新失败,请前往https://t.me/scriptalking,查看依赖安装教程")
+        print("依赖安装/更新失败,网络连接失败了，请调整网络连接或重试")
 
 if __name__ == '__main__':
     main()
