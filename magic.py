@@ -12,7 +12,7 @@ from telethon import TelegramClient, events
 # 0. 进入容器
 # 1. pip3 install -U cacheout
 # 2. 复制magic.py,magic.json到/ql/config/目录 并配置
-# 3. python3 /ql/config/magic.py 登录
+# 3. python3 /ql/config/magic.py 用手机号登录
 # 4. 给bot发送在吗 有反应即可
 # 5. pm2 start /ql/config/magic.py -x --interpreter python3
 # 6. 挂起bot到后台 查看状态 pm2 l
@@ -223,7 +223,7 @@ async def handler(event):
         logger.info(f'设置环境变量export {action}')
         await export(text)
         await client.send_message(bot_id, f'开始执行 #{name}')
-        await cmd(f'cd {monitor_scripts_path} && {command} {file}')
+        await cmd(f'{command} {monitor_scripts_path}/{file}')
     except Exception as e:
         logger.error(e)
         await client.send_message(bot_id, f'{str(e)}')
@@ -250,7 +250,7 @@ async def task(task_name, task_key):
             logger.info(f'JTASK命令 {file},{parse.quote_plus(value)}')
             logger.info(f'出队执行-->设置环境变量export {action}')
             await export(text)
-            await cmd(f'cd {monitor_scripts_path} && {command} {file}')
+            await cmd(f'{command} {monitor_scripts_path}/{file}')
             if curr_queue.qsize() > 1:
                 await client.send_message(bot_id, f'{action["name"]}，队列长度{curr_queue.qsize()}，将等待{action["wait"]}秒...')
                 await asyncio.sleep(action['wait'])
@@ -261,10 +261,7 @@ async def task(task_name, task_key):
 async def cmd(text):
     try:
         logger.info(f"执行命令{text}")
-        if 'node' in text:
-            name = re.findall(r'node (.*).js', text)[0]
-        else:
-            name = re.findall(r'task (.*).js', text)[0]
+        name = re.findall(r'[^/:*?"<>|]+$', text)[0]
         tmp_log = f'{log_path}/{name}.{datetime.datetime.now().strftime("%H%M%S%f")}.log'
         proc = await asyncio.create_subprocess_shell(
             f"{text} >> {tmp_log} 2>&1",

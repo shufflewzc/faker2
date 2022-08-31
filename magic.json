@@ -12,6 +12,7 @@
     "log_path": "/jd/log",
     "log_send": true,
     "monitor_cache_size": 30,
+    "monitor_cars是你要监控的对象，需要填上自己bot的id和线报频道或群组id": 1,
     "monitor_cars": [
         -1001718319262,
         -1001533334185,
@@ -20,8 +21,33 @@
     "monitor_auto_stops": [
         "jd_AutoOpenCard"
     ],
+    "monitor_scripts_path 填写与面板上一样的路径": 1,
     "monitor_scripts_path": "/jd/scripts",
     "monitor_scripts": {
+        "M_WX_BUILD_DRAW_URL": {
+            "name": "M盖楼领奖",
+            "file": "m_jd_wx_buildDraw.js",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_BUILD_DRAW_URL",
+            "enable": true
+        },
+        "M_WX_SHOP_GIFT_URL": {
+            "name": "M关注有礼无线",
+            "file": "m_jd_wx_shopGift.js",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_SHOP_GIFT_URL",
+            "enable": true
+        },
+        "M_WX_FOLLOW_DRAW_URL": {
+            "name": "M关注抽奖",
+            "file": "m_jd_wx_followDraw.js",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_FOLLOW_DRAW_URL",
+            "enable": true
+        },
         "M_WX_ADD_CART_URL": {
             "name": "M加购有礼",
             "file": "m_jd_wx_addCart.js",
