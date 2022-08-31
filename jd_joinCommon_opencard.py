@@ -40,23 +40,24 @@ except:
 redis_url = os.environ.get("redis_url") if os.environ.get("redis_url") else "172.17.0.1"
 redis_pwd = os.environ.get("redis_pwd") if os.environ.get("redis_pwd") else ""
 jd_joinCommonId = os.environ.get("jd_joinCommonId") if os.environ.get("jd_joinCommonId") else ""
+inviterUuid = os.environ.get("jd_joinCommon_uuid") if os.environ.get("jd_joinCommon_uuid") else ""
 
-inviterUuids = [
-    "4d06aea11bd64802b4d615cf3977001d",
-    "479fbbaa47a8494a86ecefaacb6558cc",
-    "7eb63ebcab3e4503bf3d2b1ee3e0afa5",
-]
-
-inviterUuid = random.choice(inviterUuids)
 if not jd_joinCommonId:
     print("⚠️未发现有效活动变量,退出程序!")
     sys.exit()
-if jd_joinCommonId and "&" not in jd_joinCommonId:
-    print("⚠️活动变量错误,退出程序!")
-    sys.exit()
+# 获取远程remote-redis活动ID
+if "lzdz1_remote" in jd_joinCommonId:
+    jd_joinCommonId_remote = remote_redis(jd_joinCommonId)
+    jd_joinCommonId = jd_joinCommonId_remote
+else:
+    if "&" not in jd_joinCommonId:
+        print("⚠️活动变量错误,退出程序!")
+        sys.exit()
+
 activityId = jd_joinCommonId.split('&')[0]
 shopId = jd_joinCommonId.split('&')[1]
 activity_url = f"https://lzdz1-isv.isvjcloud.com/dingzhi/joinCommon/activity/5929859?activityId={activityId}&shareUuid={inviterUuid}&adsource=null&shareuserid4minipg=null&lng=00.000000&lat=00.000000&sid=&un_area=&&shopid={shopId}"
+print(f"【🛳活动入口】https://lzdz1-isv.isvjcloud.com/dingzhi/joinCommon/activity/5929859?activityId={activityId}")
 
 def redis_conn():
     try:
@@ -541,8 +542,12 @@ if __name__ == '__main__':
         sys.exit()
     global shareUuid, inviteSuccNum, activityUrl, firstCk
     inviteSuccNum = 0
-    shareUuid = inviterUuid
-    activityUrl = activity_url
+    if len(cks) == 1:
+        shareUuid = inviterUuid
+        activityUrl = activity_url
+    else:
+        shareUuid = remote_redis(f"lzdz1_{activityId}", 2)
+        activityUrl = f"https://lzdz1-isv.isvjcloud.com/dingzhi/joinCommon/activity/5929859?activityId={activityId}&shareUuid={shareUuid}&adsource=null&shareuserid4minipg=null&lng=00.000000&lat=00.000000&sid=&un_area=&&shopid={shopId}"
     num = 0
     for cookie in cks[:]:
         num += 1
