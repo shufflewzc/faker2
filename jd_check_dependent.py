@@ -15,7 +15,6 @@ Description:1.Faker库jd_sign本地算法依赖一键检测安装脚本;
             4.默认支持python3版本为3.8-3.9,过高或过低可能会报错;
             5.若本一键配置脚本无法安装所需jd_sign依赖文件,请前往https://github.com/HarbourJ/HarbourToulu/releases自行下载系统对应的jd_sign依赖压缩文件,解压并放置/scripts/HarbourJ_HarbourToulu_main文件夹内即可。
 """
-from operator import truediv
 import sys
 
 import requests, os, platform
@@ -30,7 +29,7 @@ def updateDependent():
     system = platform.system().lower()
     if system == "windows":
         print("识别本机设备为Windows amd64")
-        rtu = 0
+        rtu = repoTreeUpdate()
         if rtu == 9:
             sys.exit()
         if rtu:
@@ -44,7 +43,7 @@ def updateDependent():
                 return True
     elif system == "darwin":
         print("识别本机设备为MacOS x86_64")
-        rtu = 0
+        rtu = repoTreeUpdate()
         if rtu == 9:
             sys.exit()
         if rtu:
@@ -55,7 +54,7 @@ def updateDependent():
                 return True
     else:
         print("识别本机设备为Linux")
-        rtu = 0
+        rtu = repoTreeUpdate()
         if rtu == 9:
             sys.exit()
         if rtu:
@@ -160,6 +159,55 @@ def removeOldSign():
         except:
             pass
 
+def repoTreeUpdate():
+    """
+    判断utils内的主要文件是否更新(sha值是否变化)
+    """
+    GitAPI = 'https://api.github.com/repos/shufflewzc/faker2/git/trees/main'
+    try:
+        session = requests.session()
+        headers = {"Content-Type": "application/json"}
+        res = session.get(url=GitAPI, headers=headers, timeout=20)
+        if res.status_code == 200:
+            for x in res.json()["tree"]:
+                if "utils" == x["path"]:
+                    new_sha = x["sha"]
+                    print(new_sha)
+            # 获取上一次检查所记录的sha值
+            try:
+                with open('repoUpdate.log', "r") as f0:
+                    last_sha = f0.read()
+            except Exception as e:
+                # print(e)
+                # 以log格式写入文件
+                with open("repoUpdate.log", "w") as f1:
+                    f1.write('')
+            with open("repoUpdate.log", "w") as f2:
+                f2.write(new_sha)
+            if new_sha != last_sha:
+                print("检测到依赖版本有更新,自动更新...")
+                print("*" * 30)
+                return True
+            else:
+                print("检测到依赖版本无更新")
+                try:
+                    from jd_sign import remote_redis
+                    result = remote_redis(export_name="Test01", db_index=15)
+                    print(result)
+                    print("依赖正常,退出程序")
+                    return 9
+                except:
+                    print("依赖不正常,自动修复中...")
+                    print("*" * 30)
+                    return True
+        else:
+            print(f'请求失败：{GitAPI}')
+            if "message" in res.json():
+                print(f'错误信息：{res.json()["message"]}')
+            return False
+    except:
+        print(f'请求URL失败：{GitAPI}')
+        return False
 
 def main():
     updateDependent()
