@@ -34,28 +34,11 @@ try:
     from jdCookie import get_cookies
     getCk = get_cookies()
 except:
-    logger.info("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/jdCookie.py")
+    logger.info("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/shufflewzc/faker2/main/jdCookie.py")
     sys.exit(3)
-try:
-    if os.environ.get("redis_url"):
-        redis_url = os.environ["redis_url"]  # redis ip
-    else:
-        redis_url = "172.17.0.1"
-    if os.environ.get("redis_pwd"):
-        redis_pwd = os.environ["redis_pwd"]  # redis 密码
-    else:
-        redis_pwd = ""
-except:
-    redis_url = "172.17.0.1"
-    redis_pwd = ""
-
-try:
-    if os.environ.get("jinggengInviteJoin"):
-        jinggengInviteJoin = os.environ["jinggengInviteJoin"]
-    else:
-        jinggengInviteJoin = "9e8080e0828365a10182868854b40115&1000004385"
-except:
-    jinggengInviteJoin = "9e80809282a4bdc90182ab254c7e0a12&1000121005"
+redis_url = os.environ.get("redis_url") if os.environ.get("redis_url") else "172.17.0.1"
+redis_pwd = os.environ.get("redis_pwd") if os.environ.get("redis_pwd") else ""
+jinggengInviteJoin = os.environ.get("jinggengInviteJoin") if os.environ.get("jinggengInviteJoin") else ""
 
 inviterNicks = [
     "Ny0m1K1tVHIJvt0j4SQ9RbRPXMHHf%2BDrNmMVfT8S5hq3SjYMAACrbEHZQ40J5yPY",

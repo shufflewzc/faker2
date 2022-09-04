@@ -7,12 +7,15 @@
 
 import os
 import time
+import logging
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger()
 
 
 def get_cookies():
     CookieJDs = []
     if os.environ.get("JD_COOKIE"):
-        print("已获取并使用Env环境 Cookie")
+        logger.info("已获取并使用Env环境 Cookie")
         if '&' in os.environ["JD_COOKIE"]:
             CookieJDs = os.environ["JD_COOKIE"].split('&')
         elif '\n' in os.environ["JD_COOKIE"]:
@@ -34,13 +37,13 @@ def get_cookies():
                     CookieJDs = sorted(set(CookieJDs), key=CookieJDs.index)
                     # return CookieJDs
         else:
-            print("未获取到正确✅格式的京东账号Cookie")
+            logger.info("未获取到正确✅格式的京东账号Cookie")
             return
 
-    print(f"====================共{len(CookieJDs)}个京东账号Cookie=========\n")
-    print(f"==================脚本执行- 北京时间(UTC+8)：{time.strftime('%Y/%m/%d %H:%M:%S', time.localtime())}=====================\n")
+    logger.info(f"====================共{len(CookieJDs)}个京东账号Cookie=========\n")
+    logger.info(f"==================脚本执行- 北京时间(UTC+8)：{time.strftime('%Y/%m/%d %H:%M:%S', time.localtime())}=====================\n")
     return CookieJDs
 
 # if __name__ == "__main__":
 #     get_cookies()
-#     print(os.environ.get("JD_COOKIE"))
+#     logger.info(os.environ.get("JD_COOKIE"))

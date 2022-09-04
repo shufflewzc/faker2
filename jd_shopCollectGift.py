@@ -27,7 +27,7 @@ try:
     from jdCookie import get_cookies
     getCk = get_cookies()
 except:
-    print("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/jdCookie.py")
+    print("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/shufflewzc/faker2/main/jdCookie.py")
     sys.exit(3)
 
 venderId = os.environ.get("jd_shopCollectGiftId") if os.environ.get("jd_shopCollectGiftId") else ""

@@ -26,13 +26,12 @@ except:
 print = partial(print, flush=True)
 activatyname = '邀请赢大礼'
 activityId = 'dVF7gQUVKyUcuSsVhuya5d2XD4F'  # 活动类型
-try:
-    if os.environ.get("jd_inv_authorCode"):
-        authorCode = os.environ["jd_inv_authorCode"]  # 活动id
-    else:
-        authorCode = "6b84e047a9154d909febd19d3120aad2"
-except:
-    print("未在环境变量中获取到有效jd_inv_authorCode变量，请添加变量后重试！")
+
+authorCode = os.environ.get("jd_inv_authorCode") if os.environ.get("jd_inv_authorCode") else ""
+
+if not authorCode:
+    print("⚠️未发现有效活动变量jd_inv_authorCode,退出程序!")
+    sys.exit()
 
 # 随机ua
 def randomuserAgent():

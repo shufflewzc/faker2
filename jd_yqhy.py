@@ -1,16 +1,16 @@
 """
-# 邀好友赢大礼 create by doubi 通用模板 
+# 邀好友赢大礼 create by doubi 通用模板
 # 17:/椋东送福利，邀请好友，争排行榜排位，大礼送不停，(E1Y7RAtC4b) ，升级新版猄·=·Dσσōngαpρ
 # https://prodev.m.jd.com/mall/active/dVF7gQUVKyUcuSsVhuya5d2XD4F/index.html?code=16dde1860f1b4f1b9a93db6612abf0b9&invitePin=pin值
 # 注意事项 pin 为助力pin 必须保证ck在里面
 
 
 环境变量说明：
-export yhypin="需要助力的pin值"  
+export yhypin="需要助力的pin值"
 export yhyactivityId="活动类型ID"
 export yhyauthorCode="活动ID"
 
-cron: 6 6 6 6 *
+cron: 1 1 1 1 1
 new Env('邀请赢大礼');
 """
 
@@ -94,7 +94,7 @@ async def plogin(ua,cookie):
         'Referer': 'https://prodev.m.jd.com/',
         'User-Agent':ua
     }
-    response = requests.get(url=url,headers=header,timeout=30).text
+    response = requests.get(url=url,headers=header,timeout=5).text
     return response
 
 # 活动接口
@@ -115,7 +115,7 @@ async def jdjoy(ua,cookie):
     }
     response = requests.get(url=url,headers=header).text
     return json.loads(response)
-    
+
 # go开卡
 async def ruhui(ua,cookie):
     url = f'https://jdjoy.jd.com/member/bring/joinMember?code={authorCode}&invitePin={invitePin}'
@@ -224,6 +224,7 @@ async def main():
         print(f'==================共{len(cks)}个京东账号Cookie==================')
         print(f'==================脚本执行- 北京时间(UTC+8)：{get_time()}=====================\n')
         print(f'您好！{invitePin}，正在获取您的活动信息',)
+        print(f'活动地址: {activityUrl}')
         ua = randomuserAgent()  # 获取ua
         result = await check(ua, inveteck) # 检测ck
         if result['code'] == 200:
@@ -238,15 +239,15 @@ async def main():
                 successCount = result['data']['successCount'] # 当前成功数
                 success += successCount
                 result_data = result['data']['rewards'] # 奖品数据
-                print(f'您好！账号[{invitePin}]，开启{brandName}邀请好友活动\n去开活动') 
+                print(f'您好！账号[{invitePin}]，开启{brandName}邀请好友活动\n去开活动')
                 for i in result_data:
                     stage = i['stage']
                     inviteNum = i['inviteNum']  # 单次需要拉新人数
-                    need.append(inviteNum) 
+                    need.append(inviteNum)
                     rewardName = i['rewardName'] # 奖品名
                     rewardNum = i['rewardStock']
                     if rewardNum !=0:
-                        needinviteNum.append(inviteNum) 
+                        needinviteNum.append(inviteNum)
                         needdel.append(inviteNum)
                     rewardslist.append(f'级别{stage}:  需助力{inviteNum}人，奖品: {rewardName}，库存：{rewardNum}件\n')
                 if len(rewardslist)!=0:
@@ -285,7 +286,7 @@ async def main():
                         if needinviteNum == []:
                             print('奖励已经全部获取啦，退出程序')
                             return
-                    await plogin(ua,ck) # 获取登录状态 
+                    await plogin(ua,ck) # 获取登录状态
                     result = await check(ua, ck) # 检测ck
                     if result['code'] == 200:
                         result = await jdjoy(ua,ck) # 调用ck
