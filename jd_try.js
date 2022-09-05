@@ -1,6 +1,7 @@
 /*
  * 2022-07-20 修复获取试用列表风控问题；  
  * 2022-08-12 修复申请试用风控，更换nolan接口
+ * 2022-9-5   某个商品timeout继续下一个不中断
  * By https://github.com/6dylan6/jdpro/
  * 基于X1a0He版本修改
  * @Address: https://github.com/X1a0He/jd_scripts_fixed/blob/main/jd_try_xh.js
@@ -255,11 +256,11 @@ let args_xh = {
                 await $.wait(2000);
                 for (let i = 0; i < trialActivityIdList.length && $.isLimit === false; i++) {
                     if ($.isLimit) {
-                        console.log("试用上限")
+                        console.log("试用上限");
                         break
                     }
-                    if ($.isForbidden) { console.log('403了，跳出'); break }
-                    await try_apply(trialActivityTitleList[i], trialActivityIdList[i])
+                    if ($.isForbidden) { console.log('403了，跳出'); break };
+                    await try_apply(trialActivityTitleList[i], trialActivityIdList[i]);
                     //console.log(`间隔等待中，请等待 ${args_xh.applyInterval} ms\n`)
                     const waitTime = generateRandomInteger(args_xh.applyInterval, 9000);
                     console.log(`随机等待${waitTime}ms后继续`);
@@ -498,31 +499,31 @@ function try_feedsList(tabId, page) {
     })
 }
 
-function try_apply(title, activityId) {
+async function try_apply(title, activityId) {
+    console.log(`申请试用商品提交中...`)
+    args_xh.printLog ? console.log(`商品：${title}`) : ''
+    args_xh.printLog ? console.log(`id为：${activityId}`) : ''
+    let body = JSON.stringify({
+        "activityId": activityId,
+        "previewTime": ""
+    });
+    body = await geth5st(body);
+    if(!body) return;
+    let opt =
+    {
+        "url": `${URL}?${body}}`,
+        'headers': {
+            'Cookie': $.cookie + $.jda,
+            'user-agent': 'jdapp;iPhone;10.1.2;15.0;ff2caa92a8529e4788a34b3d8d4df66d9573f499;network/wifi;model/iPhone13,4;addressid/2074196292;appBuild/167802;jdSupportDarkMode/1;Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1',
+            'Referer': 'https://prodev.m.jd.com/',
+            'origin': 'https://prodev.m.jd.com/',
+            'Accept': 'application/json,text/plain,*/*',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'zh-cn',
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+    }	
     return new Promise(async (resolve, reject) => {
-        console.log(`申请试用商品提交中...`)
-        args_xh.printLog ? console.log(`商品：${title}`) : ''
-        args_xh.printLog ? console.log(`id为：${activityId}`) : ''
-        let body = JSON.stringify({
-            "activityId": activityId,
-            "previewTime": ""
-        });
-        body = await geth5st(body);
-        if(!body) return;
-        let opt =
-        {
-            "url": `${URL}?${body}}`,
-            'headers': {
-                'Cookie': $.cookie + $.jda,
-                'user-agent': 'jdapp;iPhone;10.1.2;15.0;ff2caa92a8529e4788a34b3d8d4df66d9573f499;network/wifi;model/iPhone13,4;addressid/2074196292;appBuild/167802;jdSupportDarkMode/1;Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1',
-                'Referer': 'https://prodev.m.jd.com/',
-                'origin': 'https://prodev.m.jd.com/',
-                'Accept': 'application/json,text/plain,*/*',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Accept-Language': 'zh-cn',
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        }
         $.get(opt, (err, resp, data) => {
             try {
                 if (err) {
@@ -738,12 +739,13 @@ function geth5st(body) {
             try {
                 if (err) {
                     console.log(JSON.stringify(err));
+					console.log('连接服务失败\n');
                 } else {
                     data = JSON.parse(data);
                     if (data.code == 200) {
                         str = data.body;
                     } else {
-                        $.log('连接服务失败',data.msg);
+                        $.log('获取失败',data.msg);
                     }
                 }
             } catch (e) {
