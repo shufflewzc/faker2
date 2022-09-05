@@ -23,9 +23,8 @@ from datetime import datetime
 import json
 import random
 from urllib.parse import quote_plus, unquote_plus
-import logging
-logging.basicConfig(level=logging.INFO, format='%(message)s')
-logger = logging.getLogger()
+from functools import partial
+print = partial(print, flush=True)
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -34,7 +33,7 @@ try:
     from jdCookie import get_cookies
     getCk = get_cookies()
 except:
-    logger.info("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/shufflewzc/faker2/main/jdCookie.py")
+    print("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/shufflewzc/faker2/main/jdCookie.py")
     sys.exit(3)
 redis_url = os.environ.get("redis_url") if os.environ.get("redis_url") else "172.17.0.1"
 redis_pwd = os.environ.get("redis_pwd") if os.environ.get("redis_pwd") else ""
@@ -45,12 +44,13 @@ inviterNicks = [
     "pWGUWZJQ3actex0X2vQyLsjNhNaYFy2HteErE6izlhTf9nrGY7gBkCdGU4C6z%2FxD"
 ]
 if "&" not in jinggengInviteJoin:
-    logger.info("⚠️jinggengInviteJoin变量有误！退出程序！")
+    print("⚠️jinggengInviteJoin变量有误！退出程序！")
     sys.exit()
 ac_id = jinggengInviteJoin.split("&")[0]
 user_id = jinggengInviteJoin.split("&")[1]
 inviterNick = random.choice(inviterNicks)
 activity_url = f"https://jinggeng-isv.isvjcloud.com/ql/front/showInviteJoin?id={ac_id}&user_id={user_id}&inviterNick={inviterNick}"
+print(f"【🛳活动入口】{activity_url}")
 
 def redis_conn():
     try:
@@ -59,12 +59,12 @@ def redis_conn():
             pool = redis.ConnectionPool(host=redis_url, port=6379, decode_responses=True, socket_connect_timeout=5, password=redis_pwd)
             r = redis.Redis(connection_pool=pool)
             r.get('conn_test')
-            logger.info('✅redis连接成功')
+            print('✅redis连接成功')
             return r
         except:
-            logger.info("⚠️redis连接异常")
+            print("⚠️redis连接异常")
     except:
-        logger.info("⚠️缺少redis依赖，请运行pip3 install redis")
+        print("⚠️缺少redis依赖，请运行pip3 install redis")
 
 def getToken(ck, r=None):
     try:
@@ -76,12 +76,12 @@ def getToken(ck, r=None):
     try:
         if r is not None:
             Token = r.get(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}')
-            # logger.info("Token过期时间", r.ttl(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}'))
+            # print("Token过期时间", r.ttl(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}'))
             if Token is not None:
-                logger.info(f"♻️获取缓存Token->: {Token}")
+                print(f"♻️获取缓存Token->: {Token}")
                 return Token
             else:
-                logger.info("🈳去设置Token缓存-->")
+                print("🈳去设置Token缓存-->")
                 s.headers = {
                     'Connection': 'keep-alive',
                     'Accept-Encoding': 'gzip, deflate, br',
@@ -94,20 +94,20 @@ def getToken(ck, r=None):
                     'Accept': '*/*'
                 }
                 sign_txt = sign({"url": f"{activityUrl}", "id": ""}, 'isvObfuscator')
-                # logger.info(sign_txt)
+                # print(sign_txt)
                 f = s.post('https://api.m.jd.com/client.action', verify=False, timeout=30)
                 if f.status_code != 200:
-                    logger.info(f.status_code)
+                    print(f.status_code)
                     return
                 else:
                     if "参数异常" in f.text:
                         return
                 Token_new = f.json()['token']
-                logger.info(f"Token->: {Token_new}")
+                print(f"Token->: {Token_new}")
                 if r.set(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}', Token_new, ex=1800):
-                    logger.info("✅Token缓存设置成功")
+                    print("✅Token缓存设置成功")
                 else:
-                    logger.info("❌Token缓存设置失败")
+                    print("❌Token缓存设置失败")
                 return Token_new
         else:
             s.headers = {
@@ -122,16 +122,16 @@ def getToken(ck, r=None):
                 'Accept': '*/*'
             }
             sign_txt = sign({"url": f"{activityUrl}", "id": ""}, 'isvObfuscator')
-            # logger.info(sign_txt)
+            # print(sign_txt)
             f = s.post('https://api.m.jd.com/client.action', verify=False, timeout=30)
             if f.status_code != 200:
-                logger.info(f.status_code)
+                print(f.status_code)
                 return
             else:
                 if "参数异常" in f.text:
                     return
             Token = f.json()['token']
-            logger.info(f"Token->: {Token}")
+            print(f"Token->: {Token}")
             return Token
     except:
         return
@@ -194,7 +194,7 @@ def getActivity(index=1, isOpenCard=0, inviterCode=None, getIndex=0):
     response = requests.request("GET", url, headers=headers)
     html_text = response.text
     if response.status_code == 493:
-        logger.info(response.status_code, "⚠️ip疑似黑了,休息一会再来撸~")
+        print(response.status_code, "⚠️ip疑似黑了,休息一会再来撸~")
         sys.exit()
     # if response.cookies:
     cookies = response.cookies.get_dict()
@@ -219,7 +219,7 @@ def getActivity(index=1, isOpenCard=0, inviterCode=None, getIndex=0):
             shop_sid = soup.find('input', attrs={'id': 'shop_sid'})['value']
             inviteSuccNums = (soup.find('input', attrs={'id': 'helpLogs'})['value'])
             inviteSetting2s = eval(soup.find('input', attrs={'id': 'inviteSetting2'})['value'])
-            logger.info(f"店铺名称: {shop_title} \n活动名称: {actName} \n店铺ID: {shop_sid}")
+            print(f"店铺名称: {shop_title} \n活动名称: {actName} \n店铺ID: {shop_sid}")
             num1 = {'1': 'one', '2': 'two', '3': 'three', '4': 'four'}
             num2 = {'1': 'leveOneNum', '2': 'leveTwoNum', '3': 'leveThreeNum', '4': 'leveFourNum'}
             needInviteNums = []
@@ -238,16 +238,16 @@ def getActivity(index=1, isOpenCard=0, inviterCode=None, getIndex=0):
                     denomination = inviteSetting2['denomination']
                 awardId = inviteSetting2['id']
                 # inviteSucc = soup.find('input', attrs={'id': 'inviteSucc'})['value']
-                logger.info(f"奖品{b}: {equityName} 奖励: {denomination} 总数: {freezeQuantity}份 剩余: {availableQuantity}份 需要邀请: {leveNum}人")
+                print(f"奖品{b}: {equityName} 奖励: {denomination} 总数: {freezeQuantity}份 剩余: {availableQuantity}份 需要邀请: {leveNum}人")
                 if availableQuantity > 0:
                     needInviteNums.append((leveNum, awardId, equityType))
                 if len(needInviteNums) == 0:
-                    logger.info(f"⛈⛈⛈活动奖品全部发完啦！")
+                    print(f"⛈⛈⛈活动奖品全部发完啦！")
                     sys.exit()
             return errorMsg, inviteSuccNums, needInviteNums
         return errorMsg0
     elif "活动已结束" in html_text:
-        logger.info("😭活动已结束,下次早点来~")
+        print("😭活动已结束,下次早点来~")
         sys.exit()
     else:
         return set_cookie
@@ -276,7 +276,7 @@ def setMixNick(token):
         refresh_cookies(response)
         return setMixNick0
     except Exception as e:
-        logger.info(e)
+        print(e)
         return
 
 def recordActPvUvdata(token):
@@ -351,12 +351,12 @@ def bindWithVender(cookie):
         if res['success']:
             open_result = res['message']
             if "火爆" in open_result:
-                logger.info(f"\t⛈⛈⛈{open_result}")
+                print(f"\t⛈⛈⛈{open_result}")
             else:
-                logger.info(f"\t🎉🎉🎉{open_result}")
+                print(f"\t🎉🎉🎉{open_result}")
             return res['message']
     except Exception as e:
-        logger.info(e)
+        print(e)
 
 def receiveInviteJoinAward(token, awardId):
     url = "https://jinggeng-isv.isvjcloud.com/ql/front/receiveInviteJoinAward"
@@ -382,9 +382,9 @@ def receiveInviteJoinAward(token, awardId):
         if msg['isSendSucc']:
             awardType = msg['drawAwardDto']['awardType'].replace('JD_BEAN', '京豆').replace('JD_POINT', '积分')
             awardDenomination = msg['drawAwardDto']['awardDenomination']
-            logger.info(f"\t🎉🎉成功领取{awardDenomination}{awardType}")
+            print(f"\t🎉🎉成功领取{awardDenomination}{awardType}")
     else:
-        logger.info(f"\t🎉🎉{res['msg']}")
+        print(f"\t🎉🎉{res['msg']}")
 
 
 if __name__ == '__main__':
@@ -394,7 +394,7 @@ if __name__ == '__main__':
         if not cks:
             sys.exit()
     except:
-        logger.info("未获取到有效COOKIE,退出程序！")
+        print("未获取到有效COOKIE,退出程序！")
         sys.exit()
     global inviterCode, inviteSuccNums, activityUrl, needInviteNums, rewardIndex, firstCk
     inviteSuccNums = 0
@@ -408,7 +408,7 @@ if __name__ == '__main__':
         if num == 1:
             firstCk = cookie
         if num % 5 == 0:
-            logger.info("⏰等待5s")
+            print("⏰等待5s")
             time.sleep(5)
         global ua, activityCookie, token, getIndex
         getIndex = 0
@@ -418,8 +418,8 @@ if __name__ == '__main__':
             pt_pin = unquote_plus(pt_pin)
         except IndexError:
             pt_pin = f'用户{num}'
-        logger.info(f'\n******开始【京东账号{num}】{pt_pin} *********\n')
-        logger.info(datetime.now())
+        print(f'\n******开始【京东账号{num}】{pt_pin} *********\n')
+        print(datetime.now())
         token = ''
         activityCookie = ''
         activityCookie = getActivity(num, 0, inviterCode, 0)
@@ -427,54 +427,54 @@ if __name__ == '__main__':
             token = getToken(cookie, r)
             if token is None:
                 if num == 1:
-                    logger.info(f"⚠️车头获取Token失败,退出本程序！")
+                    print(f"⚠️车头获取Token失败,退出本程序！")
                     # sys.exit()
                     os._exit()
-                logger.info(f"⚠️获取Token失败！⏰等待3s")
+                print(f"⚠️获取Token失败！⏰等待3s")
                 time.sleep(3)
                 continue
         except:
-            logger.info(f"⚠️获取Token失败！⏰等待3s")
+            print(f"⚠️获取Token失败！⏰等待3s")
             time.sleep(3)
             continue
         time.sleep(1.5)
         setMixNick0 = setMixNick(token)
         if setMixNick0 is None:
             if num == 1:
-                logger.info(f"⚠️车头获取邀请码失败,退出本程序！")
+                print(f"⚠️车头获取邀请码失败,退出本程序！")
                 sys.exit()
             else:
                 continue
         else:
-            logger.info(f"邀请码->: {setMixNick0}")
+            print(f"邀请码->: {setMixNick0}")
         time.sleep(1)
-        logger.info(f"准备助力-->: {inviterCode}")
+        print(f"准备助力-->: {inviterCode}")
         inviteSuccNum = getActivity(num, 0, inviterCode, 1)
         if num == 1:
             errorMsg0 = inviteSuccNum[0]
             if "跳开卡页面" not in errorMsg0:
-                logger.info("无法助力自己")
+                print("无法助力自己")
             inviteSuccNums0 = inviteSuccNum[1]
             needInviteNums = inviteSuccNum[2]
             inviteSuccNums = len(eval(inviteSuccNums0))
-            logger.info(f"🛳已经邀请{inviteSuccNums}人")
+            print(f"🛳已经邀请{inviteSuccNums}人")
             for i, needNum0 in enumerate(needInviteNums):
                 needNum = needNum0[0]
                 awardId = needNum0[1]
                 if inviteSuccNums >= needNum:
-                    logger.info(f"🎉恭喜已完成第{i + 1}档邀请，快去领奖吧！")
+                    print(f"🎉恭喜已完成第{i + 1}档邀请，快去领奖吧！")
                     time.sleep(1)
                     recordActPvUvdata(token)
                     checkTokenInSession(token)
                     time.sleep(1)
                     if equityType == "JD_GOODS":
-                        logger.info(f"\t🎉🎉成功获得实物奖励,请尽快前往领取:{activityUrl}")
+                        print(f"\t🎉🎉成功获得实物奖励,请尽快前往领取:{activityUrl}")
                     else:
                         receiveInviteJoinAward(token, awardId)
                     rewardIndex += 1
                     time.sleep(3)
                     if i + 1 == len(needInviteNums):
-                        logger.info("🎉🎉🎉奖励全部领取完毕~")
+                        print("🎉🎉🎉奖励全部领取完毕~")
                         sys.exit()
                 time.sleep(1)
             inviterCode = setMixNick0
@@ -482,12 +482,12 @@ if __name__ == '__main__':
             continue
         else:
             errorMsg1 = inviteSuccNum
-            # logger.info("num != 1", errorMsg1)
+            # print("num != 1", errorMsg1)
             if "跳开卡页面" not in errorMsg1:
                 if "已成功邀请您加入本店会员" in errorMsg1:
-                    logger.info("⛈已经是会员了,无法完成助力")
+                    print("⛈已经是会员了,无法完成助力")
                 else:
-                    logger.info(f"🛳{errorMsg1}")
+                    print(f"🛳{errorMsg1}")
                 time.sleep(1)
                 continue
         time.sleep(1.5)
@@ -495,16 +495,16 @@ if __name__ == '__main__':
         checkTokenInSession(token)
         time.sleep(1)
         shopmember(cookie)
-        logger.info("现在去开卡")
+        print("现在去开卡")
         open_result = bindWithVender(cookie)
         if open_result is not None:
             if "火爆" in open_result:
                 time.sleep(1.5)
-                logger.info("\t尝试重新入会 第1次")
+                print("\t尝试重新入会 第1次")
                 open_result = bindWithVender(cookie)
                 if "火爆" in open_result:
                     time.sleep(1.5)
-                    logger.info("\t尝试重新入会 第2次")
+                    print("\t尝试重新入会 第2次")
                     open_result = bindWithVender(cookie)
         time.sleep(1)
         if num == 1:
@@ -513,15 +513,15 @@ if __name__ == '__main__':
         time.sleep(2)
         recordActPvUvdata(token)
         checkTokenInSession(token)
-        # logger.info(errorMsg2, '============================')
+        # print(errorMsg2, '============================')
         if num == 1 and "开卡失败" in errorMsg2:
-            logger.info(f"⚠️车头疑似火爆号,退出本程序！")
+            print(f"⚠️车头疑似火爆号,退出本程序！")
             sys.exit()
         if "已成功邀请您加入本店会员" in errorMsg2:
             inviteSuccNums += 1
-            logger.info(f"🛳已经邀请{inviteSuccNums}人")
+            print(f"🛳已经邀请{inviteSuccNums}人")
             for i, needNum1 in enumerate(needInviteNums):
-                # logger.info(i, needNum1)
+                # print(i, needNum1)
                 needNum = needNum1[0]
                 awardId = needNum1[1]
                 equityType = needNum1[2]
@@ -529,7 +529,7 @@ if __name__ == '__main__':
                     if rewardIndex >= i + 1:
                         time.sleep(1)
                         continue
-                    logger.info(f"🎉恭喜已完成第{i + 1}档邀请，快去领奖吧！")
+                    print(f"🎉恭喜已完成第{i + 1}档邀请，快去领奖吧！")
                     token = getToken(firstCk, r)
                     activityCookie = getActivity(1, 0, inviterCode, 3)
                     setMixNick(token)
@@ -537,13 +537,13 @@ if __name__ == '__main__':
                     recordActPvUvdata(token)
                     time.sleep(0.5)
                     if equityType == "JD_GOODS":
-                        logger.info(f"\t🎉🎉成功获得实物奖励,请尽快前往领取:{activityUrl}")
+                        print(f"\t🎉🎉成功获得实物奖励,请尽快前往领取:{activityUrl}")
                     else:
                         receiveInviteJoinAward(token, awardId)
                     rewardIndex += 1
                     time.sleep(3)
                     if i + 1 == len(needInviteNums):
-                        logger.info("🎉🎉🎉奖励全部领取完毕~")
+                        print("🎉🎉🎉奖励全部领取完毕~")
                         sys.exit()
         if num == 1:
             inviterCode = setMixNick0
