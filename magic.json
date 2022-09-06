@@ -24,12 +24,36 @@
     "monitor_scripts_path 填写与面板上一样的路径": 1,
     "monitor_scripts_path": "/jd/scripts",
     "monitor_scripts": {
+        "M_WX_WDZ_ID": {
+            "name": "M微定制",
+            "file": "m_jd_wx_microDz.js",
+            "wait": 0,
+            "queue": true,
+            "queue_name": "M_WX_WDZ_ID",
+            "enable": true
+        },
+        "M_WX_SECOND_DRAW_URL": {
+            "name": "M读秒手速",
+            "file": "m_jd_wx_secondDraw.js",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_SECOND_DRAW_URL",
+            "enable": true
+        },
         "M_WX_BUILD_DRAW_URL": {
             "name": "M盖楼领奖",
             "file": "m_jd_wx_buildDraw.js",
             "wait": 0,
             "queue": false,
             "queue_name": "M_WX_BUILD_DRAW_URL",
+            "enable": true
+        },
+        "M_WX_LEVEL_BIRTH_BEAN_NUM": {
+            "name": "M等级/生日礼包",
+            "file": "m_jd_wx_levelBirth.js",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_LEVEL_BIRTH_BEAN_NUM",
             "enable": true
         },
         "M_WX_SHOP_GIFT_URL": {
