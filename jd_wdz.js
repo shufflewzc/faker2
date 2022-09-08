@@ -1,7 +1,7 @@
 /*
 微定制
 export jd_wdz_activityId="xxx" 活动id
-export jd_wdz_maxNum="60"  最多跑多少个号, 如果不写2则默认跑60个号停止
+export jd_wdz_maxNum="30"  最多跑多少个号, 如果不写2则默认跑30个号停止
 cron "1 1 1 1 1" jd_wdz_activity.js
  */
 const $ = new Env('微定制');
