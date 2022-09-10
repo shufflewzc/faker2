@@ -628,15 +628,18 @@ async function turntableFarm() {
                 console.log('天天抽奖-不能自己给自己助力\n')
                 continue
             }
+            
             await lotteryMasterHelp(code);
-            // console.log('天天抽奖助力结果',lotteryMasterHelpRes.helpResult)
-            if ($.lotteryMasterHelpRes.helpResult.code === '0') {
-                console.log(`天天抽奖-助力${$.lotteryMasterHelpRes.helpResult.masterUserInfo.nickName}成功\n`)
-            } else if ($.lotteryMasterHelpRes.helpResult.code === '11') {
-                console.log(`天天抽奖-不要重复助力${$.lotteryMasterHelpRes.helpResult.masterUserInfo.nickName}\n`)
-            } else if ($.lotteryMasterHelpRes.helpResult.code === '13') {
-                console.log(`天天抽奖-助力${$.lotteryMasterHelpRes.helpResult.masterUserInfo.nickName}失败,助力次数耗尽\n`);
-                break;
+            if ($.lotteryMasterHelpRes.helpResult) {
+                // console.log('天天抽奖助力结果',lotteryMasterHelpRes.helpResult)
+                if ($.lotteryMasterHelpRes.helpResult.code === '0') {
+                    console.log(`天天抽奖-助力${$.lotteryMasterHelpRes.helpResult.masterUserInfo.nickName}成功\n`)
+                } else if ($.lotteryMasterHelpRes.helpResult.code === '11') {
+                    console.log(`天天抽奖-不要重复助力${$.lotteryMasterHelpRes.helpResult.masterUserInfo.nickName}\n`)
+                } else if ($.lotteryMasterHelpRes.helpResult.code === '13') {
+                    console.log(`天天抽奖-助力${$.lotteryMasterHelpRes.helpResult.masterUserInfo.nickName}失败,助力次数耗尽\n`);
+                    break;
+                }
             }
         }
         console.log(`---天天抽奖次数remainLotteryTimes----${remainLotteryTimes}次`)
