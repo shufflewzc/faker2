@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import re
+import time
 from urllib import parse
 
 from cacheout import FIFOCache
@@ -43,7 +44,7 @@ with open(_ConfigCar, 'r', encoding='utf-8') as f:
     properties = json.loads(magic_json)
 
 # 缓存
-cache = FIFOCache(maxsize=properties.get("monitor_cache_size"))
+cache = FIFOCache(maxsize=properties.get("monitor_cache_size"), ttl=0, timer=time.time)
 
 # Telegram相关
 api_id = properties.get("api_id")
@@ -52,26 +53,49 @@ bot_id = properties.get("bot_id")
 bot_token = properties.get("bot_token")
 user_id = properties.get("user_id")
 # 监控相关
-monitor_cars = properties.get("monitor_cars")
-command = properties.get("command")
 log_path = properties.get("log_path")
-log_send = properties.get("log_send")
+log_send = properties.get("log_send", True)
+log_send_id = properties.get("log_send_id")
+monitor_cars = properties.get("monitor_cars")
 logger.info(f"监控的频道或群组-->{monitor_cars}")
-monitor_scripts_path = properties.get("monitor_scripts_path")
-logger.info(f"监控的文件目录-->{monitor_scripts_path}")
+monitor_converters = properties.get("monitor_converters")
+logger.info(f"监控转换器-->{monitor_converters}")
+monitor_converters_whitelist_keywords = properties.get("monitor_converters_whitelist_keywords")
+logger.info(f"不转换白名单关键字-->{monitor_converters_whitelist_keywords}")
+monitor_black_keywords = properties.get("monitor_black_keywords")
+logger.info(f"黑名单关键字-->{monitor_black_keywords}")
 monitor_scripts = properties.get("monitor_scripts")
 monitor_auto_stops = properties.get("monitor_auto_stops")
 logger.info(f"监控的自动停车-->{monitor_auto_stops}")
 
 if properties.get("proxy"):
-    proxy = {
-        'proxy_type': properties.get("proxy_type"),
-        'addr': properties.get("proxy_addr"),
-        'port': properties.get("proxy_port")
-    }
+    if properties.get("proxy_type") == "MTProxy":
+        proxy = {
+            'addr': properties.get("proxy_addr"),
+            'port': properties.get("proxy_port"),
+            'proxy_secret': properties.get('proxy_secret', "")
+        }
+    else:
+        proxy = {
+            'proxy_type': properties.get("proxy_type"),
+            'addr': properties.get("proxy_addr"),
+            'port': properties.get("proxy_port"),
+            'username': properties.get('proxy_username', ""),
+            'password': properties.get('proxy_password', "")
+        }
     client = TelegramClient("magic", api_id, api_hash, proxy=proxy, auto_reconnect=True, retry_delay=1, connection_retries=99999).start()
 else:
     client = TelegramClient("magic", api_id, api_hash, auto_reconnect=True, retry_delay=1, connection_retries=99999).start()
+
+
+def rest_of_day():
+    """
+    :return: 截止到目前当日剩余时间
+    """
+    today = datetime.datetime.strptime(str(datetime.date.today()), "%Y-%m-%d")
+    tomorrow = today + datetime.timedelta(days=1)
+    nowTime = datetime.datetime.now()
+    return (tomorrow - nowTime).seconds - 90  # 获取秒
 
 
 def rwcon(arg):
@@ -132,13 +156,13 @@ async def handler(event):
 
 
 # 设置变量
-@client.on(events.NewMessage(chats=monitor_cars, pattern='^在吗$'))
+@client.on(events.NewMessage(chats=[bot_id], pattern='^在吗$'))
 async def handler(event):
     await client.send_message(bot_id, f'老板啥事？')
 
 
 # 设置变量
-@client.on(events.NewMessage(chats=monitor_cars, pattern='^清理缓存$'))
+@client.on(events.NewMessage(chats=[bot_id], pattern='^清理缓存$'))
 async def handler(event):
     b_size = cache.size()
     logger.info(f"清理前缓存数量，{b_size}")
@@ -148,8 +172,33 @@ async def handler(event):
     await client.send_message(bot_id, f'清理缓存结束 {b_size}-->{a_size}')
 
 
-# 监听事件
-@client.on(events.NewMessage(chats=monitor_cars))
+async def get_activity_info(text):
+    result = re.findall(r'((http|https)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|])', text)
+    if len(result) <= 0:
+        return None, None
+    url = re.search('((http|https)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|])', text)[0]
+    params = parse.parse_qs(parse.urlparse(url).query)
+    ban_rule_list = [
+        'activityId',
+        'giftId',
+        'actId',
+        'tplId',
+        'token',
+        'code',
+        'a',
+        'id']
+    activity_id = ''
+    for key in ban_rule_list:
+        activity_id = params.get(key)
+        logger.info(activity_id)
+        if activity_id is not None:
+            activity_id = params.get(key)
+            activity_id = activity_id[0]
+            break
+    return activity_id, url
+
+
+@client.on(events.NewMessage(chats=monitor_cars, pattern=r'((export\s)?\w*=(".*"|\'.*\')|[/ikun])'))
 async def handler(event):
     origin = event.message.text
     text = re.findall(r'https://i.walle.com/api\?data=(.+)?\)', origin)
@@ -159,74 +208,97 @@ async def handler(event):
         text = origin
     else:
         return
+    groupname = "mybot"
     try:
-        logger.info(f"原始数据 {text}")
-        # 微定制
-        if "WDZactivityId" in text:
-            activity_id = re.search(f'WDZactivityId="(.+?)"', text)[1]
-            if cache.get(activity_id) is not None:
-                await client.send_message(bot_id, f'跑过 {text}')
+        groupname = f'[{event.chat.title}](https://t.me/c/{event.chat.id}/{event.message.id})'
+    except Exception:
+        pass
+    try:
+        origin_text = text
+        logger.info(f"原始数据 {origin_text}")
+        # 黑名单
+        for b_key in monitor_black_keywords:
+            result = re.search(b_key, origin_text)
+            if result is not None:
+                await client.send_message(bot_id, f'黑名单 {b_key} {text}')
                 return
-            cache.set(activity_id, activity_id)
-            text = f'export jd_wdz_custom="{activity_id}"'
-        else:
-            urls = re.search('((http|https)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|])', text)
-            if urls is not None:
-                url = urls[0]
-                domain = re.findall('https?://([^/]+)', url)[0]
-                params = parse.parse_qs(parse.urlparse(url).query)
-                activity_id = ''
-                if 'cjhy' in domain or 'lzkj' in domain or 'lzdz1' in domain:
-                    if 'pageDecorateView/previewPage' in url:
-                        activity_id = params["tplId"][0]
-                    elif 'wxPointShopView' in url:
-                        activity_id = params["giftId"][0]
-                    elif 'activityId' in url:
-                        activity_id = params["activityId"][0]
-                if len(activity_id) == 0:
-                    if cache.get(text) is not None:
-                        await client.send_message(bot_id, f'跑过 {text}')
-                        return
-                    cache.set(text, text)
-                elif cache.get(activity_id) is not None:
-                    await client.send_message(bot_id, f'跑过 {text}')
+        text = await converter_handler(text)
+        activity_id, url = await get_activity_info(text)
+        if "mybot" not in groupname:
+            if activity_id is not None:
+                if cache.get(activity_id) is not None:
+                    await client.send_message(bot_id, f'【{groupname}】跑过 `{activity_id}`')
                     return
-                cache.set(activity_id, activity_id)
+                cache.set(activity_id, activity_id, rest_of_day())
             else:
                 if cache.get(text) is not None:
-                    await client.send_message(bot_id, f'跑过 {text}')
+                    await client.send_message(bot_id, f'【{groupname}】跑过 {text}')
                     return
-                cache.set(text, text)
+                cache.set(text, text, rest_of_day())
         logger.info(f"最终变量 {text}")
         kv = text.replace("export ", "")
         key = kv.split("=")[0]
-        value = re.findall(r'"([^"]*)"', kv)[0]
         action = monitor_scripts.get(key)
         logger.info(f'ACTION {action}')
         if action is None:  # 没有自动车
-            await client.send_message(bot_id, f'没有自动车 #{text}')
+            await client.send_message(bot_id, f'【{groupname}】没有自动车 {text}')
             return
-        file = action.get("file", "")
         # 没有匹配的动作 或没开启
+        if not action.get("enable"):
+            await client.send_message(bot_id, f'【{groupname}】没启用任务 {key}')
+            return
+        command = action.get("task", "")
+        if command == '':
+            await client.send_message(bot_id, f'【{groupname}】没有配置任务 {key}')
+            return
         name = action.get("name")
-        enable = action.get("enable")
-        logger.info(f'name {name} enable {enable}')
-        if not enable:
-            await client.send_message(bot_id, f'未开启任务 #{name}')
+        if action.get("queue"):
+            await queues[action.get("queue_name")].put({"text": text, "groupname": groupname, "action": action})
+            await client.send_message(bot_id, f'【{groupname}】入队执行 #{name}')
             return
-        queue = action.get("queue")
-        logger.info(f'queue {queue} name {name}')
-        if queue:
-            await queues[action.get("queue_name")].put({"text": text, "action": action})
-            await client.send_message(bot_id, f'入队执行 #{name}')
-            return
-        logger.info(f'设置环境变量export {action}')
-        await export(text)
-        await client.send_message(bot_id, f'开始执行 #{name}')
-        await cmd(f'{command} {monitor_scripts_path}/{file}')
+        await client.send_message(bot_id, f'【{groupname}】开始执行 #{name}')
+        await cmd(command)
     except Exception as e:
         logger.error(e)
         await client.send_message(bot_id, f'{str(e)}')
+
+
+async def converter_handler(text):
+    text = text.replace("`", "")
+    for c_w_key in monitor_converters_whitelist_keywords:
+        result = re.search(c_w_key, text)
+        if result is not None:
+            logger.info(f"无需转换 {text}")
+            return text
+    logger.info(f"转换前数据 {text}")
+    try:
+        tmp_text = text
+        # 转换
+        for c_key in monitor_converters:
+            result = re.search(c_key, text)
+            if result is None:
+                logger.info(f"规则不匹配 {c_key},下一个")
+                continue
+            rule = monitor_converters.get(c_key)
+            target = rule.get("env")
+            argv_len = len(re.findall("%s", target))
+            values = re.findall(r'"([^"]*)"', text)
+            if argv_len == 1:
+                target = target % (values[0])
+            elif argv_len == 2:
+                target = target % (values[0], values[1])
+            elif argv_len == 3:
+                target = target % (values[0], values[1], values[2])
+            else:
+                print("不支持更多参数")
+            text = target
+            break
+        if tmp_text == text:
+            await client.send_message(bot_id, f'无法转换 {text}')
+    except Exception as e:
+        logger.info(str(e))
+    logger.info(f"转换后数据 {text}")
+    return text
 
 
 queues = {}
@@ -238,40 +310,35 @@ async def task(task_name, task_key):
     while True:
         try:
             param = await curr_queue.get()
-            logger.info(f"出队执行开始 {param}")
-            text = param.get("text")
-            kv = text.replace("export ", "")
-            key = kv.split("=")[0]
-            value = re.findall(r'"([^"]*)"', kv)[0]
-            logger.info(f'出队执行变量与值 {key},{value}')
-            action = param.get("action")
-            logger.info(f'ACTION {action}')
-            file = action.get("file", "")
-            logger.info(f'JTASK命令 {file},{parse.quote_plus(value)}')
-            logger.info(f'出队执行-->设置环境变量export {action}')
-            await export(text)
-            await cmd(f'{command} {monitor_scripts_path}/{file}')
+            logger.info(f"出队执行 {param}")
+            exec_action = param.get("action")
+            # 默认立马执行
+            await client.send_message(bot_id, f'【{param.get("groupname")}】出队执行 #{exec_action.get("name")}')
+            await export(param.get("text"))
+            await cmd(exec_action.get("task", ""))
             if curr_queue.qsize() > 1:
-                await client.send_message(bot_id, f'{action["name"]}，队列长度{curr_queue.qsize()}，将等待{action["wait"]}秒...')
-                await asyncio.sleep(action['wait'])
+                exec_action = param.get("action")
+                await client.send_message(bot_id, f'{exec_action["name"]}，队列长度{curr_queue.qsize()}，将等待{exec_action["wait"]}秒...')
+                await asyncio.sleep(exec_action['wait'])
         except Exception as e:
             logger.error(e)
 
 
-async def cmd(text):
+async def cmd(exec_cmd):
     try:
-        logger.info(f"执行命令{text}")
-        name = re.findall(r'[^/:*?"<>|]+$', text)[0]
+        logger.info(f'执行命令 {exec_cmd}')
+        name = re.findall(r'(?:.*/)*([^. ]+)\.(?:js|py|sh)', exec_cmd)[0]
         tmp_log = f'{log_path}/{name}.{datetime.datetime.now().strftime("%H%M%S%f")}.log'
+        logger.info(f'日志文件 {tmp_log}')
         proc = await asyncio.create_subprocess_shell(
-            f"{text} >> {tmp_log} 2>&1",
+            f"{exec_cmd} >> {tmp_log} 2>&1",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
         await proc.communicate()
         if log_send:
-            await client.send_file(bot_id, tmp_log)
-        # os.remove(tmp_log)
+            await client.send_file(log_send_id, tmp_log)
+            os.remove(tmp_log)
     except Exception as e:
         logger.error(e)
         await client.send_message(bot_id, f'something wrong,I\'m sorry\n{str(e)}')
@@ -284,11 +351,12 @@ if __name__ == "__main__":
             action = monitor_scripts[key]
             name = action.get('name')
             queue = action.get("queue")
-            if queue:
-                queues[action.get("queue_name")] = asyncio.Queue()
-                client.loop.create_task(task(name, key))
-            else:
-                logger.info(f"无需队列--> {name} {key}")
+            queue_name = action.get("queue_name")
+            if queues.get(queue_name) is not None:
+                logger.info(f"队列监听--> {name} {queue_name} 已启动，等待任务")
+                continue
+            queues[queue_name] = asyncio.Queue()
+            client.loop.create_task(task(name, queue_name))
         client.run_until_disconnected()
     except Exception as e:
         logger.error(e)
