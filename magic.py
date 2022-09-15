@@ -256,6 +256,7 @@ async def handler(event):
             await queues[action.get("queue_name")].put({"text": text, "groupname": groupname, "action": action})
             await client.send_message(bot_id, f'【{groupname}】入队执行 #{name}')
             return
+        await export(text)
         await client.send_message(bot_id, f'【{groupname}】开始执行 #{name}')
         await cmd(command)
     except Exception as e:
