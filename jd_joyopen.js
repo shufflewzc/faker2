@@ -237,7 +237,6 @@ function getReward(body, flag = 0) {
                 if (err) {
                     console.log(`${$.name} API请求失败，请检查网路重试`)
                 } else {
-                    console.log(data)
                     res = $.toObj(data)
                     if (typeof res == 'object') {
                         if (res.success == true) {
