@@ -8,13 +8,7 @@
 
 //活动列表
 let activityList = [
-  { 'id': 'f3ccd0727e97466ba2036b7af6516a5e', 'endTime': 1662130800000 },
-  { 'id': '15ebfda2669a4e7e886a37c83285f539', 'endTime': 1661961599000 },
-  { 'id': 'ce054fb7e5184d3c9fe9daa224b833bf', 'endTime': 1661961599000 },
-  { 'id': '066684ae9bd5482c9397456db5e2c7be', 'endTime': 1660665600000 },
-  { 'id': 'fd7eccf86a784051b0e68aefcebed8f3', 'endTime': 1661961599000 },
-  { 'id': '7a0c5a3f62754aacb1336a27067e1047', 'endTime': 1660492740000 },
-  { 'id': 'f4888330f8944d29a423376fc8cc2d14', 'endTime': 1661875200000 },
+  { 'id': '56881c929e5f4918aec928b3dbc56620', 'endTime': 1664553606000 },
 ];
 
 const $ = new Env('粉丝互动-加密');
