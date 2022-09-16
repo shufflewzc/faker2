@@ -34,7 +34,7 @@ try:
     from jdCookie import get_cookies
     getCk = get_cookies()
 except:
-    print("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/shufflewzc/faker2/main/jdCookie.py")
+    print("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/jdCookie.py")
     sys.exit(3)
 
 redis_url = os.environ.get("redis_url") if os.environ.get("redis_url") else "172.17.0.1"
@@ -489,6 +489,7 @@ if __name__ == '__main__':
         print(f"【豆池进度】{residualPercentage}%")
         if int(beansResidueByDay) == 0 or residualPercentage == 0:
             print("豆池已空💨💨💨,下次早点来~")
+            sys.exit()
         time.sleep(0.2)
         getPin = getMyPing(num)
         if getPin:
@@ -554,6 +555,8 @@ if __name__ == '__main__':
             if num == 1:
                 inviterPin = secretPin
                 inviterImg = yunMidImageUrl
+                if not inviterImg:
+                    inviterImg = "https://img10.360buyimg.com/imgzone/jfs/t1/21383/2/6633/3879/5c5138d8E0967ccf2/91da57c5e2166005.jpg"
                 inviterNick = nickName
                 activityUrl = f"https://cjhy-isv.isvjcloud.com/microDz/invite/activity/wx/view/index/3499100?activityId={activityId}&inviter={quote_plus(quote_plus(inviterPin))}&inviterImg={quote_plus(inviterImg)}&inviterNickName={quote_plus(inviterNick)}"
 
