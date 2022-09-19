@@ -34,7 +34,7 @@ try:
     from jdCookie import get_cookies
     getCk = get_cookies()
 except:
-    print("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/shufflewzc/faker2/main/jdCookie.py")
+    print("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/jdCookie.py")
     sys.exit(3)
 
 redis_url = os.environ.get("redis_url") if os.environ.get("redis_url") else "172.17.0.1"
@@ -328,7 +328,7 @@ def activityContent(pin, pinImg, nickname):
         yunMidImageUrl = quote_plus(pinImg)
     except:
         yunMidImageUrl = quote_plus("https://img10.360buyimg.com/imgzone/jfs/t1/21383/2/6633/3879/5c5138d8E0967ccf2/91da57c5e2166005.jpg")
-    payload = f"activityId={activityId}&pin={quote_plus(pin)}&pinImg={quote_plus(yunMidImageUrl)}&nick={quote_plus(nickname)}&cjyxPin=&cjhyPin=&shareUuid={shareUuid}"
+    payload = f"activityId={activityId}&pin={quote_plus(pin)}&pinImg={yunMidImageUrl}&nick={quote_plus(nickname)}&cjyxPin=&cjhyPin=&shareUuid={shareUuid}"
     headers = {
         'Host': 'lzdz1-isv.isvjcloud.com',
         'Accept': 'application/json',
