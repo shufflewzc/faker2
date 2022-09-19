@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 """
-cron: 50 * * * *
+cron: 30 * * * *
 new Env('禁用重复任务');
 """
 
@@ -90,7 +90,10 @@ def get_duplicate_list(tasklist: list) -> tuple:
     names = []
     cmds = []
     for task in tasklist:
-        ids.append(task.get("_id"))
+        if flag1:
+            ids.append(task.get("_id"))
+        else:
+            ids.append(task.get("id"))
         names.append(task.get("name"))
         cmds.append(task.get("command"))
 
@@ -130,7 +133,10 @@ def reserve_task_only(
     for task1 in tem_tasks:
         for task2 in res_list:
             if task1.get("name") == task2.get("name"):
-                dup_ids.append(task1.get("_id"))
+                if flag1:
+                    dup_ids.append(task1.get("_id"))
+                else:
+                    dup_ids.append(task1.get("id"))
                 logger.info(f"【✅保留】{task2.get('command')}")
                 task3 = task1
         if task3:
@@ -154,8 +160,14 @@ def disable_duplicate_tasks(ids: list) -> None:
 
 
 def get_token() -> str or None:
+    path = '/ql/config/auth.json'  # 设置青龙 auth文件地址
+    global flag1
+    flag1 = True
+    if not os.path.isfile(path):
+        path = '/ql/data/config/auth.json'  # 尝试设置青龙 auth 新版文件地址
+        flag1 = False
     try:
-        with open("/ql/config/auth.json", "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
     except Exception:
         logger.info(f"❌无法获取 token!!!\n{traceback.format_exc()}")
@@ -196,5 +208,5 @@ if __name__ == "__main__":
         logger.info("😁没有重复任务~")
     else:
         disable_duplicate_tasks(ids)
-    if send:
-        send("💖禁用重复任务成功", f"\n{sum}\n{filter}\n{disable}")
+    #if send:
+        #send("💖禁用重复任务成功", f"\n{sum}\n{filter}\n{disable}")
