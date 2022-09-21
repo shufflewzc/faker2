@@ -198,13 +198,13 @@ async def get_activity_info(text):
     return activity_id, url
 
 
-@client.on(events.NewMessage(chats=monitor_cars, pattern=r'((export\s)?\w*=(".*"|\'.*\')|[/ikun])'))
+@client.on(events.NewMessage(chats=monitor_cars, pattern=r'(([\s\S]*)export\s?\w*=(".*"|\'.*\')([\s\S]*)|[/ikun])'))
 async def handler(event):
     origin = event.message.text
     text = re.findall(r'https://i.walle.com/api\?data=(.+)?\)', origin)
     if len(text) > 0:
         text = parse.unquote_plus(text[0])
-    elif origin.startswith("export "):
+    elif "export" in origin:
         text = origin
     else:
         return
@@ -265,7 +265,7 @@ async def handler(event):
 
 
 async def converter_handler(text):
-    text = text.replace("`", "")
+    text = "\n".join(list(filter(lambda x: "export " in x, text.replace("`", "").split("\n"))))
     for c_w_key in monitor_converters_whitelist_keywords:
         result = re.search(c_w_key, text)
         if result is not None:

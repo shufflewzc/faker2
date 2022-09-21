@@ -8,40 +8,40 @@ Date: 2022/8/1 22:37
 TG: https://t.me/HarbourToulu
 cron: 1 1 1 1 1 1
 new Env('jinggeng邀请入会有礼');
-活动入口: https://jinggeng-isv.isvjcloud.com/ql/front/showInviteJoin?id=9e80809282a4bdc90182ab254c7e0a12&user_id=1000121005&inviterNick=Ny0m1K1tVHIJvt0j4SQ9RbRPXMHHf%2BDrNmMVfT8S5hq3SjYMAACrbEHZQ40J5yPY
-变量设置: export redis_url="redis_ip", export redis_pwd="xxx"(没有可写变量)
+活动入口: https://jinggeng-isv.isvjcloud.com/ql/front/showInviteJoin?id=9e80809282a4bdc90182ab254c7e0a12&user_id=1000121005
+变量设置: export redis_url="xxx", export redis_port="xxx"(没有可省略), export redis_pwd="xxx"(没有可省略)
         export jinggengInviteJoin="9e80809282a4bdc90182ab254c7e0a12&1000121005"(活动id&店铺id)
 """
 
-import time
-import requests
-import sys
-import re
-import os
+import time, requests, sys, re, os, json, random
 from bs4 import BeautifulSoup
 from datetime import datetime
-import json
-import random
 from urllib.parse import quote_plus, unquote_plus
 from functools import partial
 print = partial(print, flush=True)
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-from jd_sign import *
+try:
+    from jd_sign import *
+except ImportError as e:
+    print(e)
+    if "No module" in str(e):
+        print("请先运行HarbourJ库依赖一键安装脚本(jd_check_dependent.py)，安装jd_sign.so依赖")
 try:
     from jdCookie import get_cookies
     getCk = get_cookies()
 except:
-    print("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/shufflewzc/faker2/main/jdCookie.py")
+    print("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/jdCookie.py")
     sys.exit(3)
 redis_url = os.environ.get("redis_url") if os.environ.get("redis_url") else "172.17.0.1"
+redis_port = os.environ.get("redis_port") if os.environ.get("redis_port") else "6379"
 redis_pwd = os.environ.get("redis_pwd") if os.environ.get("redis_pwd") else ""
 jinggengInviteJoin = os.environ.get("jinggengInviteJoin") if os.environ.get("jinggengInviteJoin") else ""
 
 inviterNicks = [
     "Ny0m1K1tVHIJvt0j4SQ9RbRPXMHHf%2BDrNmMVfT8S5hq3SjYMAACrbEHZQ40J5yPY",
-    "pWGUWZJQ3actex0X2vQyLsjNhNaYFy2HteErE6izlhTf9nrGY7gBkCdGU4C6z%2FxD"
+    "pWGUWZJQ3actex0X2vQyLsjNhNaYFy2HteErE6izlhTf9nrGY7gBkCdGU4C6z%2FxD",
+    "3TQTImsIN0s9T85f1wS70V4tLNYA4seuA67MOIYQxEk3Vl9%2BAVo4NF%2BtgyeIc6A6kdK3rLBQpEQH9V4tdrrh0w%3D%3D"
 ]
 if "&" not in jinggengInviteJoin:
     print("⚠️jinggengInviteJoin变量有误！退出程序！")
@@ -50,13 +50,13 @@ ac_id = jinggengInviteJoin.split("&")[0]
 user_id = jinggengInviteJoin.split("&")[1]
 inviterNick = random.choice(inviterNicks)
 activity_url = f"https://jinggeng-isv.isvjcloud.com/ql/front/showInviteJoin?id={ac_id}&user_id={user_id}&inviterNick={inviterNick}"
-print(f"【🛳活动入口】{activity_url}")
+print(f"【🛳活动入口】https://jinggeng-isv.isvjcloud.com/ql/front/showInviteJoin?id={ac_id}&user_id={user_id}")
 
 def redis_conn():
     try:
         import redis
         try:
-            pool = redis.ConnectionPool(host=redis_url, port=6379, decode_responses=True, socket_connect_timeout=5, password=redis_pwd)
+            pool = redis.ConnectionPool(host=redis_url, port=redis_port, decode_responses=True, socket_connect_timeout=5, password=redis_pwd)
             r = redis.Redis(connection_pool=pool)
             r.get('conn_test')
             print('✅redis连接成功')
@@ -72,16 +72,15 @@ def getToken(ck, r=None):
         pt_pin = unquote_plus(re.compile(r'pt_pin=(.*?);').findall(ck)[0])
     except:
         # redis缓存Token 活动域名+ck前7位(获取pin失败)
-        pt_pin = ck[:8]
+        pt_pin = ck[:15]
     try:
         if r is not None:
             Token = r.get(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}')
             # print("Token过期时间", r.ttl(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}'))
             if Token is not None:
-                print(f"♻️获取缓存Token->: {Token}")
+                print(f"♻️获取缓存Token")
                 return Token
             else:
-                print("🈳去设置Token缓存-->")
                 s.headers = {
                     'Connection': 'keep-alive',
                     'Accept-Encoding': 'gzip, deflate, br',
@@ -103,11 +102,10 @@ def getToken(ck, r=None):
                     if "参数异常" in f.text:
                         return
                 Token_new = f.json()['token']
-                print(f"Token->: {Token_new}")
                 if r.set(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}', Token_new, ex=1800):
-                    print("✅Token缓存设置成功")
+                    print("✅Token缓存成功")
                 else:
-                    print("❌Token缓存设置失败")
+                    print("❌Token缓存失败")
                 return Token_new
         else:
             s.headers = {
@@ -131,7 +129,7 @@ def getToken(ck, r=None):
                 if "参数异常" in f.text:
                     return
             Token = f.json()['token']
-            print(f"Token->: {Token}")
+            print(f"✅获取实时Token")
             return Token
     except:
         return
@@ -461,6 +459,7 @@ if __name__ == '__main__':
             for i, needNum0 in enumerate(needInviteNums):
                 needNum = needNum0[0]
                 awardId = needNum0[1]
+                equityType = needNum0[2]
                 if inviteSuccNums >= needNum:
                     print(f"🎉恭喜已完成第{i + 1}档邀请，快去领奖吧！")
                     time.sleep(1)
@@ -521,7 +520,6 @@ if __name__ == '__main__':
             inviteSuccNums += 1
             print(f"🛳已经邀请{inviteSuccNums}人")
             for i, needNum1 in enumerate(needInviteNums):
-                # print(i, needNum1)
                 needNum = needNum1[0]
                 awardId = needNum1[1]
                 equityType = needNum1[2]
