@@ -26,7 +26,7 @@ try:
 except ImportError as e:
     print(e)
     if "No module" in str(e):
-        print("请先运行HarbourJ库依赖一键安装脚本(jd_check_dependent.py)，安装jd_sign.so依赖")
+        print("请先运行Faker库依赖一键安装脚本(jd_check_dependent.py)，安装jd_sign.so依赖")
 try:
     from jdCookie import get_cookies
     getCk = get_cookies()

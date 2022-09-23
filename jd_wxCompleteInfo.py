@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 
 """
-File: jd_wxBirthGifts.py(生日礼包-监控脚本)
+File: jd_wxCompleteInfo.py(完善信息有礼-监控脚本)
 Author: HarbourJ
 Date: 2022/8/8 19:52
 TG: https://t.me/HarbourToulu
 TgChat: https://t.me/HarbourSailing
 cron: 1 1 1 1 1 1
-new Env('生日礼包-JK');
-ActivityEntry: https://cjhy-isv.isvjcloud.com/mc/wxMcLevelAndBirthGifts/activity?activityId=f3325e3375a14866xxxxxxxxxxxx
-               变量 export jd_wxBirthGiftsId="f3325e3375a14866xxxxxxxxxxxx"
+new Env('完善信息有礼-JK');
+ActivityEntry: https://cjhy-isv.isvjcloud.com/wx/completeInfoActivity/view/activity?activityId=f3325e3375a14866xxxxxxxxxxxx&venderId=1000086
+               变量 export jd_wxCompleteInfoId="f3325e3375a14866xxxxxxxxxxxx&1000086192"(活动id&venderId)
 """
 
 import time, requests, sys, re, os, json, random
@@ -35,12 +35,15 @@ except:
 redis_url = os.environ.get("redis_url") if os.environ.get("redis_url") else "172.17.0.1"
 redis_port = os.environ.get("redis_port") if os.environ.get("redis_port") else "6379"
 redis_pwd = os.environ.get("redis_pwd") if os.environ.get("redis_pwd") else ""
-activityId = os.environ.get("jd_wxBirthGiftsId") if os.environ.get("jd_wxBirthGiftsId") else ""
+jd_wxCompleteInfoId = os.environ.get("jd_wxCompleteInfoId") if os.environ.get("jd_wxCompleteInfoId") else ""
 
-if not activityId:
-    print("⚠️未发现有效活动变量,退出程序!")
+if not jd_wxCompleteInfoId or "&" not in jd_wxCompleteInfoId:
+    print("⚠️未发现有效活动变量jd_wxCompleteInfoId,退出程序!")
     sys.exit()
-activityUrl = f"https://cjhy-isv.isvjcloud.com/mc/wxMcLevelAndBirthGifts/activity?activityId={activityId}"
+activityId = jd_wxCompleteInfoId.split('&')[0]
+venderId = jd_wxCompleteInfoId.split('&')[1]
+
+activityUrl = f"https://cjhy-isv.isvjcloud.com/wx/completeInfoActivity/view/activity?activityId={activityId}&venderId={venderId}"
 print(f"【🛳活动入口】{activityUrl}")
 
 def redis_conn():
@@ -258,16 +261,21 @@ def getMyPing(venderId):
         'Cookie': activityCookie
     }
     response = requests.request("POST", url, headers=headers, data=payload)
-    refresh_cookies(response)
-    res = response.json()
-    if res['result']:
-        return res['data']['nickname'], res['data']['secretPin']
+    if response.status_code == 200:
+        refresh_cookies(response)
+        res = response.json()
+        if res['result']:
+            return res['data']['nickname'], res['data']['secretPin']
+        else:
+            print(f"⚠️{res['errorMessage']}")
     else:
-        print(f"⚠️{res['errorMessage']}")
+        print(response.status_code)
+        print("⚠️疑似ip黑了")
+        sys.exit()
 
-def getMemberLevel(venderId, pin):
-    url = "https://cjhy-isv.isvjcloud.com/mc/wxMcLevelAndBirthGifts/getMemberLevel"
-    payload = f"venderId={venderId}&pin={quote_plus(pin)}"
+def _selectById(venderId):
+    url = "https://cjhy-isv.isvjcloud.com/completeInfoActivity/selectById"
+    body = f"activityId={activityId}&venderId={venderId}"
     headers = {
         'Host': 'cjhy-isv.isvjcloud.com',
         'Accept': 'application/json',
@@ -281,17 +289,83 @@ def getMemberLevel(venderId, pin):
         'Referer': activityUrl,
         'Cookie': activityCookie
     }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    refresh_cookies(response)
+    response = requests.request("POST", url, headers=headers, data=body)
+    res = response.json()
+    if res['result']:
+        saveInfo = ""
+        data = res['data']
+        chooseName = data['chooseName']
+        choosePhone = data['choosePhone']
+        chooseBirth = data['chooseBirth']
+        chooseWeixin = data['chooseWeixin']
+        chooseAddress = data['chooseAddress']
+        chooseQQ = data['chooseQQ']
+        chooseEmail = data['chooseEmail']
+        chooseGender = data['chooseGender']
+        chooseProfessional = data['chooseProfessional']
+        customJson = data['customJson']
+        phone = get_mobile()
+        if chooseName == 'y':
+            name = quote_plus(f"{random.choice(['A','B','C','D','E','F','G','H'])}贤笙")
+            saveInfo += f"name={name}&"
+        if choosePhone == 'y':
+            saveInfo += f"phone={phone}&"
+        if chooseBirth == 'y':
+            birthDay = "2000-01-01"
+            saveInfo += f"birthDay={birthDay}&"
+        if chooseWeixin == 'y':
+            weiXin = phone
+            saveInfo += f"weiXin={weiXin}&"
+        if chooseEmail == 'y':
+            email = quote_plus(f"{phone}@163.com")
+            saveInfo += f"email={email}&"
+        if chooseGender == 'y':
+            gender = quote_plus("男")
+            saveInfo += f"gender={gender}&"
+        if chooseProfessional == 'y':
+            professional = "Engineer"
+            saveInfo += f"professional={professional}&"
+        if chooseQQ == 'y':
+            qq = phone
+            saveInfo += f"{qq}&"
+        if chooseAddress == 'y':
+            province = quote_plus("北京市")
+            city = quote_plus("东城区")
+            address = quote_plus("北京大学城北门")
+            saveInfo += f"province={province}&city={city}&address={address}&"
+        if customJson != "[]":
+            customContent = "%5B%2222%22%5D"
+            saveInfo += f"customContent={customContent}&"
+        return saveInfo
+    else:
+        print(res['errorMessage'])
+
+def getOpenCardInfo(venderId, pin, activityType):
+    url = "https://cjhy-isv.isvjcloud.com/mc/new/brandCard/common/shopAndBrand/getOpenCardInfo"
+    body = f"venderId={venderId}&buyerPin={pin}&activityType={activityType}"
+    headers = {
+        'Host': 'cjhy-isv.isvjcloud.com',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://cjhy-isv.isvjcloud.com',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl,
+        'Cookie': activityCookie
+    }
+    response = requests.request("POST", url, headers=headers, data=body)
     res = response.json()
     if res['result']:
         return res['data']
     else:
         print(res['errorMessage'])
 
-def getOpenCardInfo(venderId, pin, activityType):
-    url = "https://cjhy-isv.isvjcloud.com/mc/new/brandCard/common/shopAndBrand/getOpenCardInfo"
-    payload = f"venderId={venderId}&buyerPin={quote_plus(pin)}&activityType={activityType}"
+def getShopInfoVO(venderId):
+    url = "https://cjhy-isv.isvjcloud.com/wxActionCommon/getShopInfoVO"
+    payload = f"userId={venderId}"
     headers = {
         'Host': 'cjhy-isv.isvjcloud.com',
         'Accept': 'application/json',
@@ -330,36 +404,9 @@ def accessLog(venderId, pin, activityType):
     }
     requests.request("POST", url, headers=headers, data=payload)
 
-def activityContent(pin, activityType):
-    url = "https://cjhy-isv.isvjcloud.com/mc/wxMcLevelAndBirthGifts/activityContent"
-    payload = f"activityId={activityId}&pin={quote_plus(pin)}&level={activityType}"
-    headers = {
-        'Host': 'cjhy-isv.isvjcloud.com',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Origin': 'https://cjhy-isv.isvjcloud.com',
-        'User-Agent': ua,
-        'Connection': 'keep-alive',
-        'Referer': activityUrl,
-        'Cookie': f'IsvToken={token};{activityCookie}'
-    }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    refresh_cookies(response)
-    res = response.json()
-    if res['result']:
-        endTime = res['data']['endTime']
-        if getJdTime() > endTime:
-            print("⛈活动已结束,下次早点来~")
-            sys.exit()
-        return res['data']
-    else:
-        print(f"⛈{res['errorMessage']}")
-
-def getInfo():
-    url = f"https://cjhy-isv.isvjcloud.com/miniProgramShareInfo/getInfo?activityId={activityId}"
+def listDrawContent(activityType):
+    url = "https://cjhy-isv.isvjcloud.com/drawContent/listDrawContent"
+    body = f"activityId={activityId}&type={activityType}"
     headers = {
         'Host': 'cjhy-isv.isvjcloud.com',
         'Accept': 'application/json',
@@ -373,12 +420,18 @@ def getInfo():
         'Referer': activityUrl,
         'Cookie': activityCookie
     }
-    response = requests.request("GET", url, headers=headers)
-    refresh_cookies(response)
+    response = requests.request("POST", url, headers=headers, data=body)
+    res = response.json()
+    if res['result']:
+        return res['data']
+    else:
+        # print(res['errorMessage'])
+        if "暂未填写" in res['errorMessage']:
+            print("📝现在去完善信息")
 
-def getBirthInfo(venderId, pin):
-    url = "https://cjhy-isv.isvjcloud.com/mc/wxMcLevelAndBirthGifts/getBirthInfo"
-    payload = f"venderId={venderId}&pin={quote_plus(pin)}"
+def selectById(pin, venderId):
+    url = "https://cjhy-isv.isvjcloud.com/wx/completeInfoActivity/selectById"
+    body = f"activityId={activityId}&pin={quote_plus(pin)}&venderId={venderId}"
     headers = {
         'Host': 'cjhy-isv.isvjcloud.com',
         'Accept': 'application/json',
@@ -390,53 +443,61 @@ def getBirthInfo(venderId, pin):
         'User-Agent': ua,
         'Connection': 'keep-alive',
         'Referer': activityUrl,
-        'Cookie': f'IsvToken={token};{activityCookie}'
+        'Cookie': activityCookie
     }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    refresh_cookies(response)
-
-def saveBirthDay(venderId, pin):
-    url = "https://cjhy-isv.isvjcloud.com/mc/wxMcLevelAndBirthGifts/saveBirthDay"
-    payload = f"venderId={venderId}&pin={quote_plus(pin)}&birthDay={str(datetime.now())[:10]}"
-    headers = {
-        'Host': 'cjhy-isv.isvjcloud.com',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Origin': 'https://cjhy-isv.isvjcloud.com',
-        'User-Agent': ua,
-        'Connection': 'keep-alive',
-        'Referer': activityUrl,
-        'Cookie': f'IsvToken={token};{activityCookie}'
-    }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    refresh_cookies(response)
-
-def sendBirthGifts(venderId, pin, level):
-    url = "https://cjhy-isv.isvjcloud.com/mc/wxMcLevelAndBirthGifts/sendBirthGifts"
-    payload = f"venderId={venderId}&pin={quote_plus(pin)}&activityId={activityId}&level={level}"
-    headers = {
-        'Host': 'cjhy-isv.isvjcloud.com',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Origin': 'https://cjhy-isv.isvjcloud.com',
-        'User-Agent': ua,
-        'Connection': 'keep-alive',
-        'Referer': activityUrl,
-        'Cookie': f'IsvToken={token};{activityCookie}'
-    }
-    response = requests.request("POST", url, headers=headers, data=payload)
+    response = requests.request("POST", url, headers=headers, data=body)
     refresh_cookies(response)
     res = response.json()
     if res['result']:
         return res['data']
     else:
-        print(f"⛈{res['errorMessage']}")
+        # print(res['errorMessage'])
+        if "暂未填写" in res['errorMessage']:
+            print("📝现在去完善会员信息")
+
+def getInfo():
+    url = f"https://cjhy-isv.isvjcloud.com/miniProgramShareInfo/getInfo?activityId={activityId}"
+    headers = {
+        'Host': 'cjhy-isv.isvjcloud.com',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Accept': 'application/json',
+        'User-Agent': ua,
+        'Referer': activityUrl,
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Cookie': activityCookie,
+    }
+    requests.request("GET", url, headers=headers)
+
+def get_mobile():
+    mobiles = ['130', '131', '132', '133', '134']
+    number = str(int(time.time()))[2:]
+    mobile = random.choice(mobiles)+number
+    return mobile
+
+def save(saveInfo, venderId, pin, drawInfoId):
+    url = "https://cjhy-isv.isvjcloud.com/wx/completeInfoActivity/save"
+    body = f"{saveInfo}drawInfoId={drawInfoId}&activityId={activityId}&venderId={venderId}&pin={quote_plus(pin)}&vcode=&token={token}&fromType=APP"
+    headers = {
+        'Host': 'cjhy-isv.isvjcloud.com',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://cjhy-isv.isvjcloud.com',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl,
+        'Cookie': activityCookie
+    }
+    response = requests.request("POST", url, headers=headers, data=body)
+    res = response.json()
+    if res['result']:
+        return res['data']
+    else:
+        print(res['errorMessage'])
 
 
 if __name__ == '__main__':
@@ -468,56 +529,51 @@ if __name__ == '__main__':
             print(f"⚠️获取Token失败！⏰等待2s")
             time.sleep(2)
             continue
-        time.sleep(0.3)
-        activityCookie = getActivity()
-        time.sleep(0.5)
-        getOpenStatus()
         time.sleep(0.2)
+        activityCookie = getActivity()
+        time.sleep(0.3)
+        getOpenStatus()
+        time.sleep(0.1)
         getSimAct = getSimpleActInfoVo()
         venderId = getSimAct['venderId']
         activityType = getSimAct['activityType']
-        time.sleep(0.5)
+        time.sleep(0.2)
         getPin = getMyPing(venderId)
         if getPin:
             nickname = getPin[0]
             secretPin = getPin[1]
-            time.sleep(0.3)
-            getOC = getOpenCardInfo(venderId, secretPin, activityType)
             time.sleep(0.2)
+            getOC = getOpenCardInfo(venderId, secretPin, activityType)
+            time.sleep(0.1)
             if getOC['openedCard']:
-                memberLev = getMemberLevel(venderId, secretPin)
-                if memberLev:
-                    level = memberLev['level']
-                    shopTitle = memberLev['shopTitle']
-                    print(f"✅开启{shopTitle} 生日礼包")
+                getShopInfo = getShopInfoVO(venderId)
+                shopName = getShopInfo['shopName']
+                print(f"✅开启{shopName} 店铺完善会员信息有礼")
+                accessLog(venderId, secretPin, activityType)
+                time.sleep(0.2)
+                saveInfo = _selectById(venderId)
+                time.sleep(0.2)
+                selectBI = selectById(secretPin, venderId)
+                if selectBI:
+                    print(f"💨{nickname} 已经完善过店铺信息")
+                    continue
+                else:
                     time.sleep(0.2)
-                    accessLog(venderId, secretPin, activityType)
+                    listDraw = listDrawContent(activityType)
+                    drawInfoId = listDraw[0]['drawInfoId']
                     time.sleep(0.2)
-                    actContent = activityContent(secretPin, activityType)
-                    if actContent:
-                        if actContent['isReceived'] == 1:
-                            print(f"💨{nickname} 今年已经领过了,明年再来吧~")
-                            continue
+                    getInfo()
+                    time.sleep(0.1)
+                    sv = save(saveInfo, venderId, secretPin, drawInfoId)
+                    if sv:
+                        drawInfo = sv['drawInfo']['name']
+                        if drawInfo:
+                            print(f"🎉🎉🎉{nickname} 成功领取 {drawInfo}")
                         else:
-                            time.sleep(0.2)
-                            getInfo()
-                            time.sleep(0.2)
-                            try:
-                                getBirthInfo(venderId, secretPin)
-                                time.sleep(0.2)
-                                saveBirthDay(venderId, secretPin)
-                                time.sleep(0.2)
-                                sendGift = sendBirthGifts(venderId, secretPin, level)
-                                birthdayResult = sendGift['birthdayResult']
-                                if birthdayResult:
-                                    birthdayData = sendGift['birthdayData']
-                                    gifts = [(f"{x['beanNum']}{x['name']}") for x in birthdayData]
-                                    print(f"🎉🎉🎉{nickname} 成功领取 {','.join(gifts)}")
-                                else:
-                                    print(f"💨{nickname} 生日礼包领取失败,请重试~")
-                            except:
-                                print(f"💨{nickname} 生日礼包领取失败,请重试~")
+                            print(f"⛈⛈⛈{nickname} 领取完善有礼奖励失败,请重试~")
+                    else:
+                        print(f"💨{nickname} 已经领过完善有礼奖励~")
             else:
-                print(f"⛈{nickname} 非店铺会员无法领取生日礼包！")
+                print(f"⛈{nickname} 非店铺会员无法完善信息！")
                 continue
         time.sleep(2.5)

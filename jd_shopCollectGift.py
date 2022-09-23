@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 """
-File: jd_shopCollectGift.py(一键领取京豆-店铺会员礼包)
+File: jd_shopCollectGift.py(店铺会员礼包-监控脚本)
 Author: HarbourJ
 Date: 2022/9/2 12:00
 TG: https://t.me/HarbourToulu
 TgChat: https://t.me/HarbourSailing
 cron: 1 1 1 1 1 1
-new Env('一键领取京豆-店铺会员礼包');
+new Env('店铺会员礼包-JK');
 ActivityEntry: https://shop.m.jd.com/shop/home?shopId=1000003443
 Description: 部分账号开卡后无法自动领取开卡奖励,不自动开卡,仅领取已开卡的会员礼包
              变量export jd_shopCollectGiftId="1000003443" 变量为店铺venderId
@@ -21,13 +21,17 @@ print = partial(print, flush=True)
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 from urllib.parse import quote_plus, unquote_plus
-
-from jd_sign import *
+try:
+    from jd_sign import *
+except ImportError as e:
+    print(e)
+    if "No module" in str(e):
+        print("请先运行Faker库依赖一键安装脚本(jd_check_dependent.py)，安装jd_sign.so依赖")
 try:
     from jdCookie import get_cookies
     getCk = get_cookies()
 except:
-    print("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/shufflewzc/faker2/main/jdCookie.py")
+    print("请先下载依赖脚本，\n下载链接: https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/jdCookie.py")
     sys.exit(3)
 
 venderId = os.environ.get("jd_shopCollectGiftId") if os.environ.get("jd_shopCollectGiftId") else ""

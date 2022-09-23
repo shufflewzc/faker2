@@ -2,15 +2,16 @@
 # -*- coding: utf-8 -*-
 
 """
-File: jd_wxShopGift.py(店铺特效关注有礼-监控脚本)
+File: jd_wxBulidActivity.py(加购有礼-监控脚本)
 Author: HarbourJ
-Date: 2022/8/8 19:52
+Date: 2022/9/18 19:52
 TG: https://t.me/HarbourToulu
 TgChat: https://t.me/HarbourSailing
 cron: 1 1 1 1 1 1
-new Env('店铺特效关注有礼-JK');
-ActivityEntry: https://lzkj-isv.isvjcloud.com/wxShopGift/activity?activityId=971e85d5dfd445e1acfc63bafffb8ecc
-               变量 export jd_wxShopGiftId="971e85d5dfd445e1axxxxxxxxxxxx"
+new Env('加购有礼-JK')
+ActivityEntry: https://lzkj-isv.isvjd.com/wxCollectionActivity/activity2/df1bcc4c1e894444ae7579e124149999?activityId=df1bcc4c1e894444ae7579e124149999
+Description: 本地sign算法+redis缓存Token
+             变量: export jd_wxCollectionActivityUrl="https://lzkj-isv.isvjd.com/wxCollectionActivity/activity2/xxx?activityId=xxx" 变量值需要传入完整活动地址
 """
 
 import time, requests, sys, re, os, json, random
@@ -35,12 +36,21 @@ except:
 redis_url = os.environ.get("redis_url") if os.environ.get("redis_url") else "172.17.0.1"
 redis_port = os.environ.get("redis_port") if os.environ.get("redis_port") else "6379"
 redis_pwd = os.environ.get("redis_pwd") if os.environ.get("redis_pwd") else ""
-activityId = os.environ.get("jd_wxShopGiftId") if os.environ.get("jd_wxShopGiftId") else ""
+activity_url = os.environ.get("jd_wxCollectionActivityUrl") if os.environ.get("jd_wxCollectionActivityUrl") else ""
+runNums = os.environ.get("jd_wxCollectionActivityRunNums") if os.environ.get("jd_wxCollectionActivityRunNums") else 10
 
-if not activityId:
-    print("⚠️未发现有效活动变量,退出程序!")
+if not activity_url or "wxCollectionActivity/activity" not in activity_url:
+    print("⚠️未发现有效加购有礼活动变量,退出程序!")
     sys.exit()
-activityUrl = f"https://lzkj-isv.isvjcloud.com/wxShopGift/activity?activityId={activityId}"
+activityUrl = activity_url.replace('isvjd', 'isvjcloud').split('&')[0]
+activityId = activityUrl.split('activityId=')[1]
+print(f"【🛳活动入口】{activityUrl}\n")
+runNums = int(runNums)
+if runNums == 10:
+    print('🤖本次加购默认跑前10个账号,设置自定义变量:export jd_wxCollectionActivityRunNums="需要运行加购的ck数量"')
+else:
+    print(f'🤖本次运行前{runNums}个账号')
+
 
 def redis_conn():
     try:
@@ -152,7 +162,7 @@ def refresh_cookies(res):
         activityCookie = ''.join(sorted([(set_cookie + ";") for set_cookie in list(set(activityCookieMid + set_cookie))]))
 
 def getActivity():
-    url = f"https://lzkj-isv.isvjcloud.com/wxShopGift/activity?activityId={activityId}"
+    url = activityUrl
     headers = {
         'Host': 'lzkj-isv.isvjcloud.com',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -167,15 +177,22 @@ def getActivity():
             cookies = response.cookies.get_dict()
             set_cookies = [(set_cookie + "=" + cookies[set_cookie]) for set_cookie in cookies]
             set_cookie = ''.join(sorted([(set_cookie + ";") for set_cookie in set_cookies]))
-        return set_cookie
+        res = response.text
+        if "活动已结束" in res:
+            print("⛈活动已结束,下次早点来~")
+            sys.exit()
+        if "关注" in res and "加购" not in res:
+            activityType = 5
+        else:
+            activityType = 6
+        return set_cookie, activityType
     else:
-        print(response.status_code)
-        print("⚠️疑似ip黑了")
+        print(response.status_code, "⚠️疑似ip黑了")
         sys.exit()
 
-def getSystemConfigForNew():
+def getSystemConfigForNew(activityType):
     url = "https://lzkj-isv.isvjcloud.com/wxCommonInfo/getSystemConfigForNew"
-    payload = f'activityId={activityId}&activityType=99'
+    payload = f'activityId={activityId}&activityType={activityType}'
     headers = {
         'Host': 'lzkj-isv.isvjcloud.com',
         'Accept': 'application/json',
@@ -216,7 +233,7 @@ def getSimpleActInfoVo():
 
 def getMyPing(venderId):
     url = "https://lzkj-isv.isvjcloud.com/customer/getMyPing"
-    payload = f"userId={venderId}&token={token}&fromType=APP_shopGift"
+    payload = f"userId={venderId}&token={token}&fromType=APP"
     headers = {
         'Host': 'lzkj-isv.isvjcloud.com',
         'Accept': 'application/json',
@@ -238,9 +255,9 @@ def getMyPing(venderId):
     else:
         print(f"⚠️{res['errorMessage']}")
 
-def accessLogWithAD(venderId, pin):
+def accessLogWithAD(venderId, pin, activityType):
     url = "https://lzkj-isv.isvjcloud.com/common/accessLogWithAD"
-    payload = f"venderId={venderId}&code=24&pin={quote_plus(pin)}&activityId={activityId}&pageUrl={quote_plus(activityUrl)}&subType=app&adSource="
+    payload = f"venderId={venderId}&code={activityType}&pin={quote_plus(pin)}&activityId={activityId}&pageUrl={quote_plus(activityUrl)}&subType=app&adSource="
     headers = {
         'Host': 'lzkj-isv.isvjcloud.com',
         'Accept': 'application/json',
@@ -258,71 +275,8 @@ def accessLogWithAD(venderId, pin):
     refresh_cookies(response)
 
 def activityContent(pin):
-    url = "https://lzkj-isv.isvjcloud.com/wxShopGift/activityContent"
-    payload = f"activityId={activityId}&buyerPin={quote_plus(pin)}"
-    headers = {
-        'Host': 'lzkj-isv.isvjcloud.com',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Origin': 'https://lzkj-isv.isvjcloud.com',
-        'User-Agent': ua,
-        'Connection': 'keep-alive',
-        'Referer': activityUrl,
-        'Cookie': f'IsvToken={token};{activityCookie}'
-    }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    refresh_cookies(response)
-    res = response.json()
-    act_label = True
-    reward = ''
-    if res['result']:
-        endTime = res['data']['endTime']
-        list = res['data']['list']
-        if getJdTime() > endTime:
-            print("⛈活动已结束,下次早点来~")
-            sys.exit()
-        if len(list) == 0:
-            print("礼品已领完")
-            act_label = False
-            return act_label
-        for r in list:
-            reward += str(r['takeNum']) + r['type'] + ''
-        if len(reward) > 0:
-            reward = reward.replace('jd', '京豆').replace('jf', '积分').replace('dq', '东券')
-    else:
-        print(f"⛈{res['errorMessage']}")
-        sys.exit()
-    return reward, act_label
-
-def draw(pin, nickname, reward):
-    url = "https://lzkj-isv.isvjcloud.com/wxShopGift/draw"
-    payload = f"activityId={activityId}&buyerPin={quote_plus(pin)}&hasFollow=false&accessType=app"
-    headers = {
-        'Host': 'lzkj-isv.isvjcloud.com',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Origin': 'https://lzkj-isv.isvjcloud.com',
-        'User-Agent': ua,
-        'Connection': 'keep-alive',
-        'Referer': activityUrl,
-        'Cookie': f'IsvToken={token};{activityCookie}'
-    }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    res = response.json()
-    if res['result']:
-        print(f"🎉🎉🎉{nickname} 成功领取 {reward}")
-    else:
-        print(f"⛈⛈⛈{nickname} {res['errorMessage']}")
-
-def attendLog(venderId, pin):
-    url = "https://lzkj-isv.isvjcloud.com/common/attendLog"
-    payload = f"venderId={venderId}&activityType=24&activityId={activityId}&pin={quote_plus(pin)}&clientType=app"
+    url = "https://lzkj-isv.isvjcloud.com/wxCollectionActivity/activityContent"
+    payload = f"activityId={activityId}&pin={quote_plus(pin)}"
     headers = {
         'Host': 'lzkj-isv.isvjcloud.com',
         'Accept': 'application/json',
@@ -336,7 +290,227 @@ def attendLog(venderId, pin):
         'Referer': activityUrl,
         'Cookie': activityCookie
     }
-    requests.request("POST", url, headers=headers, data=payload)
+    response = requests.request("POST", url, headers=headers, data=payload)
+    # refresh_cookies(response)
+    res = response.json()
+    if res['result']:
+        needCollectionSize = res['data']['needCollectionSize']
+        hasCollectionSize = res['data']['hasCollectionSize']
+        needFollow = res['data']['needFollow']
+        hasFollow = res['data']['hasFollow']
+        cpvos = res['data']['cpvos']
+        drawInfo = res['data']['drawInfo']
+        drawOk = drawInfo['drawOk']
+        priceName = drawInfo['name']
+        oneKeyAddCart = res['data']['oneKeyAddCart']
+        return needCollectionSize, hasCollectionSize, needFollow, hasFollow, cpvos, drawOk, priceName, oneKeyAddCart
+    else:
+        print(f"⛈{res['errorMessage']}")
+        sys.exit()
+
+def shopInfo():
+    url = "https://lzkj-isv.isvjcloud.com/wxCollectionActivity/shopInfo"
+    payload = f"activityId={activityId}"
+    headers = {
+        'Host': 'lzkj-isv.isvjcloud.com',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://lzkj-isv.isvjcloud.com',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl,
+        'Cookie': activityCookie
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    refresh_cookies(response)
+    res = response.json()
+    if res['result']:
+        shopName = res['data']['shopName']
+        return shopName
+    else:
+        print(f"⛈{res['errorMessage']}")
+
+def getActMemberInfo(venderId, pin):
+    url = "https://lzkj-isv.isvjcloud.com/wxCommonInfo/getActMemberInfo"
+    payload = f"venderId={venderId}&activityId={activityId}&pin={quote_plus(pin)}"
+    headers = {
+        'Host': 'lzkj-isv.isvjcloud.com',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://lzkj-isv.isvjcloud.com',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl,
+        'Cookie': activityCookie
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    # refresh_cookies(response)
+    res = response.json()
+    print(res)
+    if res['result']:
+        openCard = res['data']['openCard']
+        return openCard
+    else:
+        print(f"⛈{res['errorMessage']}")
+
+def followShop(venderId, pin, activityType):
+    url = "https://lzkj-isv.isvjcloud.com/wxActionCommon/followShop"
+    payload = f"userId={venderId}&activityId={activityId}&buyerNick={quote_plus(pin)}&activityType={activityType}"
+    headers = {
+        'Host': 'lzkj-isv.isvjcloud.com',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://lzkj-isv.isvjcloud.com',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl,
+        'Cookie': activityCookie
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    refresh_cookies(response)
+    res = response.json()
+    if res['result']:
+        hasFollowShop = res['data']
+        return hasFollowShop
+    else:
+        print(f"⛈{res['errorMessage']}")
+
+def getInfo():
+    url = f"https://lzkj-isv.isvjcloud.com/miniProgramShareInfo/getInfo?activityId={activityId}"
+    headers = {
+        'Host': 'lzkj-isv.isvjcloud.com',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl,
+        'Cookie': activityCookie
+    }
+    response = requests.request("GET", url, headers=headers)
+    refresh_cookies(response)
+
+def addCard(productId, pin):
+    """加购"""
+    url = "https://lzkj-isv.isvjcloud.com/wxCollectionActivity/addCart"
+    payload = f"productId={productId}&activityId={activityId}&pin={quote_plus(pin)}"
+    headers = {
+        'Host': 'lzkj-isv.isvjcloud.com',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://lzkj-isv.isvjcloud.com',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl,
+        'Cookie': activityCookie
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    refresh_cookies(response)
+    res = response.json()
+    if res['result']:
+        hasAddCartSize = res['data']['hasAddCartSize']
+        return hasAddCartSize
+    else:
+        print(f"⛈{res['errorMessage']}")
+
+def collection(productId, pin):
+    """关注"""
+    url = "https://lzkj-isv.isvjcloud.com/wxCollectionActivity/collection"
+    payload = f"productId={productId}&activityId={activityId}&pin={quote_plus(pin)}"
+    headers = {
+        'Host': 'lzkj-isv.isvjcloud.com',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://lzkj-isv.isvjcloud.com',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl,
+        'Cookie': activityCookie
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    refresh_cookies(response)
+    res = response.json()
+    if res['result']:
+        hasCollectionSize = res['data']['hasCollectionSize']
+        return hasCollectionSize
+    else:
+        print(f"⛈{res['errorMessage']}")
+
+def oneKeyAdd(productIds, pin):
+    """一键加购"""
+    url = "https://lzkj-isv.isvjcloud.com/wxCollectionActivity/oneKeyAddCart"
+    payload = f"productIds={productIds}&activityId={activityId}&pin={quote_plus(pin)}"
+    headers = {
+        'Host': 'lzkj-isv.isvjcloud.com',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://lzkj-isv.isvjcloud.com',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl,
+        'Cookie': activityCookie
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    refresh_cookies(response)
+    res = response.json()
+    if res['result']:
+        hasAddCartSize = res['data']['hasAddCartSize']
+        return hasAddCartSize
+    else:
+        print(f"⛈{res['errorMessage']}")
+
+def getPrize(pin):
+    url = "https://lzkj-isv.isvjcloud.com/wxCollectionActivity/getPrize"
+    payload = f"activityId={activityId}&pin={quote_plus(pin)}"
+    headers = {
+        'Host': 'lzkj-isv.isvjcloud.com',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://lzkj-isv.isvjcloud.com',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl,
+        'Cookie': f'IsvToken={token};{activityCookie}'
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    res = response.json()
+    if res['result']:
+        data = res['data']
+        if data['drawOk']:
+            priceName = data['name']
+            return priceName
+        else:
+            errorMessage = data['errorMessage']
+            print(f"⛈{errorMessage}")
+            if "不足" in errorMessage:
+                sys.exit()
+            return
+    else:
+        print(f"⛈{res['errorMessage']}")
+        if '奖品已发完' in res['errorMessage']:
+            sys.exit()
 
 
 if __name__ == '__main__':
@@ -349,11 +523,11 @@ if __name__ == '__main__':
         print("未获取到有效COOKIE,退出程序！")
         sys.exit()
     num = 0
-    for cookie in cks[:]:
+    for cookie in cks[:runNums]:
         num += 1
-        if num % 9 == 0:
-            print("⏰等待8s,休息一下")
-            time.sleep(8)
+        if num % 5 == 0:
+            print("⏰等待3s,休息一下")
+            time.sleep(3)
         global ua, activityCookie, token
         ua = userAgent()
         try:
@@ -368,11 +542,13 @@ if __name__ == '__main__':
             print(f"⚠️获取Token失败！⏰等待2s")
             time.sleep(2)
             continue
-        time.sleep(0.5)
-        activityCookie = getActivity()
-        time.sleep(0.5)
-        getSystemConfigForNew()
+        time.sleep(0.2)
+        getAct = getActivity()
+        activityCookie = getAct[0]
+        activityType = getAct[1]
         time.sleep(0.3)
+        getSystemConfigForNew(activityType)
+        time.sleep(0.2)
         getSimAct = getSimpleActInfoVo()
         venderId = getSimAct['venderId']
         time.sleep(0.2)
@@ -381,15 +557,58 @@ if __name__ == '__main__':
             nickname = getPin[0]
             secretPin = getPin[1]
             time.sleep(0.3)
-            accessLogWithAD(venderId, secretPin)
-            time.sleep(0.5)
-            actCon = activityContent(secretPin)
-            if not actCon:
+            accessLogWithAD(venderId, secretPin, activityType)
+            time.sleep(0.2)
+            actCont = activityContent(secretPin)
+            # needCollectionSize, hasCollectionSize, needFollow, hasFollow, cpvos, drawOk, priceName, oneKeyAddCart
+            if not actCont:
                 continue
-            if not actCon[1]:
+            needCollectionSize = actCont[0]
+            hasCollectionSize = actCont[1]
+            needFollow = actCont[2]
+            hasFollow = actCont[3]
+            cpvos = actCont[4]
+            drawOk = actCont[5]
+            priceName = actCont[6]
+            oneKeyAddCart = actCont[7]
+            if needCollectionSize <= hasCollectionSize:
+                print("☃️已完成过加购任务,无法重复进行！")
                 continue
-            reward = actCon[0]
-            time.sleep(0.8)
-            draw(secretPin, nickname, reward)
+            else:
+                skuIds = [covo['skuId'] for covo in cpvos if not covo['collection']]
+            time.sleep(0.2)
+            shopName = shopInfo()
+            if num == 1:
+                print(f"✅开启{shopName}-加购活动,需关注加购{needCollectionSize}个商品")
+                print(f"🎁奖品{priceName}\n")
+            time.sleep(0.2)
+            getInfo()
+            if needFollow:
+                if not hasFollow:
+                    followShop(venderId, secretPin, activityType)
+            time.sleep(0.2)
+            addSkuNums = needCollectionSize - hasCollectionSize
+            if oneKeyAddCart == 1:
+                hasAddCartSize = oneKeyAdd(skuIds, secretPin)
+                if hasAddCartSize:
+                    if hasAddCartSize == addSkuNums:
+                        print(f"🛳成功一键加购{hasAddCartSize}个商品")
+            else:
+                for productId in skuIds:
+                    if activityType == 6:
+                        hasAddCartSize = addCard(productId, secretPin)
+                    elif activityType == 5:
+                        hasAddCartSize = collection(productId, secretPin)
+                    time.sleep(0.2)
+                    if hasAddCartSize:
+                        if hasAddCartSize == addSkuNums:
+                            print(f"🛳成功加购{hasAddCartSize}个商品")
+                            break
+            time.sleep(0.1)
+            priceName = getPrize(secretPin)
+            if priceName:
+                print(f"🎉获得{priceName}")
+            else:
+                print(f"😭获得💨💨💨")
 
-        time.sleep(5)
+        time.sleep(3)
