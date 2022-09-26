@@ -26,7 +26,7 @@ try:
 except ImportError as e:
     print(e)
     if "No module" in str(e):
-        print("请先运行Faker库依赖一键安装脚本(jd_check_dependent.py)，安装jd_sign.so依赖")
+        print("请先运行HarbourJ库依赖一键安装脚本(jd_check_dependent.py)，安装jd_sign.so依赖")
 try:
     from jdCookie import get_cookies
     getCk = get_cookies()
@@ -383,6 +383,8 @@ def followShop(venderId, pin, activityType):
         return hasFollowShop
     else:
         print(f"⛈{res['errorMessage']}")
+        if "店铺会员" in res['errorMessage']:
+            return 99
 
 def getInfo():
     url = f"https://lzkj-isv.isvjcloud.com/miniProgramShareInfo/getInfo?activityId={activityId}"
@@ -585,7 +587,9 @@ if __name__ == '__main__':
             getInfo()
             if needFollow:
                 if not hasFollow:
-                    followShop(venderId, secretPin, activityType)
+                    FS = followShop(venderId, secretPin, activityType)
+                    if FS == 99:
+                        continue
             time.sleep(0.2)
             addSkuNums = needCollectionSize - hasCollectionSize
             if oneKeyAddCart == 1:
