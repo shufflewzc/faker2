@@ -16,6 +16,7 @@ Description: 本地sign算法+redis缓存Token
 
 import time, requests, sys, re, os, json, random
 from datetime import datetime
+from sendNotify import *
 from urllib.parse import quote_plus, unquote_plus
 from functools import partial
 print = partial(print, flush=True)
@@ -188,6 +189,7 @@ def getActivity():
         return set_cookie, activityType
     else:
         print(response.status_code, "⚠️疑似ip黑了")
+        msg += f'{response.status_code} ⚠️疑似ip黑了\n'
         sys.exit()
 
 def getSystemConfigForNew(activityType):
@@ -248,12 +250,17 @@ def getMyPing(venderId):
         'Cookie': activityCookie
     }
     response = requests.request("POST", url, headers=headers, data=payload)
-    refresh_cookies(response)
-    res = response.json()
-    if res['result']:
-        return res['data']['nickname'], res['data']['secretPin']
+    if response.status_code == 200:
+        refresh_cookies(response)
+        res = response.json()
+        if res['result']:
+            return res['data']['nickname'], res['data']['secretPin']
+        else:
+            print(f"⚠️{res['errorMessage']}")
     else:
-        print(f"⚠️{res['errorMessage']}")
+        print(response.status_code, "⚠️疑似ip黑了")
+        msg += f'{response.status_code} ⚠️疑似ip黑了\n'
+        sys.exit()
 
 def accessLogWithAD(venderId, pin, activityType):
     url = "https://lzkj-isv.isvjcloud.com/common/accessLogWithAD"
@@ -507,15 +514,19 @@ def getPrize(pin):
             errorMessage = data['errorMessage']
             print(f"⛈{errorMessage}")
             if "不足" in errorMessage:
+                msg += f"⛈{errorMessage}\n"
                 sys.exit()
             return
     else:
         print(f"⛈{res['errorMessage']}")
         if '奖品已发完' in res['errorMessage']:
+            msg += f"⛈{errorMessage}\n"
             sys.exit()
 
 
 if __name__ == '__main__':
+    global msg
+    msg = ''
     r = redis_conn()
     try:
         cks = getCk
@@ -544,25 +555,24 @@ if __name__ == '__main__':
             print(f"⚠️获取Token失败！⏰等待2s")
             time.sleep(2)
             continue
-        time.sleep(0.2)
+        time.sleep(0.3)
         getAct = getActivity()
         activityCookie = getAct[0]
         activityType = getAct[1]
-        time.sleep(0.3)
+        time.sleep(0.35)
         getSystemConfigForNew(activityType)
-        time.sleep(0.2)
+        time.sleep(0.35)
         getSimAct = getSimpleActInfoVo()
         venderId = getSimAct['venderId']
-        time.sleep(0.2)
+        time.sleep(0.35)
         getPin = getMyPing(venderId)
         if getPin is not None:
             nickname = getPin[0]
             secretPin = getPin[1]
-            time.sleep(0.3)
+            time.sleep(0.35)
             accessLogWithAD(venderId, secretPin, activityType)
-            time.sleep(0.2)
+            time.sleep(0.35)
             actCont = activityContent(secretPin)
-            # needCollectionSize, hasCollectionSize, needFollow, hasFollow, cpvos, drawOk, priceName, oneKeyAddCart
             if not actCont:
                 continue
             needCollectionSize = actCont[0]
@@ -578,11 +588,12 @@ if __name__ == '__main__':
                 continue
             else:
                 skuIds = [covo['skuId'] for covo in cpvos if not covo['collection']]
-            time.sleep(0.2)
+            time.sleep(0.35)
             shopName = shopInfo()
             if num == 1:
                 print(f"✅开启{shopName}-加购活动,需关注加购{needCollectionSize}个商品")
                 print(f"🎁奖品{priceName}\n")
+                msg += f'✅开启{shopName}-加购活动\n📝活动地址{activityUrl}\n🎁奖品{priceName}\n\n'
             time.sleep(0.2)
             getInfo()
             if needFollow:
@@ -590,7 +601,7 @@ if __name__ == '__main__':
                     FS = followShop(venderId, secretPin, activityType)
                     if FS == 99:
                         continue
-            time.sleep(0.2)
+            time.sleep(0.35)
             addSkuNums = needCollectionSize - hasCollectionSize
             if oneKeyAddCart == 1:
                 hasAddCartSize = oneKeyAdd(skuIds, secretPin)
@@ -603,16 +614,26 @@ if __name__ == '__main__':
                         hasAddCartSize = addCard(productId, secretPin)
                     elif activityType == 5:
                         hasAddCartSize = collection(productId, secretPin)
-                    time.sleep(0.2)
+                    time.sleep(0.25)
                     if hasAddCartSize:
                         if hasAddCartSize == addSkuNums:
                             print(f"🛳成功加购{hasAddCartSize}个商品")
                             break
-            time.sleep(0.1)
-            priceName = getPrize(secretPin)
-            if priceName:
+            time.sleep(0.35)
+            for i in range(3):
+                priceName = getPrize(secretPin)
+                if "擦肩" in priceName:
+                    time.sleep(0.2)
+                    continue
+                else:
+                    break
+            if "擦肩" not in priceName:
                 print(f"🎉获得{priceName}")
+                msg += f'【账号{num}】{pt_pin}\n🎉{priceName}\n\n'
             else:
                 print(f"😭获得💨💨💨")
 
-        time.sleep(3)
+        time.sleep(1.5)
+
+    title = "🗣消息提醒：加购有礼-JK"
+    send(title, msg)
