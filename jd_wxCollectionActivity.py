@@ -514,14 +514,13 @@ def getPrize(pin):
             errorMessage = data['errorMessage']
             print(f"⛈{errorMessage}")
             if "不足" in errorMessage:
-                msg += f"⛈{errorMessage}\n"
                 sys.exit()
-            return
+            return res['errorMessage']
     else:
         print(f"⛈{res['errorMessage']}")
         if '奖品已发完' in res['errorMessage']:
-            msg += f"⛈{errorMessage}\n"
             sys.exit()
+        return res['errorMessage']
 
 
 if __name__ == '__main__':
