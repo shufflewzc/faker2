@@ -182,6 +182,9 @@ def getActivity():
         if "活动已结束" in res:
             print("⛈活动已结束,下次早点来~")
             sys.exit()
+        if "活动未开始" in res:
+            print("⛈活动未开始~")
+            sys.exit()
         if "关注" in res and "加购" not in res:
             activityType = 5
         else:
@@ -515,7 +518,7 @@ def getPrize(pin):
             print(f"⛈{errorMessage}")
             if "不足" in errorMessage:
                 sys.exit()
-            return res['errorMessage']
+            return errorMessage
     else:
         print(f"⛈{res['errorMessage']}")
         if '奖品已发完' in res['errorMessage']:
@@ -582,17 +585,17 @@ if __name__ == '__main__':
             drawOk = actCont[5]
             priceName = actCont[6]
             oneKeyAddCart = actCont[7]
-            if needCollectionSize <= hasCollectionSize:
-                print("☃️已完成过加购任务,无法重复进行！")
-                continue
-            else:
-                skuIds = [covo['skuId'] for covo in cpvos if not covo['collection']]
             time.sleep(0.35)
             shopName = shopInfo()
             if num == 1:
                 print(f"✅开启{shopName}-加购活动,需关注加购{needCollectionSize}个商品")
                 print(f"🎁奖品{priceName}\n")
                 msg += f'✅开启{shopName}-加购活动\n📝活动地址{activityUrl}\n🎁奖品{priceName}\n\n'
+            if needCollectionSize <= hasCollectionSize:
+                print("☃️已完成过加购任务,无法重复进行！")
+                continue
+            else:
+                skuIds = [covo['skuId'] for covo in cpvos if not covo['collection']]
             time.sleep(0.2)
             getInfo()
             if needFollow:
@@ -607,6 +610,8 @@ if __name__ == '__main__':
                 if hasAddCartSize:
                     if hasAddCartSize == addSkuNums:
                         print(f"🛳成功一键加购{hasAddCartSize}个商品")
+                else:
+                    continue
             else:
                 for productId in skuIds:
                     if activityType == 6:
@@ -626,13 +631,16 @@ if __name__ == '__main__':
                     continue
                 else:
                     break
-            if "擦肩" not in priceName:
+            if "京豆" in priceName:
                 print(f"🎉获得{priceName}")
-                msg += f'【账号{num}】{pt_pin}\n🎉{priceName}\n\n'
-            else:
+                msg += f'【账号{num}】{pt_pin} 🎉{priceName}\n'
+            elif "擦肩" in priceName:
                 print(f"😭获得💨💨💨")
+            else:
+                pass
 
         time.sleep(1.5)
 
     title = "🗣消息提醒：加购有礼-JK"
+    msg = f"⏰{str(datetime.now())[:19]}\n" + msg
     send(title, msg)
