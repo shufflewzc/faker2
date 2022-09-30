@@ -1,12 +1,12 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Modify : 2022/5/13
+# Modify : 2022/9/30
 # 京豆近7天输出表格统计
 # 用不着每天跑,定时自行设置吧，配合desi可指定账号
 # https://raw.githubusercontent.com/6dylan6/jdpro/main/jd_beans_7days.py
 '''
 new Env('豆子7天统计');
-1 8 13 5 * jd_beans_7days.py
+8 8 30 9 * jd_beans_7days.py
 '''
 
 import requests
@@ -171,13 +171,9 @@ def get_beans_7days(ck):
         page = 0
         headers = {
             "Host": "api.m.jd.com",
-            "Connection": "keep-alive",
-            "charset": "utf-8",
             "User-Agent": "Mozilla/5.0 (Linux; Android 10; MI 9 Build/QKQ1.190825.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/78.0.3904.62 XWEB/2797 MMWEBSDK/201201 Mobile Safari/537.36 MMWEBID/7986 MicroMessenger/8.0.1840(0x2800003B) Process/appbrand4 WeChat/arm64 Weixin NetType/4G Language/zh_CN ABI/arm64 MiniProgramEnv/android",
             "Content-Type": "application/x-www-form-urlencoded;",
-            "Accept-Encoding": "gzip, compress, deflate, br",
             "Cookie": ck,
-            "Referer": "https://servicewechat.com/wxa5bf5ee667d91626/141/page-frame.html",
         }
         days = []
         for i in range(0, 7):
@@ -186,18 +182,19 @@ def get_beans_7days(ck):
         beans_out = {key: 0 for key in days}
         while day_7:
             page = page + 1
-            resp = session.get(url, params=gen_params(page), headers=headers, timeout=100).text
+            url="https://api.m.jd.com/client.action?functionId=getJingBeanBalanceDetail&body=%7B%22pageSize%22%3A%2220%22%2C%22page%22%3A%22"+str(page)+"%22%7D&appid=ld"
+            resp = session.get(url, headers=headers, timeout=1000).text
             res = json.loads(resp)
-            if res['resultCode'] == 0 and res['data']['list'] != []:
-                for i in res['data']['list']:
+            if res['code'] == '0' :
+                for i in res['detailList']:
                     for date in days:
-                        if str(date) in i['createDate'] and i['amount'] > 0:
-                            beans_in[str(date)] = beans_in[str(date)] + i['amount']
+                        if str(date) in i['date'] and int(i['amount']) > 0:
+                            beans_in[str(date)] = beans_in[str(date)] + int(i['amount'])
                             break
-                        elif str(date) in i['createDate'] and i['amount'] < 0:
-                            beans_out[str(date)] = beans_out[str(date)] + i['amount']
+                        elif str(date) in i['date'] and int(i['amount']) < 0:
+                            beans_out[str(date)] = beans_out[str(date)] + int(i['amount'])
                             break
-                    if i['createDate'].split(' ')[0] not in str(days):
+                    if i['date'].split(' ')[0] not in str(days):
                         day_7 = False
             else:
                 print("未获取到数据，原因未知！！\n")

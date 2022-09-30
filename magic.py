@@ -294,8 +294,6 @@ async def converter_handler(text):
                 print("不支持更多参数")
             text = target
             break
-        if tmp_text == text:
-            await client.send_message(bot_id, f'无法转换 {text}')
     except Exception as e:
         logger.info(str(e))
     logger.info(f"转换后数据 {text}")
