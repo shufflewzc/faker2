@@ -2,28 +2,38 @@
 # -*- coding: utf-8 -*-
 """
 File: jd_inviteFriendsGift.py(邀好友赢大礼)
-Author: Fix by HarbourJ from doubi
+Author: Fix by HarbourJ
 Date: 2022/7/6 23:26
 TG: https://t.me/HarbourToulu
 cron: 1 1 1 1 1 1
 new Env('邀好友赢大礼');
-活动入口：https://prodev.m.jd.com/mall/active/dVF7gQUVKyUcuSsVhuya5d2XD4F/index.html?code=xxxxxxxx&invitePin=xxxxxx
-修改记录: 增加从环境变量中获取authorCode变量，增加对青龙desi JD_COOKIE的适配。
-变量格式: export jd_inv_authorCode="6b84e047a9154d909febd19d3120aad2"
+ActivityEntry：https://prodev.m.jd.com/mall/active/dVF7gQUVKyUcuSsVhuya5d2XD4F/index.html?code=xxxxxxxx&invitePin=xxxxxx
+UpdateRecord: 2022.07.06 增加从环境变量中获取authorCode变量，增加对青龙desi JD_COOKIE的适配;
+              2022.10.01 修复由于若干接口被更换导致的异常报错
+Description: 变量：export jd_inv_authorCode="5f29b7dbcfad44548b685a4d8d151e59"
 """
 
-import json
-import requests, random, time, asyncio, re, os, sys
+import requests, random, time, asyncio, re, os, sys, json
+from datetime import datetime
+from sendNotify import *
 from urllib.parse import quote_plus, unquote_plus
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 from functools import partial
-
+print = partial(print, flush=True)
+try:
+    from jd_sign import *
+except ImportError as e:
+    print(e)
+    if "No module" in str(e):
+        print("请先运行HarbourJ库依赖一键安装脚本(jd_check_dependent.py)，安装jd_sign.so依赖")
 try:
     from jdCookie import get_cookies
     getCk = get_cookies()
 except:
-    print("请先下载依赖脚本，\n下载链接：https://raw.githubusercontent.com/shufflewzc/faker2/main/jdCookie.py")
+    print("请先下载依赖脚本，\n下载链接：https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/jdCookie.py")
     sys.exit(3)
-print = partial(print, flush=True)
+
 activatyname = '邀请赢大礼'
 activityId = 'dVF7gQUVKyUcuSsVhuya5d2XD4F'  # 活动类型
 
@@ -32,30 +42,6 @@ authorCode = os.environ.get("jd_inv_authorCode") if os.environ.get("jd_inv_autho
 if not authorCode:
     print("⚠️未发现有效活动变量jd_inv_authorCode,退出程序!")
     sys.exit()
-
-# 随机ua
-def randomuserAgent():
-    global uuid, addressid, iosVer, iosV, clientVersion, iPhone, area, ADID, lng, lat
-    uuid = ''.join(random.sample(
-        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-         'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'z'], 40))
-    addressid = ''.join(random.sample('1234567898647', 10))
-    iosVer = ''.join(random.sample(["15.1.1", "14.5.1", "14.4", "14.3", "14.2", "14.1", "14.0.1"], 1))
-    iosV = iosVer.replace('.', '_')
-    clientVersion = ''.join(random.sample(["10.3.0", "10.2.7", "10.2.4"], 1))
-    iPhone = ''.join(random.sample(["8", "9", "10", "11", "12", "13"], 1))
-    area = ''.join(random.sample('0123456789', 2)) + '_' + ''.join(random.sample('0123456789', 4)) + '_' + ''.join(
-        random.sample('0123456789', 5)) + '_' + ''.join(random.sample('0123456789', 4))
-    ADID = ''.join(random.sample('0987654321ABCDEF', 8)) + '-' + ''.join(
-        random.sample('0987654321ABCDEF', 4)) + '-' + ''.join(random.sample('0987654321ABCDEF', 4)) + '-' + ''.join(
-        random.sample('0987654321ABCDEF', 4)) + '-' + ''.join(random.sample('0987654321ABCDEF', 12))
-    lng = '119.31991256596' + str(random.randint(100, 999))
-    lat = '26.1187118976' + str(random.randint(100, 999))
-    UserAgent = ''
-    if not UserAgent:
-        return f'jdapp;iPhone;10.0.4;{iosVer};{uuid};network/wifi;ADID/{ADID};model/iPhone{iPhone},1;addressid/{addressid};appBuild/167707;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS {iosV} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/null;supportJDSHWK/1'
-    else:
-        return UserAgent
 
 # 检测ck状态
 async def check(ua, ck):
@@ -74,7 +60,7 @@ async def check(ua, ck):
         result = requests.get(url=url, headers=header, timeout=None).text
         codestate = json.loads(result)
         if codestate['retcode'] == '1001':
-            msg = "当前ck已失效，请检查"
+            msg = "⚠️当前ck已失效，请检查"
             return {'code': 1001, 'data': msg}
         elif codestate['retcode'] == '0' and 'userInfo' in codestate['data']:
             nickName = codestate['data']['userInfo']['baseInfo']['nickname']
@@ -104,44 +90,73 @@ async def plogin(ua, cookie):
     response = requests.get(url=url, headers=header, timeout=None).text
     return response
 
-# 活动接口
-async def jdjoy(ua, cookie):
-    url = f'https://jdjoy.jd.com/member/bring/getActivityPage?code={authorCode}&invitePin={invitePin}&_t={get_time()}'
-    header = {
-        'Accept': '*/*',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept-Language': 'zh-Hans-US;q=1,en-US;q=0.9',
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Cookie': cookie,
-        "Host": 'jdjoy.jd.com',
-        'Origin': 'https://prodev.m.jd.com',
-        "Referer": 'https://prodev.m.jd.com/',
-        'User-Agent': ua
+# 邀请排名
+async def memberBringRanking(ua, cookie):
+    t = get_time()
+    body = {
+        "code": authorCode,
+        "pageNum": 1,
+        "pageSize": 10
     }
-    response = requests.get(url=url, headers=header).text
+    url = f"https://api.m.jd.com/api?client=&clientVersion=&appid=jdchoujiang_h5&t={t}&functionId=memberBringRanking&body={json.dumps(body)}&code={authorCode}&pageNum=1&pageSize=10"
+    headers = {
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'zh-CN,zh;q=0.9',
+        'content-type': 'application/json',
+        'cookie': cookie,
+        'origin': 'https://prodev.m.jd.com',
+        'referer': 'https://prodev.m.jd.com/',
+        'user-agent': ua
+    }
+    response = requests.request("GET", url, headers=headers).text
+    print(response)
     return json.loads(response)
 
-# go开卡
-async def ruhui(ua, cookie):
-    url = f'https://jdjoy.jd.com/member/bring/joinMember?code={authorCode}&invitePin={invitePin}'
-    header = {
-        'Host': 'jdjoy.jd.com',
-        'Content-Type': 'application/json',
-        'Origin': 'https://prodev.m.jd.com',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Cookie': cookie,
-        'Connection': 'keep-alive',
-        'Accept': '*/*',
-        'User-Agent': ua,
-        'Referer': activityUrl,
-        'Accept-Language': 'zh-cn',
-        'request-from': 'native'
+# 活动接口 new
+async def memberBringActPage(ua, cookie):
+    t = get_time()
+    body = {
+        "code": authorCode,
+        "invitePin": invitePin,
+        "_t": t
     }
-    response = requests.get(url=url, headers=header).text
+    url = f"https://api.m.jd.com/api?client=&clientVersion=&appid=jdchoujiang_h5&t={t}&functionId=memberBringActPage&body={json.dumps(body)}&code={authorCode}&invitePin={invitePin}&_t={t}"
+    headers = {
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'zh-CN,zh;q=0.9',
+        'content-type': 'application/json',
+        'cookie': cookie,
+        'origin': 'https://prodev.m.jd.com',
+        'referer': 'https://prodev.m.jd.com/',
+        'user-agent': ua
+    }
+    response = requests.request("GET", url, headers=headers).text
+    # print(response)
     return json.loads(response)
 
-# 检查开卡状态
+# go开卡 new
+async def memberBringJoinMember(ua, cookie):
+    t = get_time()
+    body = {
+        "code": authorCode,
+        "invitePin": invitePin
+    }
+    url = f"https://api.m.jd.com/api?client=&clientVersion=&appid=jdchoujiang_h5&t={t}&functionId=memberBringJoinMember&body={json.dumps(body)}&code={authorCode}&invitePin={invitePin}"
+    headers = {
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'zh-CN,zh;q=0.9',
+        'content-type': 'application/json',
+        'cookie': cookie,
+        'origin': 'https://prodev.m.jd.com',
+        'referer': 'https://prodev.m.jd.com/',
+        'user-agent': ua
+    }
+    response = requests.request("GET", url, headers=headers).text
+    return json.loads(response)
+
 async def check_ruhui(body, cookie, venderId, ua):
     url = f'https://api.m.jd.com/client.action?appid=jd_shop_member&functionId=getShopOpenCardInfo&body={json.dumps(body)}&client=H5&clientVersion=9.2.0&uuid=88888'
     headers = {
@@ -157,38 +172,44 @@ async def check_ruhui(body, cookie, venderId, ua):
     response = requests.get(url=url, headers=headers, timeout=None).text
     return json.loads(response)
 
-# 领取奖励
-async def getInviteReward(cookie, ua, number):
-    url = f'https://jdjoy.jd.com/member/bring/getInviteReward?code={authorCode}&stage={number}'
-    header = {
-        'Accept': '*/*',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept-Language': 'zh-Hans-US;q=1,en-US;q=0.9',
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/json',
-        'Cookie': cookie,
-        "Host": 'jdjoy.jd.com',
-        'Origin': 'https://prodev.m.jd.com',
-        "Referer": 'https://prodev.m.jd.com/',
-        'User-Agent': ua
+# 领取奖励 new
+async def memberBringInviteReward(cookie, ua, number):
+    t = get_time()
+    body = {
+        "code": authorCode,
+        "stage": number
     }
-    response = requests.get(url=url, headers=header).text
+    url = f"https://api.m.jd.com/api?client=&clientVersion=&appid=jdchoujiang_h5&t={t}&functionId=memberBringInviteReward&body={body}&code={authorCode}&stage={number}"
+    headers = {
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'zh-CN,zh;q=0.9',
+        'content-type': 'application/json',
+        'cookie': cookie,
+        'origin': 'https://prodev.m.jd.com',
+        'referer': 'https://prodev.m.jd.com/',
+        'user-agent': ua
+    }
+    response = requests.request("GET", url, headers=headers).text
     return json.loads(response)
 
 # 开启活动
-async def firstInvite(cookie, ua):
-    url = f'https://jdjoy.jd.com/member/bring/firstInvite?code={authorCode}'
-    header = {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept-Language': 'zh-Hans-US;q=1,en-US;q=0.9',
-        'Connection': 'keep-alive',
-        'Cookie': cookie,
-        "Host": 'jdjoy.jd.com',
-        'User-Agent': ua
+async def memberBringFirstInvite(cookie, ua):
+    body = {
+        "code": authorCode,
     }
-    response = requests.get(url=url, headers=header).text
-    print(response)
+    url = f"https://api.m.jd.com/api?client=&clientVersion=&appid=jdchoujiang_h5&t=1664407539127&functionId=memberBringFirstInvite&body={json.dumps(body)}&code={authorCode}"
+    headers = {
+        'accept': '*/*',
+        'accept-encoding': 'gzip, deflate, br',
+        'accept-language': 'zh-CN,zh;q=0.9',
+        'content-type': 'application/json',
+        'cookie': cookie,
+        'origin': 'https://prodev.m.jd.com',
+        'referer': 'https://prodev.m.jd.com/',
+        'user-agent': ua
+    }
+    response = requests.request("GET", url, headers=headers).text
     return json.loads(response)
 
 async def get_ck(data):
@@ -222,7 +243,9 @@ async def main():
         print("未获取到有效COOKIE,退出程序！")
         return
     success = 0  # 计算成功数
-    global invitePin, activityUrl
+    global invitePin, activityUrl, MSG
+    MSG = ''
+    title = "🗣消息提醒：邀好友赢大礼"
     r = re.compile(r"pt_pin=(.*?);")
     invitePin = r.findall(cks[0])[0] # 获取COOKIES中第一个车头pin
     activityUrl = f'https://prodev.m.jd.com/mall/active/{activityId}/index.html?code={authorCode}&invitePin={invitePin}'  # 活动链接
@@ -231,50 +254,64 @@ async def main():
     needdel = []
     need = []
     if inveteck:
-        print(f'🔔开始{activatyname}任务', flush=True)
-        print(f"若已加入活动店铺会员,则无法助力。\n入口:\n{activityUrl}\n")
-        print(f'您好！{invitePin}，正在获取您的活动信息', )
-        ua = randomuserAgent()  # 获取ua
+        print(f"📝若已加入活动店铺会员,则无法助力。\n【🛳活动入口】{activityUrl}\n")
+        ua = userAgent()  # 获取ua
         result = await check(ua, inveteck)  # 检测ck
         if result['code'] == 200:
             await plogin(ua, inveteck)  # 获取登录状态
             await asyncio.sleep(2)
-            result = await jdjoy(ua, inveteck)  # 获取活动信息
-            await firstInvite(inveteck, ua)  # 开启活动
+            result = await memberBringActPage(ua, inveteck)  # 获取活动信息
+            await memberBringFirstInvite(inveteck, ua)  # 开启活动
             if result['success']:
                 brandName = result['data']['brandName']  # 店铺名字
                 venderId = result['data']['venderId']  # 店铺入会id
                 rewardslist = []  # 奖品
+                rewardNameList = []
                 successCount = result['data']['successCount']  # 当前成功数
                 success += successCount
                 result_data = result['data']['rewards']  # 奖品数据
-                print(f'您好！账号[{invitePin}]，开启{brandName}邀请好友活动\n去开活动')
+                print(f'🤖您好！账号[{invitePin}]\n✅开启{brandName}邀请好友活动\n去开活动')
+                MSG += f'✅账号[{invitePin}]\n开启{brandName}邀请好友活动\n📝活动地址{activityUrl}\n'
                 for i in result_data:
                     stage = i['stage']
                     inviteNum = i['inviteNum']  # 单次需要拉新人数
                     need.append(inviteNum)
                     rewardName = i['rewardName']  # 奖品名
+                    rewardNameList.append(rewardName)
                     rewardNum = i['rewardStock']
                     if rewardNum != 0:
                         needinviteNum.append(inviteNum)
                         needdel.append(inviteNum)
                     rewardslist.append(f'级别{stage}:  需助力{inviteNum}人，奖品: {rewardName}，库存：{rewardNum}件\n')
                 if len(rewardslist) != 0:
-                    print('当前活动奖品如下: \n' + str('\n'.join(rewardslist)) + f'\n当前已助力{successCount}次\n')
+                    print('🎁当前活动奖品如下: \n' + str('\n'.join(rewardslist)) + f'\n当前已助力{successCount}次\n')
+                    MSG += f"🎁当前活动奖品如下: \n{str(''.join(rewardslist))}\n"
                     for nmubers in needdel:
                         if success >= nmubers:
-                            print("您当前助力已经满足了，可以去领奖励了")
-                            print(f'\n这就去领取奖励{need.index(nmubers) + 1}')
-                            result = await getInviteReward(inveteck, ua, need.index(nmubers) + 1)
-                            print(result)
+                            print("🎉您当前助力已经满足了，可以去领奖励了")
+                            print(f'\n📝这就去领取奖励{need.index(nmubers) + 1}')
+                            result = await memberBringInviteReward(inveteck, ua, need.index(nmubers) + 1)
+                            try:
+                                if result['success']:
+                                    print(f"🎉成功领取 {rewardNameList[need.index(nmubers)]}")
+                                    MSG += f"🎉成功领取 {rewardNameList[need.index(nmubers)]}\n"
+                                else:
+                                    print(f"⛈{rewardNameList[need.index(nmubers)]} {result['errorMessage']}")
+                                    MSG += f"⛈{rewardNameList[need.index(nmubers)]} {result['errorMessage']}\n"
+                            except:
+                                print(result)
+                                MSG += f"{result}\n"
                             needinviteNum.remove(nmubers)
                             await asyncio.sleep(10)
                     needdel = needinviteNum
                     if needinviteNum == []:
-                        print('奖励已经全部获取啦，退出程序')
+                        print('🎉🎉🎉奖励已经全部获取啦，退出程序')
+                        MSG += f"🎉🎉🎉奖励已经全部获取啦~\n"
+                        MSG = f"⏰{str(datetime.now())[:19]}\n" + MSG
+                        send(title, MSG)
                         return
                 for n, ck in enumerate(cks, 1):
-                    ua = randomuserAgent()  # 获取ua
+                    ua = userAgent()  # 获取ua
                     try:
                         pin = re.findall(r'(pt_pin=([^; ]+)(?=;))', str(ck))[0]
                         pin = (unquote_plus(pin[1]))
@@ -285,54 +322,69 @@ async def main():
                         for nmubers in needdel:
                             if success >= nmubers:
                                 print(nmubers)
-                                print("您当前助力已经满足了，可以去领奖励了")
-                                print(f'\n这就去领取奖励{need.index(nmubers) + 1}')
-                                result = await getInviteReward(inveteck, ua, need.index(nmubers) + 1)
-                                print(result)
+                                print("🎉您当前助力已经满足了，可以去领奖励了")
+                                print(f'\n📝这就去领取奖励{need.index(nmubers) + 1}')
+                                result = await memberBringInviteReward(inveteck, ua, need.index(nmubers) + 1)
+                                try:
+                                    if result['success']:
+                                        print(f"🎉成功领取 {rewardNameList[need.index(nmubers)]}")
+                                        MSG += f"🎉成功领取 {rewardNameList[need.index(nmubers)]}\n"
+                                    else:
+                                        print(f"⛈{rewardNameList[need.index(nmubers)]} {result['errorMessage']}")
+                                        MSG += f"⛈{rewardNameList[need.index(nmubers)]} {result['errorMessage']}\n"
+                                except:
+                                    print(result)
+                                    MSG += f"{result}\n"
                                 needinviteNum.remove(nmubers)
                                 await asyncio.sleep(10)
                         needdel = needinviteNum
                         if needinviteNum == []:
-                            print('奖励已经全部获取啦，退出程序')
+                            print('🎉🎉🎉奖励已经全部获取啦，退出程序')
+                            MSG += f"🎉🎉🎉奖励已经全部获取啦~\n"
+                            MSG = f"⏰{str(datetime.now())[:19]}\n" + MSG
+                            send(title, MSG)
                             return
                     await plogin(ua, ck)  # 获取登录状态
                     result = await check(ua, ck)  # 检测ck
                     if result['code'] == 200:
-                        result = await jdjoy(ua, ck)  # 调用ck
+                        result = await memberBringActPage(ua, ck)  # 调用ck
                         if result['success']:
-                            print(f'账户[{pin}]已开启{brandName}邀请好友活动\n')
+                            print(f'✅账户[{pin}]已开启{brandName}邀请好友活动\n')
                             await asyncio.sleep(3)
                             result = await check_ruhui({"venderId": str(venderId), "channel": "401"}, ck, venderId,
                                                        ua)  # 检查入会状态
                             try:
                                 if result['result']['userInfo']['openCardStatus'] == 0:  # 0 未开卡
                                     await asyncio.sleep(2)
-                                    print(f'您还不是会员哦，这就去去助力{invitePin}\n')
-                                    result = await ruhui(ua, ck)
+                                    print(f'😆您还不是会员哦，这就去去助力{invitePin}\n')
+                                    result = await memberBringJoinMember(ua, ck)
                                     if result['success']:
                                         success += 1
-                                        print(f'助力成功! 当前成功助力{success}个\n')
+                                        print(f'🎉助力成功! 当前成功助力{success}个\n')
                                     if '交易失败' in str(result):
                                         success += 1
-                                        print(f'助力成功! 当前成功助力{success}个\n')
+                                        print(f'🎉助力成功! 当前成功助力{success}个\n')
                                     else:
-                                        print(result)
+                                        try:
+                                            print(f"⛈{result['errorMessage']}")
+                                        except:
+                                            print(result)
                                     await asyncio.sleep(2)
                                 else:
-                                    print('您已经是会员啦，不去请求了入会了\n')
+                                    print('⛈您已经是会员啦，不去请求了入会了\n')
                                     continue
 
                             except TypeError as e:
                                 print(e)
-                                result = await ruhui(ua, ck)
+                                result = await memberBringJoinMember(ua, ck)
                                 if result['success']:
                                     success += 1
-                                    print(f'助力成功! 当前成功助力{success}个\n')
+                                    print(f'🎉助力成功! 当前成功助力{success}个\n')
                                 if '交易失败' in result:
                                     success += 1
-                                    print(f'助力成功! 当前成功助力{success}个\n')
+                                    print(f'🎉助力成功! 当前成功助力{success}个\n')
                                 else:
-                                    print(result['errorMessage'])
+                                    print(f"⛈{result['errorMessage']}")
                                 await asyncio.sleep(2)
 
                         else:  # 没有获取到活动信息
