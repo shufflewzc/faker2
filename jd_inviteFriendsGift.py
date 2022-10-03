@@ -361,14 +361,15 @@ async def main():
                                     if result['success']:
                                         success += 1
                                         print(f'🎉助力成功! 当前成功助力{success}个\n')
-                                    if '交易失败' in str(result):
-                                        success += 1
-                                        print(f'🎉助力成功! 当前成功助力{success}个\n')
                                     else:
-                                        try:
-                                            print(f"⛈{result['errorMessage']}")
-                                        except:
-                                            print(result)
+                                        if '交易失败' in str(result):
+                                            success += 1
+                                            print(f'🎉助力成功! 当前成功助力{success}个\n')
+                                        else:
+                                            try:
+                                                print(f"⛈{result['errorMessage']}")
+                                            except:
+                                                print(result)
                                     await asyncio.sleep(2)
                                 else:
                                     print('⛈您已经是会员啦，不去请求了入会了\n')
@@ -380,11 +381,12 @@ async def main():
                                 if result['success']:
                                     success += 1
                                     print(f'🎉助力成功! 当前成功助力{success}个\n')
-                                if '交易失败' in result:
-                                    success += 1
-                                    print(f'🎉助力成功! 当前成功助力{success}个\n')
                                 else:
-                                    print(f"⛈{result['errorMessage']}")
+                                    if '交易失败' in result:
+                                        success += 1
+                                        print(f'🎉助力成功! 当前成功助力{success}个\n')
+                                    else:
+                                        print(f"⛈{result['errorMessage']}")
                                 await asyncio.sleep(2)
 
                         else:  # 没有获取到活动信息
