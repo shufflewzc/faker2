@@ -1,13 +1,13 @@
 ## 重要通知
 ### 落霞与孤鹜齐飞,秋水共长天一色。
 
-Faker自用仓库。本地接口计算方法，保证账户信息安全。
+Faker自用仓库。本地接口计算方法，保证账户信息安全。已适配Spy插件24小时全天监控。
 
 ##  助力池版
 
 日常任务带有助力池，助力池助力量充足，相互助力。
 
-#### [点击直达频道](https://t.me/scriptalking)
+#### [点击直达频道获得更多使用教程](https://t.me/scriptalking)
 
 [![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=shufflewzc&bg_color=30,e96443,904e95&title_color=fff&text_color=fff)](https://github.com/anuraghazra/github-readme-stats)
 
