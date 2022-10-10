@@ -5,11 +5,13 @@ export dpqd_token="token1&token2&token3..."
 
 店铺签到，各类店铺签到，有新的店铺直接添加token即可
 店铺签到的定时可采取随机定时,每天运行一次即可
-cron "15 0,4 * * *" script-path=jd_dpqd.js,tag=店铺签到
+cron "1 1 1 1 1" script-path=jd_dpqd.js,tag=店铺签到
 */
 const $ = new Env('店铺签到');
 const notify = $.isNode() ? require('./sendNotify') : '';
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
+
+
 let cookiesArr = [], cookie = '', allMessage = '', message;
 const JD_API_HOST = 'https://api.m.jd.com/api?appid=interCenter_shopSign';
 
@@ -49,13 +51,7 @@ if ($.isNode()) {
   // token = await getRemoteData();
   // token = token ? token : [];
   token = [
-    "ED926C4D8074BD71C0156FA6DFDAD549",
-    "CDE42328CFCB396AF93D28520AE10A72",
-    "457A7673CBB0BA0841DC6E898CB2E282",
-    "4450A38980C609B19E769F268AF8FD93",
-    "9CC69A0B1C0275CB27FFF3C8BEE5C2F8",
-    "E74CB03E861577B0915630B8328B6AEE",
-    "0CE352C49E77D6354F8F12DD5D6745ED"
+
   ];
 
   token = dpqd_token ? tokens : token;
