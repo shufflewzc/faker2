@@ -1,8 +1,7 @@
 /*
 京东金榜 签到 + 盲盒
 https://t.me/proenvc
-cron "1 1 1 1 1" jd_gold_sign.js
-日签到概率中1豆, 签满5天可集勋章抽奖 概率中3豆,中大的得看运气
+日签到概率中14豆, 签满5天可集勋章抽奖 概率中几十豆,中大的得看运气
  */
 const $ = new Env('京东金榜');
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
