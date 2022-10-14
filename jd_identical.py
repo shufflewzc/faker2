@@ -65,7 +65,7 @@ def get_tasklist() -> list:
 def filter_res_sub(tasklist: list) -> tuple:
     filter_list = []
     res_list = []
-    for task in tasklist:
+    for task in tasklist['data']:
         for sub in sub_list:
             if task.get("command").find(sub) == -1:
                 flag = False
