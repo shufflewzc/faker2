@@ -3,12 +3,12 @@
 修复+尽量优化为同步执行,减少并发,说不定就减小黑号概率了呢?
 https://raw.githubusercontent.com/aTenb/jdOpenSharePicker/master/jd_beautyStudy.js
 更新时间:2021-12-03
-来源 Dylan
 活动入口：京东app首页-美妆馆-底部中间按钮
 定时自定义，集中访问可能炸
  */
 const $ = new Env('美丽研究院');
 const notify = $.isNode() ? require('./sendNotify') : '';
+console.log('连接服务器不稳定,能不能用随缘!!!')
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const WebSocket = require('ws');
 const UA = process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)
@@ -50,7 +50,7 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
       $.nickName = '';
       message = '';
       $.token = '';
-      //await TotalBean();
+      await TotalBean();
       console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
       if (!$.isLogin) {
         $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/`, {"open-url": "https://bean.m.jd.com/"});
@@ -82,7 +82,7 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
 
 async function accountCheck() {
   $.hasDone = false;
-  //console.log(`***检测账号是否黑号***`);
+  console.log(`***检测账号是否黑号***`);
   await getIsvToken()
   await $.wait(10000)
   await getIsvToken2()
@@ -295,7 +295,6 @@ async function mr() {
               await $.wait(2500)
             }
           }
-
           if ($.taskState.today_answered === 0) {
             console.log(`去做每日问答任务`)
             client.send(`{"msg":{"type":"action","args":{"source":1},"action":"get_question"}}`)
@@ -575,7 +574,7 @@ function getIsvToken() {
           if (safeGet(data)) {
             data = JSON.parse(data);
             $.isvToken = data['tokenKey'];
-            //console.log(`isvToken:${$.isvToken}`);
+            console.log(`isvToken:${$.isvToken}`);
           }
         }
       } catch (e) {
@@ -595,7 +594,7 @@ async function getIsvToken2() {
   } 
   let config = {
     url: 'https://api.m.jd.com/client.action?functionId=isvObfuscator',
-    body: `${$.Signz}`,
+    body: body,
     headers: {
       'Host': 'api.m.jd.com',
       'accept': '*/*',
@@ -616,7 +615,7 @@ async function getIsvToken2() {
           if (safeGet(data)) {
             data = JSON.parse(data);
             $.token2 = data['token']
-            //console.log(`token2:${$.token2}`);
+            console.log(`token2:${$.token2}`);
           }
         }
       } catch (e) {
@@ -628,31 +627,43 @@ async function getIsvToken2() {
   })
 }
 function getSignfromDY(functionId, body) {	
-let data={'fn':functionId,'body':JSON.stringify(body)};
-	let optionsions={'url':'https://api.nolanstore.top/sign','body':JSON.stringify(data),'headers':{"Content-Type": "application/json"},'timeout':30000};
-	return new Promise(async resolve=>{
-		$.post(optionsions,(err,resp,data)=>{
-			try{
-				if(err){
-					console.log(''+JSON.stringify(err));
-					console.log($.name+' getSign API请求失败，请检查网路重试');
-				}else{
-					data=JSON.parse(data);
-					if((typeof data==='object')&&data&&data.body){
-							$.Signz=data.body ||'';
-							} else {
-									console.log('获取服务失败~~');
-							}
-				}
-			}catch(e){
-				$.logErr(e,resp);
-			}
-			finally{
-				resolve(data);
-			}
-		});
-	});
-};
+var strsign = '';
+let data = `functionId=${functionId}&body=${encodeURIComponent(JSON.stringify(body))}`
+  return new Promise((resolve) => {
+      let opt = {
+          url: "https://sign-hst-rxboogtocm.cn-hangzhou.fcapp.run/dylan/getsign",
+          body: data,
+      headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+      }
+      ,timeout: 30000
+      }
+      $.post(opt, async(err, resp, data) => {
+          try {
+            if (data){
+              data = JSON.parse(data);
+      if (data && data.code == 0) {
+                  console.log("连接DY服务成功" );
+                  if (data.data){
+                      strsign = data.data || '';
+        }
+                  if (strsign != ''){
+                      resolve(strsign);
+        }
+                  else
+                      console.log("签名获取失败,换个时间再试.");
+              } else {
+                  console.log(data.msg);
+              }
+            }else{console.log('连接连接DY服务失败，重试。。。')}	
+          }catch (e) {
+              $.logErr(e, resp);
+          }finally {
+      resolve(strsign);
+    }
+      })
+  })
+}
 function getToken() {
   let config = {
     url: 'https://xinruimz-isv.isvjcloud.com/api/auth',
@@ -680,7 +691,7 @@ function getToken() {
           if (safeGet(data)) {
             data = JSON.parse(data);
             $.token = data.access_token
-            //console.log(`$.token ${$.token}`)
+            console.log(`$.token ${$.token}`)
           }
         }
       } catch (e) {
