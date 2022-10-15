@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 """
 cron: 50 * * * *
-new Env('禁用重复任务青龙2.11版本');
+new Env('禁用重复任务青龙2.14版本');
 """
 
 import json
