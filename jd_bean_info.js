@@ -1,12 +1,8 @@
 /*
- * 详细版京东京豆统计
- 
- * 默认不发送通知。
- 
-[task_local]
-#京豆详情统计
-20 22 * * * jd_bean_info.js, tag=京豆详情统计, img-url=https://raw.githubusercontent.com/Orz-3/mini/master/Color/jd.png, enabled=true
- * */
+定时自定义
+2 10 14 10 * jd_bean_info.js
+ */
+
 const $ = new Env('京豆详情统计');
 const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
@@ -29,7 +25,6 @@ if ($.isNode()) {
     $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
     return;
   }
-  console.log(`\n正在查询今天所有账号的京豆收入......`);
   for (let i = 0; i < cookiesArr.length; i++) {
     if (cookiesArr[i]) {
       cookie = cookiesArr[i];
@@ -57,7 +52,7 @@ if ($.isNode()) {
       }
       await bean();
       await showMsg();
-
+      await $.wait(2000);
     }
   }
   allMessage += `\n今日全部账号收入：${allBean}个京豆 🐶\n`
@@ -78,7 +73,7 @@ async function showMsg() {
   allMessage += `今日收入总计：${$.todayIncomeBean}京豆 🐶\n`
   allBean = allBean + parseInt($.todayIncomeBean)
   for (let key of myMap.keys()) {
-    allMessage += key + ' ---> ' +myMap.get(key)+'京豆 🐶\n'
+	allMessage += "【" +myMap.get(key)+"豆"+"】 "+key+'\n'
   }
   myMap = new Map()
   // if ($.isNode()) {
@@ -99,13 +94,14 @@ async function bean() {
   do {
     let response = await getJingBeanBalanceDetail(page);
     // console.log(`第${page}页: ${JSON.stringify(response)}`);
+	await $.wait(1000);
     if (response && response.code === "0") {
       page++;
       let detailList = response.detailList;
       if (detailList && detailList.length > 0) {
         for (let item of detailList) {
           const date = item.date.replace(/-/g, '/') + "+08:00";
-          if (new Date(date).getTime() >= tm1 && (!item['eventMassage'].includes("退还") && !item['eventMassage'].includes('扣赠'))) {
+          if (new Date(date).getTime() >= tm1 && (!item['eventMassage'].includes("退还") && !item['eventMassage'].includes("物流") && !item['eventMassage'].includes('扣赠'))) {
             todayArr.push(item);
           } else if (tm <= new Date(date).getTime() && new Date(date).getTime() < tm1 && (!item['eventMassage'].includes("退还") && !item['eventMassage'].includes('扣赠'))) {
             //昨日的
@@ -125,8 +121,8 @@ async function bean() {
       // console.log(`cookie已过期，或者填写不规范，跳出`)
       t = 1;
     } else {
-      // console.log(`未知情况：${JSON.stringify(response)}`);
-      // console.log(`未知情况，跳出`)
+       console.log(`未知情况：${JSON.stringify(response)}`);
+       console.log(`未知情况，跳出`)
       t = 1;
     }
   } while (t === 0);
@@ -213,8 +209,8 @@ function getJingBeanBalanceDetail(page) {
     $.post(options, (err, resp, data) => {
       try {
         if (err) {
-          // console.log(`${JSON.stringify(err)}`)
-          // console.log(`${$.name} API请求失败，请检查网路重试`)
+           console.log(`${JSON.stringify(err)}`)
+           console.log(`${$.name} API请求失败，请检查网路重试`)
         } else {
           if (data) {
             data = JSON.parse(data);
