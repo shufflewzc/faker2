@@ -9,22 +9,22 @@ const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const got = require('got');
 const {
     getEnvs,
-	getEnvById,
+    getEnvById,
     DisableCk,
     EnableCk,
     getstatus
-} = require('./ql');
+} = require('./utils/ql');
 const api = got.extend({
-        retry: {
-            limit: 0
-        },
-        responseType: 'json',
-    });
+    retry: {
+        limit: 0
+    },
+    responseType: 'json',
+});
 
 let ShowSuccess = "false",
-CKAlwaysNotify = "false",
-CKAutoEnable = "true",
-NoWarnError = "false";
+    CKAlwaysNotify = "false",
+    CKAutoEnable = "true",
+    NoWarnError = "false";
 
 let MessageUserGp2 = "";
 let MessageUserGp3 = "";
@@ -45,38 +45,38 @@ let IndexGp4 = 0;
 let IndexAll = 0;
 
 let TempErrorMessage = '',
-TempSuccessMessage = '',
-TempDisableMessage = '',
-TempEnableMessage = '',
-TempOErrorMessage = '';
+    TempSuccessMessage = '',
+    TempDisableMessage = '',
+    TempEnableMessage = '',
+    TempOErrorMessage = '';
 
 let allMessage = '',
-ErrorMessage = '',
-SuccessMessage = '',
-DisableMessage = '',
-EnableMessage = '',
-OErrorMessage = '';
+    ErrorMessage = '',
+    SuccessMessage = '',
+    DisableMessage = '',
+    EnableMessage = '',
+    OErrorMessage = '';
 
 let allMessageGp2 = '',
-ErrorMessageGp2 = '',
-SuccessMessageGp2 = '',
-DisableMessageGp2 = '',
-EnableMessageGp2 = '',
-OErrorMessageGp2 = '';
+    ErrorMessageGp2 = '',
+    SuccessMessageGp2 = '',
+    DisableMessageGp2 = '',
+    EnableMessageGp2 = '',
+    OErrorMessageGp2 = '';
 
 let allMessageGp3 = '',
-ErrorMessageGp3 = '',
-SuccessMessageGp3 = '',
-DisableMessageGp3 = '',
-EnableMessageGp3 = '',
-OErrorMessageGp3 = '';
+    ErrorMessageGp3 = '',
+    SuccessMessageGp3 = '',
+    DisableMessageGp3 = '',
+    EnableMessageGp3 = '',
+    OErrorMessageGp3 = '';
 
 let allMessageGp4 = '',
-ErrorMessageGp4 = '',
-SuccessMessageGp4 = '',
-DisableMessageGp4 = '',
-EnableMessageGp4 = '',
-OErrorMessageGp4 = '';
+    ErrorMessageGp4 = '',
+    SuccessMessageGp4 = '',
+    DisableMessageGp4 = '',
+    EnableMessageGp4 = '',
+    OErrorMessageGp4 = '';
 
 let strAllNotify = "";
 let strNotifyOneTemp = "";
@@ -118,11 +118,6 @@ if ($.isNode() && process.env.CHECKCK_CKNOWARNERROR) {
 if ($.isNode() && process.env.CHECKCK_ALLNOTIFY) {
 
     strAllNotify = process.env.CHECKCK_ALLNOTIFY;
-/*     if (strTempNotify.length > 0) {
-        for (var TempNotifyl in strTempNotify) {
-            strAllNotify += strTempNotify[TempNotifyl] + '\n';
-        }
-    } */
     console.log(`检测到设定了温馨提示,将在推送信息中置顶显示...`);
     strAllNotify = `\n【✨✨✨✨温馨提示✨✨✨✨】\n` + strAllNotify;
     console.log(strAllNotify);
@@ -138,15 +133,15 @@ if ($.isNode() && process.env.CHECKCK_ALLNOTIFY) {
     }
 
     for (let i = 0; i < envs.length; i++) {
-        if (envs[i].value) {			
-			var tempid=0;
-			if(envs[i]._id){
-				tempid=envs[i]._id;
-			}
-			if(envs[i].id){
-				tempid=envs[i].id;
-			}
-            cookie = await getEnvById(tempid);				
+        if (envs[i].value) {
+            var tempid=0;
+            if(envs[i]._id){
+                tempid=envs[i]._id;
+            }
+            if(envs[i].id){
+                tempid=envs[i].id;
+            }
+            cookie = await getEnvById(tempid);
             $.UserName = (cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
             $.UserName2 = decodeURIComponent($.UserName);
             $.index = i + 1;
@@ -194,7 +189,11 @@ if ($.isNode() && process.env.CHECKCK_ALLNOTIFY) {
                 ReturnMessageTitle = `【账号${IndexAll}🆔】${$.UserName2}`;
             }
 
-            await TotalBean();
+            try {
+                await TotalBean();
+            }catch (e) {
+
+            }
             if ($.NoReturn) {
                 console.log(`接口1检测失败，尝试使用接口2....\n`);
                 await isLoginByX1a0He();
@@ -226,10 +225,10 @@ if ($.isNode() && process.env.CHECKCK_ALLNOTIFY) {
                             if ($.isNode() && WP_APP_TOKEN_ONE) {
                                 strNotifyOneTemp = `京东账号: ${$.nickName || $.UserName2} 已失效,自动禁用成功!\n如果要继续挂机，请联系管理员重新登录账号，账号有效期为30天.`
 
-                                    if (strAllNotify)
-                                        strNotifyOneTemp += `\n` + strAllNotify;
+                                if (strAllNotify)
+                                    strNotifyOneTemp += `\n` + strAllNotify;
 
-                                    await notify.sendNotifybyWxPucher(`${$.name}`, strNotifyOneTemp, `${$.UserName2}`);
+                                await notify.sendNotifybyWxPucher(`${$.name}`, strNotifyOneTemp, `${$.UserName2}`);
                             }
                             console.log(`京东账号${$.index} : ${$.nickName || $.UserName2} 已失效,自动禁用成功!\n`);
                             TempDisableMessage = ReturnMessageTitle + ` (自动禁用成功!)\n`;
@@ -238,10 +237,10 @@ if ($.isNode() && process.env.CHECKCK_ALLNOTIFY) {
                             if ($.isNode() && WP_APP_TOKEN_ONE) {
                                 strNotifyOneTemp = `京东账号: ${$.nickName || $.UserName2} 已失效!\n如果要继续挂机，请联系管理员重新登录账号，账号有效期为30天.`
 
-                                    if (strAllNotify)
-                                        strNotifyOneTemp += `\n` + strAllNotify;
+                                if (strAllNotify)
+                                    strNotifyOneTemp += `\n` + strAllNotify;
 
-                                    await notify.sendNotifybyWxPucher(`${$.name}`, strNotifyOneTemp, `${$.UserName2}`);
+                                await notify.sendNotifybyWxPucher(`${$.name}`, strNotifyOneTemp, `${$.UserName2}`);
                             }
                             console.log(`京东账号${$.index} : ${$.nickName || $.UserName2} 已失效,自动禁用失败!\n`);
                             TempDisableMessage = ReturnMessageTitle + ` (自动禁用失败!)\n`;
@@ -470,9 +469,9 @@ if ($.isNode() && process.env.CHECKCK_ALLNOTIFY) {
         if ($.isNode() && (EnableMessage || DisableMessage || OErrorMessage || CKAlwaysNotify == "true")) {
             console.log("京东CK检测：");
             console.log(allMessage);
-			if (strAllNotify)
-                    allMessage += `\n` + strAllNotify;
-				
+            if (strAllNotify)
+                allMessage += `\n` + strAllNotify;
+
             await notify.sendNotify(`${$.name}`, `${allMessage}`, {
                 url: `https://bean.m.jd.com/beanDetail/index.action?resourceValue=bean`
             })
@@ -481,8 +480,8 @@ if ($.isNode() && process.env.CHECKCK_ALLNOTIFY) {
     }
 
 })()
-.catch((e) => $.logErr(e))
-.finally(() => $.done())
+    .catch((e) => $.logErr(e))
+    .finally(() => $.done())
 
 function TotalBean() {
     return new Promise(async resolve => {
@@ -502,7 +501,7 @@ function TotalBean() {
         $.get(options, (err, resp, data) => {
             try {
                 if (err) {
-                    $.logErr(err)
+                    // $.logErr(err)
                     $.nickName = decodeURIComponent($.UserName);
                     $.NoReturn = `${$.nickName} :` + `${JSON.stringify(err)}\n`;
                 } else {
@@ -528,7 +527,7 @@ function TotalBean() {
                 }
             } catch (e) {
                 $.nickName = decodeURIComponent($.UserName);
-                $.logErr(e)
+                // $.logErr(e)
                 $.NoReturn = `${$.nickName} : 检测出错，不做变动\n`;
             }
             finally {
@@ -591,16 +590,16 @@ function Env(t, e) {
         }
         send(t, e = "GET") {
             t = "string" == typeof t ? {
-                url: t
-            }
-             : t;
+                    url: t
+                }
+                : t;
             let s = this.get;
             return "POST" === e && (s = this.post),
-            new Promise((e, i) => {
-                s.call(this, t, (t, s, r) => {
-                    t ? i(t) : e(s)
+                new Promise((e, i) => {
+                    s.call(this, t, (t, s, r) => {
+                        t ? i(t) : e(s)
+                    })
                 })
-            })
         }
         get(t) {
             return this.send.call(this.env, t)
@@ -612,16 +611,16 @@ function Env(t, e) {
     return new class {
         constructor(t, e) {
             this.name = t,
-            this.http = new s(this),
-            this.data = null,
-            this.dataFile = "box.dat",
-            this.logs = [],
-            this.isMute = !1,
-            this.isNeedRewrite = !1,
-            this.logSeparator = "\n",
-            this.startTime = (new Date).getTime(),
-            Object.assign(this, e),
-            this.log("", `🔔${this.name}, 开始!`)
+                this.http = new s(this),
+                this.data = null,
+                this.dataFile = "box.dat",
+                this.logs = [],
+                this.isMute = !1,
+                this.isNeedRewrite = !1,
+                this.logSeparator = "\n",
+                this.startTime = (new Date).getTime(),
+                Object.assign(this, e),
+                this.log("", `🔔${this.name}, 开始!`)
         }
         isNode() {
             return "undefined" != typeof module && !!module.exports
@@ -678,20 +677,20 @@ function Env(t, e) {
                 i = i ? i.replace(/\n/g, "").trim() : i;
                 let r = this.getdata("@chavy_boxjs_userCfgs.httpapi_timeout");
                 r = r ? 1 * r : 20,
-                r = e && e.timeout ? e.timeout : r;
+                    r = e && e.timeout ? e.timeout : r;
                 const[o, h] = i.split("@"),
-                n = {
-                    url: `http://${h}/v1/scripting/evaluate`,
-                    body: {
-                        script_text: t,
-                        mock_type: "cron",
-                        timeout: r
-                    },
-                    headers: {
-                        "X-Key": o,
-                        Accept: "*/*"
-                    }
-                };
+                    n = {
+                        url: `http://${h}/v1/scripting/evaluate`,
+                        body: {
+                            script_text: t,
+                            mock_type: "cron",
+                            timeout: r
+                        },
+                        headers: {
+                            "X-Key": o,
+                            Accept: "*/*"
+                        }
+                    };
                 this.post(n, (t, e, i) => s(i))
             }).catch(t => this.logErr(t))
         }
@@ -699,11 +698,11 @@ function Env(t, e) {
             if (!this.isNode())
                 return {}; {
                 this.fs = this.fs ? this.fs : require("fs"),
-                this.path = this.path ? this.path : require("path");
+                    this.path = this.path ? this.path : require("path");
                 const t = this.path.resolve(this.dataFile),
-                e = this.path.resolve(process.cwd(), this.dataFile),
-                s = this.fs.existsSync(t),
-                i = !s && this.fs.existsSync(e);
+                    e = this.path.resolve(process.cwd(), this.dataFile),
+                    s = this.fs.existsSync(t),
+                    i = !s && this.fs.existsSync(e);
                 if (!s && !i)
                     return {}; {
                     const i = s ? t : e;
@@ -718,12 +717,12 @@ function Env(t, e) {
         writedata() {
             if (this.isNode()) {
                 this.fs = this.fs ? this.fs : require("fs"),
-                this.path = this.path ? this.path : require("path");
+                    this.path = this.path ? this.path : require("path");
                 const t = this.path.resolve(this.dataFile),
-                e = this.path.resolve(process.cwd(), this.dataFile),
-                s = this.fs.existsSync(t),
-                i = !s && this.fs.existsSync(e),
-                r = JSON.stringify(this.data);
+                    e = this.path.resolve(process.cwd(), this.dataFile),
+                    s = this.fs.existsSync(t),
+                    i = !s && this.fs.existsSync(e),
+                    r = JSON.stringify(this.data);
                 s ? this.fs.writeFileSync(t, r) : i ? this.fs.writeFileSync(e, r) : this.fs.writeFileSync(t, r)
             }
         }
@@ -742,7 +741,7 @@ function Env(t, e) {
             let e = this.getval(t);
             if (/^@/.test(t)) {
                 const[, s, i] = /^@(.*?)\.(.*?)$/.exec(t),
-                r = s ? this.getval(s) : "";
+                    r = s ? this.getval(s) : "";
                 if (r)
                     try {
                         const t = JSON.parse(r);
@@ -757,16 +756,16 @@ function Env(t, e) {
             let s = !1;
             if (/^@/.test(e)) {
                 const[, i, r] = /^@(.*?)\.(.*?)$/.exec(e),
-                o = this.getval(i),
-                h = i ? "null" === o ? null : o || "{}" : "{}";
+                    o = this.getval(i),
+                    h = i ? "null" === o ? null : o || "{}" : "{}";
                 try {
                     const e = JSON.parse(h);
                     this.lodash_set(e, r, t),
-                    s = this.setval(JSON.stringify(e), i)
+                        s = this.setval(JSON.stringify(e), i)
                 } catch (e) {
                     const o = {};
                     this.lodash_set(o, r, t),
-                    s = this.setval(JSON.stringify(o), i)
+                        s = this.setval(JSON.stringify(o), i)
                 }
             } else
                 s = this.setval(t, e);
@@ -780,20 +779,20 @@ function Env(t, e) {
         }
         initGotEnv(t) {
             this.got = this.got ? this.got : require("got"),
-            this.cktough = this.cktough ? this.cktough : require("tough-cookie"),
-            this.ckjar = this.ckjar ? this.ckjar : new this.cktough.CookieJar,
+                this.cktough = this.cktough ? this.cktough : require("tough-cookie"),
+                this.ckjar = this.ckjar ? this.ckjar : new this.cktough.CookieJar,
             t && (t.headers = t.headers ? t.headers : {}, void 0 === t.headers.Cookie && void 0 === t.cookieJar && (t.cookieJar = this.ckjar))
         }
         get(t, e = (() => {})) {
             t.headers && (delete t.headers["Content-Type"], delete t.headers["Content-Length"]),
-            this.isSurge() || this.isLoon() ? (this.isSurge() && this.isNeedRewrite && (t.headers = t.headers || {}, Object.assign(t.headers, {
-                        "X-Surge-Skip-Scripting": !1
-                    })), $httpClient.get(t, (t, s, i) => {
+                this.isSurge() || this.isLoon() ? (this.isSurge() && this.isNeedRewrite && (t.headers = t.headers || {}, Object.assign(t.headers, {
+                    "X-Surge-Skip-Scripting": !1
+                })), $httpClient.get(t, (t, s, i) => {
                     !t && s && (s.body = i, s.statusCode = s.status),
-                    e(t, s, i)
+                        e(t, s, i)
                 })) : this.isQuanX() ? (this.isNeedRewrite && (t.opts = t.opts || {}, Object.assign(t.opts, {
-                        hints: !1
-                    })), $task.fetch(t).then(t => {
+                    hints: !1
+                })), $task.fetch(t).then(t => {
                     const {
                         statusCode: s,
                         statusCode: i,
@@ -811,7 +810,7 @@ function Env(t, e) {
                         if (t.headers["set-cookie"]) {
                             const s = t.headers["set-cookie"].map(this.cktough.Cookie.parse).toString();
                             s && this.ckjar.setCookieSync(s, null),
-                            e.cookieJar = this.ckjar
+                                e.cookieJar = this.ckjar
                         }
                     } catch (t) {
                         this.logErr(t)
@@ -840,15 +839,15 @@ function Env(t, e) {
         post(t, e = (() => {})) {
             if (t.body && t.headers && !t.headers["Content-Type"] && (t.headers["Content-Type"] = "application/x-www-form-urlencoded"), t.headers && delete t.headers["Content-Length"], this.isSurge() || this.isLoon())
                 this.isSurge() && this.isNeedRewrite && (t.headers = t.headers || {}, Object.assign(t.headers, {
-                        "X-Surge-Skip-Scripting": !1
-                    })), $httpClient.post(t, (t, s, i) => {
+                    "X-Surge-Skip-Scripting": !1
+                })), $httpClient.post(t, (t, s, i) => {
                     !t && s && (s.body = i, s.statusCode = s.status),
-                    e(t, s, i)
+                        e(t, s, i)
                 });
             else if (this.isQuanX())
                 t.method = "POST", this.isNeedRewrite && (t.opts = t.opts || {}, Object.assign(t.opts, {
-                        hints: !1
-                    })), $task.fetch(t).then(t => {
+                    hints: !1
+                })), $task.fetch(t).then(t => {
                     const {
                         statusCode: s,
                         statusCode: i,
@@ -912,16 +911,16 @@ function Env(t, e) {
                     return t;
                 if ("string" == typeof t)
                     return this.isLoon() ? t : this.isQuanX() ? {
-                        "open-url": t
-                    }
-                 : this.isSurge() ? {
-                    url: t
-                }
-                 : void 0;
+                            "open-url": t
+                        }
+                        : this.isSurge() ? {
+                                url: t
+                            }
+                            : void 0;
                 if ("object" == typeof t) {
                     if (this.isLoon()) {
                         let e = t.openUrl || t.url || t["open-url"],
-                        s = t.mediaUrl || t["media-url"];
+                            s = t.mediaUrl || t["media-url"];
                         return {
                             openUrl: e,
                             mediaUrl: s
@@ -929,7 +928,7 @@ function Env(t, e) {
                     }
                     if (this.isQuanX()) {
                         let e = t["open-url"] || t.url || t.openUrl,
-                        s = t["media-url"] || t.mediaUrl;
+                            s = t["media-url"] || t.mediaUrl;
                         return {
                             "open-url": e,
                             "media-url": s
@@ -948,13 +947,13 @@ function Env(t, e) {
                 t.push(e),
                 s && t.push(s),
                 i && t.push(i),
-                console.log(t.join("\n")),
-                this.logs = this.logs.concat(t)
+                    console.log(t.join("\n")),
+                    this.logs = this.logs.concat(t)
             }
         }
         log(...t) {
             t.length > 0 && (this.logs = [...this.logs, ...t]),
-            console.log(t.join(this.logSeparator))
+                console.log(t.join(this.logSeparator))
         }
         logErr(t, e) {
             const s = !this.isSurge() && !this.isQuanX() && !this.isLoon();
@@ -965,9 +964,9 @@ function Env(t, e) {
         }
         done(t = {}) {
             const e = (new Date).getTime(),
-            s = (e - this.startTime) / 1e3;
+                s = (e - this.startTime) / 1e3;
             this.log("", `🔔${this.name}, 结束! 🕛 ${s} 秒`),
-            this.log(),
+                this.log(),
             (this.isSurge() || this.isQuanX() || this.isLoon()) && $done(t)
         }
     }

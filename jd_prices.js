@@ -1,15 +1,14 @@
 /*
-注销京东会员卡
-手动注销京东已开的店铺会员, 跑完会给出10条店铺链接
-查看已开店铺会员入口:我的=>我的钱包=>卡包
-cron "1 1 1 1 1" jd_unbind.js
+京东保价
+每天随机运行一次, 无需指定特定时间
  */
-const $ = new Env('手动注销京东会员卡');
-const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
-const notify = $.isNode() ? require('./sendNotify') : '';
 
-//IOS等用户直接用NobyDa的jd cookie
-let cookiesArr = [], cookie = '';
+const $ = new Env('京东保价');
+const notify = $.isNode() ? require('./sendNotify') : '';
+const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
+const jsdom = $.isNode() ? require('jsdom') : '';
+let cookiesArr = [], cookie = '', message, allMessage = '';
+
 if ($.isNode()) {
     Object.keys(jdCookieNode).forEach((item) => {
         cookiesArr.push(jdCookieNode[item])
@@ -18,15 +17,16 @@ if ($.isNode()) {
 } else {
     cookiesArr = [$.getdata('CookieJD'), $.getdata('CookieJD2'), ...jsonParse($.getdata('CookiesJD') || "[]").map(item => item.cookie)].filter(item => !!item);
 }
-const jdNotify = $.getdata('jdUnbindCardNotify');//是否关闭通知，false打开通知推送，true关闭通知推送
-let cardPageSize = 10;  // 运行一次取消多少个会员卡。数字0表示不注销任何会员卡
-let stopCards = `京东PLUS会员`;//遇到此会员卡跳过注销,多个使用&分开
 const JD_API_HOST = 'https://api.m.jd.com/';
+
 !(async () => {
     if (!cookiesArr[0]) {
-        $.msg('【京东账号一】注销京东会员卡失败', '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
+        $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
+        return;
     }
-    await requireConfig()
+
+    await $.wait(parseInt(Math.random() * 10000 + 500, 10))
+    await jstoken();
     for (let i = 0; i < cookiesArr.length; i++) {
         if (cookiesArr[i]) {
             cookie = cookiesArr[i];
@@ -34,10 +34,11 @@ const JD_API_HOST = 'https://api.m.jd.com/';
             $.index = i + 1;
             $.isLogin = true;
             $.nickName = '';
-            $.unsubscribeCount = 0
-            $.cardList = []
+            $.token = '';
+            message = '';
+            $.tryCount = 0;
             //await TotalBean();
-            console.log(`\n开始【京东账号${$.index}】${$.nickName || $.UserName}\n`);
+            console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
             if (!$.isLogin) {
                 $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, {"open-url": "https://bean.m.jd.com/bean/signIndex.action"});
 
@@ -46,10 +47,13 @@ const JD_API_HOST = 'https://api.m.jd.com/';
                 }
                 continue
             }
-            await jdUnbind();
-            await showMsg();
-            await $.wait(5000);
+
+            await price()
+            await $.wait(parseInt(Math.random()*2500+2500,10))
         }
+    }
+    if (allMessage) {
+        if ($.isNode()) await notify.sendNotify(`${$.name}`, `${allMessage}`);
     }
 })()
     .catch((e) => {
@@ -58,133 +62,59 @@ const JD_API_HOST = 'https://api.m.jd.com/';
     .finally(() => {
         $.done();
     })
-async function jdUnbind() {
-    await getCards()
-    await unsubscribeCards()
+
+async function price() {
+    let num = 0
+    do {
+        $.token = $.jab.getToken() || ''
+        if ($.token) {
+            await siteppM_skuOnceApply();
+        }
+        num++
+    } while (num < 3 && !$.token)
+    await showMsg()
 }
-async function unsubscribeCards() {
-    let count = 0
-    $.pushcardList=[]
-    for (let item of $.cardList) {
-        if (count === cardPageSize * 1){
-            console.log(`已达到设定数量:${cardPageSize * 1}`)
-            break
-        }
-        if (stopCards && (item.brandName && stopCards.includes(item.brandName))) {
-            console.log(`匹配到了您设定的会员卡【${item.brandName}】不再进行取消关注会员卡`)
-            continue;
-        }
-        console.log(`去注销会员卡【${item.brandName}】`)
-        let res = await unsubscribeCard(item.brandId);
-        $.pushcardList.push(`去注销会员卡【${item.brandName}】`)
-        $.pushcardList.push(`https://shopmember.m.jd.com/member/memberCloseAccount?venderId=${item.brandId}`)
-        // if (res['success']) {
-        //   if (res['busiCode'] === '200') {
-        //     count++;
-        //     $.unsubscribeCount ++
-        //   }
-        // }
-        // await $.wait(1000)
-        await $.wait(3000);
+
+async function siteppM_skuOnceApply() {
+    let body = {
+        sid: "",
+        type: "25",
+        forcebot: "",
+        token: $.token,
+        feSt: $.token ? "s" : "f"
     }
-
-    let push_len = $.pushcardList.length
-    let push_lena = parseInt(push_len/20)
-    let push_lenb = push_len%20
-
-    if (push_lena == 0) {
-        let tg_text = ''
-        for (a = 0; a < push_len; a++){
-            tg_text = tg_text + $.pushcardList[a] + '\n'
-        }
-        await notify.sendNotify(`京东会员卡注消链接`, `【京东账号${$.index}】${$.UserName}\n${tg_text}`);
-    } else {
-        let step = 0
-        for (step = 0; step < push_lena; step++){
-            let tg_text = ''
-            for (a = 0; a < 20; a++){
-                tg_text = tg_text + $.pushcardList[a+step*20] + '\n'
-            }
-            await notify.sendNotify(`京东会员卡注消链接`, `【京东账号${$.index}】${$.UserName}\n${tg_text}`);
-        }
-
-        let tg_text = ''
-        for (b = 0; b < push_lenb; b++){
-            tg_text = tg_text + $.pushcardList[b+step*20] + '\n'
-        }
-        await notify.sendNotify(`京东会员卡注消链接`, `【京东账号${$.index}】${$.UserName}\n${tg_text}`);
-    }
-
-}
-function showMsg() {
-    if (!jdNotify || jdNotify === 'false') {
-        $.msg($.name, ``, `【京东账号${$.index}】${$.nickName}\n【已注销会员卡】${$.unsubscribeCount}个\n【还剩会员卡】${$.cardsTotalNum-$.unsubscribeCount}个\n`);
-    } else {
-        $.log(`\n【京东账号${$.index}】${$.nickName}\n【已注销会员卡】${$.unsubscribeCount}个\n【还剩会员卡】${$.cardsTotalNum-$.unsubscribeCount}个\n`);
-    }
-}
-async function getCards() {
-    await $.wait(3000);
-    return new Promise((resolve) => {
-        const option = {
-            url: `${JD_API_HOST}client.action?functionId=getWalletReceivedCardList_New`,
-            body: 'body=%7B%22v%22%3A%224.3%22%2C%22version%22%3A1580659200%7D&build=167668&client=apple&clientVersion=9.5.4&openudid=c5eb641f1e40b339e2e111619f22ef1e5fdc7834&rfs=0000&scope=01&sign=c18a161ddaf21f44e9cd56a8db29362e&st=1621407560442&sv=101',
-            headers: {
-                "Host": "api.m.jd.com",
-                "Accept": "*/*",
-                "Connection": "keep-alive",
-                "Cookie": cookie,
-                "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
-                "Accept-Language": "zh-cn",
-                "Accept-Encoding": "gzip, deflate, br"
-            },
-        }
-        $.post(option, (err, resp, data) => {
+    const time = Date.now();
+    const h5st = await $.signWaap("d2f64", {
+        appid: "siteppM",
+        functionId: "siteppM_skuOnceApply",
+        t: time,
+        body: body
+    });
+    return new Promise(async resolve => {
+        await $.wait(2000);
+        $.post(taskUrl("siteppM_skuOnceApply", body, h5st, time), async (err, resp, data) => {
             try {
                 if (err) {
-                    console.log(`${JSON.stringify(err)}`)
-                    console.log(`${$.name} API请求失败，请检查网路重试`)
-                } else {
-                    if (safeGet(data)) {
-                        data = JSON.parse(data);
-                        $.cardsTotalNum = data.result.cardList ? data.result.cardList.length : 0;
-                        $.cardList = data.result.cardList || []
-                    }
-                }
-            } catch (e) {
-                $.logErr(e, resp);
-            } finally {
-                resolve(data);
-            }
-            // console.log($.cardList)
-        });
-    })
-}
-function unsubscribeCard(vendorId) {
-    return new Promise(resolve => {
-        const option = {
-            url: `${JD_API_HOST}unBindCard?appid=jd_shop_member&functionId=unBindCard&body=%7B%22venderId%22:%22${vendorId}%22%7D&clientVersion=1.0.0&client=wh5`,
-            headers: {
-                "Host": "api.m.jd.com",
-                "Accept": "*/*",
-                "Connection": "keep-alive",
-                'origin': 'https://shopmember.m.jd.com',
-                'User-Agent': $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
-                'Referer': `https://shopmember.m.jd.com/member/memberCloseAccount?venderId=${vendorId}`,
-                'Cookie': cookie,
-                "Accept-Language": "zh-cn",
-                "Accept-Encoding": "gzip, deflate, br"
-            },
-        }
-        $.post(option, (err, resp, data) => {
-            try {
-                if (err) {
-                    console.log(`${JSON.stringify(err)}`)
-                    console.log(`${$.name} API请求失败，请检查网路重试`)
+                    console.log(JSON.stringify(err))
+                    console.log(`${$.name} siteppM_skuOnceApply API请求失败，请检查网路重试`);
                 } else {
                     if (safeGet(data)) {
                         data = JSON.parse(data)
-                        console.log(`https://shopmember.m.jd.com/member/memberCloseAccount?venderId=${vendorId}`)
+                        if (data.flag) {
+                            await $.wait(25 * 1000);
+                            await siteppM_appliedSuccAmount();
+                        } else {
+                            console.log(`保价失败：${data.responseMessage}`);
+                            // 重试3次
+                            // if ($.tryCount < 4) {
+                            //     await $.wait(25 * 1000);
+                            //     siteppM_skuOnceApply();
+                            //     $.tryCount++;
+                            // } else {
+                                //message += `保价失败：${data.responseMessage}\n`;
+                            // }
+
+                        }
                     }
                 }
             } catch (e) {
@@ -192,85 +122,168 @@ function unsubscribeCard(vendorId) {
             } finally {
                 resolve(data);
             }
-        });
+        })
     })
 }
-function TotalBean() {
-    return new Promise(async resolve => {
-        const options = {
-            "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
-            "headers": {
-                "Accept": "application/json,text/plain, */*",
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Accept-Encoding": "gzip, deflate, br",
-                "Accept-Language": "zh-cn",
-                "Connection": "keep-alive",
-                "Cookie": cookie,
-                "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
-                "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1")
-            }
-        }
-        $.post(options, (err, resp, data) => {
+function siteppM_appliedSuccAmount() {
+    let body = {
+        sid: "",
+        type: "25",
+        forcebot: "",
+        num: 15
+    }
+
+    return new Promise(resolve => {
+        $.post(taskUrl("siteppM_appliedSuccAmount", body), (err, resp, data) => {
             try {
                 if (err) {
-                    console.log(`${JSON.stringify(err)}`)
-                    console.log(`${$.name} API请求失败，请检查网路重试`)
+                    console.log(JSON.stringify(err))
+                    console.log(`${$.name} siteppM_appliedSuccAmount API请求失败，请检查网路重试`)
                 } else {
-                    if (data) {
-                        data = JSON.parse(data);
-                        if (data['retcode'] === 13) {
-                            $.isLogin = false; //cookie过期
-                            return
-                        }
-                        if (data['retcode'] === 0) {
-                            $.nickName = (data['base'] && data['base'].nickname) || $.UserName;
+                    if (safeGet(data)) {
+                        data = JSON.parse(data)
+                        if (data.flag) {
+                            console.log(`保价成功：返还${data.succAmount}元`)
+                            message += `保价成功：返还${data.succAmount}元\n`
                         } else {
-                            $.nickName = $.UserName
+                            console.log(`保价失败：没有可保价的订单`)
                         }
-                    } else {
-                        console.log(`京东服务器返回空数据`)
                     }
                 }
             } catch (e) {
                 $.logErr(e, resp)
             } finally {
-                resolve();
+                resolve(data)
             }
         })
     })
 }
-function requireConfig() {
+
+async function jstoken() {
+    if ($.jab && $.signWaap) {
+        return;
+    }
+
+    const { JSDOM } = jsdom;
+    let resourceLoader = new jsdom.ResourceLoader({
+        userAgent: $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
+        referrer: "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu"
+    });
+    let virtualConsole = new jsdom.VirtualConsole();
+    let options = {
+        url: "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu",
+        referrer: "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu",
+        userAgent: $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
+        runScripts: "dangerously",
+        resources: resourceLoader,
+        includeNodeLocations: true,
+        storageQuota: 10000000,
+        pretendToBeVisual: true,
+        virtualConsole
+    };
+    const dom = new JSDOM(`<body>
+  <script src="https:////static.360buyimg.com/siteppStatic/script/mescroll/map.js"></script>
+  <script src="https://storage.360buyimg.com/webcontainer/js_security_v3_0.1.0.js"></script>
+  <script src="https://static.360buyimg.com/siteppStatic/script/utils.js"></script>
+  <script src="https://js-nocaptcha.jd.com/statics/js/main.min.js"></script>
+  </body>`, options);
+    await $.wait(parseInt(Math.random()*6000+5000,10))
+    try {
+        $.jab = new dom.window.JAB({
+            bizId: 'jdjiabao',
+            initCaptcha: false
+        });
+        await $.wait(parseInt(Math.random()*2500+2500,10))
+        $.signWaap = dom.window.signWaap;
+    } catch (e) {}
+}
+
+function downloadUrl(url) {
     return new Promise(resolve => {
-        $.UN_BIND_NUM = $.isNode() ? (process.env.UN_BIND_CARD_NUM ? process.env.UN_BIND_CARD_NUM : cardPageSize) : ($.getdata('UN_BIND_CARD_NUM') ? $.getdata('UN_BIND_CARD_NUM') : cardPageSize);
-        $.UN_BIND_STOP_CARD = $.isNode() ? (process.env.UN_BIND_STOP_CARD ? process.env.UN_BIND_STOP_CARD : stopCards) : ($.getdata('UN_BIND_STOP_CARD') ? $.getdata('UN_BIND_STOP_CARD') : stopCards);
-        if ($.UN_BIND_STOP_CARD) {
-            if ($.UN_BIND_STOP_CARD.indexOf('&') > -1) {
-                $.UN_BIND_STOP_CARD = $.UN_BIND_STOP_CARD.split('&');
-            } else if ($.UN_BIND_STOP_CARD.indexOf('@') > -1) {
-                $.UN_BIND_STOP_CARD = $.UN_BIND_STOP_CARD.split('@');
-            } else if ($.UN_BIND_STOP_CARD.indexOf('\n') > -1) {
-                $.UN_BIND_STOP_CARD = $.UN_BIND_STOP_CARD.split('\n');
-            } else if ($.UN_BIND_STOP_CARD.indexOf('\\n') > -1) {
-                $.UN_BIND_STOP_CARD = $.UN_BIND_STOP_CARD.split('\\n');
-            } else {
-                $.UN_BIND_STOP_CARD = $.UN_BIND_STOP_CARD.split();
+        const options = { url, "timeout": 10000 };
+        $.get(options, async (err, resp, data) => {
+            let res = null
+            try {
+                if (err) {
+                    console.log(`⚠️网络请求失败`);
+                } else {
+                    res = data;
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(res);
             }
+        })
+    })
+}
+
+function showMsg() {
+    return new Promise(resolve => {
+        if (message) {
+            allMessage += `【京东账号${$.index}】${$.nickName || $.UserName}\n${message}${$.index !== cookiesArr.length ? '\n\n' : '\n\n'}`;
         }
-        cardPageSize = $.UN_BIND_NUM;
-        stopCards = $.UN_BIND_STOP_CARD;
+        $.msg($.name, '', `【京东账号${$.index}】${$.nickName || $.UserName}\n${message}`);
         resolve()
     })
 }
-function jsonParse(str) {
-    if (typeof str == "string") {
-        try {
-            return JSON.parse(str);
-        } catch (e) {
-            console.log(e);
-            $.msg($.name, '', '请勿随意在BoxJs输入框修改内容\n建议通过脚本去获取cookie')
-            return [];
+
+function taskUrl(functionId, body, h5st = '', time = Date.now()) {
+    return {
+        url: `${JD_API_HOST}api?appid=siteppM&functionId=${functionId}&forcebot=&t=${time}`,
+        body: `body=${encodeURIComponent(JSON.stringify(body))}&h5st=${encodeURIComponent(h5st)}`,
+        headers: {
+            "Host": "api.m.jd.com",
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Origin": "https://msitepp-fm.jd.com",
+            "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+            "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
+            "Referer": "https://msitepp-fm.jd.com/",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Cookie": cookie
         }
     }
+}
+
+function TotalBean() {
+    return new Promise(resolve => {
+        const options = {
+            url: "https://me-api.jd.com/user_new/info/GetJDUserInfoUnion",
+            headers: {
+                "Host": "me-api.jd.com",
+                "Accept": "*/*",
+                "User-Agent": "ScriptableWidgetExtension/185 CFNetwork/1312 Darwin/21.0.0",
+                "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Cookie": cookie
+            }
+        }
+        $.get(options, (err, resp, data) => {
+            try {
+                if (err) {
+                    $.logErr(err)
+                } else {
+                    if (data) {
+                        data = JSON.parse(data);
+                        if (data['retcode'] === "1001") {
+                            $.isLogin = false; //cookie过期
+                            return;
+                        }
+                        if (data['retcode'] === "0" && data.data && data.data.hasOwnProperty("userInfo")) {
+                            $.nickName = data.data.userInfo.baseInfo.nickname;
+                        }
+                    } else {
+                        console.log('京东服务器返回空数据');
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve()
+            }
+        })
+    })
 }
 function safeGet(data) {
     try {
@@ -281,6 +294,17 @@ function safeGet(data) {
         console.log(e);
         console.log(`京东服务器访问数据为空，请检查自身设备网络情况`);
         return false;
+    }
+}
+function jsonParse(str) {
+    if (typeof str == "string") {
+        try {
+            return JSON.parse(str);
+        } catch (e) {
+            console.log(e);
+            $.msg($.name, '', '请勿随意在BoxJs输入框修改内容\n建议通过脚本去获取cookie')
+            return [];
+        }
     }
 }
 

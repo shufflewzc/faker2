@@ -203,7 +203,7 @@ let args_xh = {
                 $.index = i + 1;
                 $.isLogin = true;
                 $.nickName = '';
-                //await totalBean();
+                //await TotalBean();
                 console.log(`\n开始【京东账号${$.index}】${$.nickName || $.UserName}\n`);
                 $.except = false;
                 if(args_xh.except.includes($.UserName)){
