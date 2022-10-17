@@ -427,11 +427,16 @@ if(DisableIndex!=-1){
 			TempBaipiao = "";
 			strGuoqi="";
 			console.log(`******开始查询【京东账号${$.index}】${$.nickName || $.UserName}*********`);
-		
 			await TotalBean();			
 		    //await TotalBean2();
-			
 			if ($.beanCount == 0) {
+				console.log("数据获取失败，等待30秒后重试....")
+				await $.wait(30*1000);
+				await TotalBean();		
+			}
+			if ($.beanCount == 0) {
+				console.log("疑似获取失败,等待10秒后用第二个接口试试....")
+				await $.wait(10*1000);
 			    var userdata = await getuserinfo();
 			    if (userdata.code == 1) {
 			        $.beanCount = userdata.content.jdBean;
@@ -497,7 +502,7 @@ if(DisableIndex!=-1){
 			    TodayCache.push(tempAddCache);
 			}
 						
-			await getjdfruitinfo() //东东农场
+			await getjdfruitinfo(); //东东农场
 			await $.wait(1000);
 			
 			await Promise.all([
@@ -2030,9 +2035,14 @@ function jdfruitRequest(function_id, body = {}, timeout = 1000) {
 						console.log(`function_id:${function_id}`)
 						$.logErr(err);
 					} else {
-						if (safeGet(data)) {
+						if (safeGet(data)) {							
 							data = JSON.parse(data);
-							$.JDwaterEveryDayT = data.totalWaterTaskInit.totalWaterTaskTimes;
+							if (data.code=="400"){
+								console.log('东东农场: '+data.message);
+								llgeterror = true;
+							}
+							else
+								$.JDwaterEveryDayT = data.totalWaterTaskInit.totalWaterTaskTimes;
 						}
 					}
 				} catch (e) {
@@ -2055,7 +2065,10 @@ async function getjdfruitinfo() {
             "channel": 1,
             "babelChannel": "120"
         });
-
+		
+		if (llgeterror)
+			return
+		
         await getjdfruit();
         if (llgeterror) {
             console.log(`东东农场API查询失败,等待10秒后再次尝试...`)
@@ -3053,7 +3066,7 @@ async function queryScores() {
 }
 
 async function getuserinfo() {
-	var body={"pin": "$cooMrdGatewayUid$"};
+	var body=[{"pin": "$cooMrdGatewayUid$"}];
 	var ua = `jdapp;iPhone;${random(["11.1.0", "10.5.0", "10.3.6"])};${random(["13.5", "14.0", "15.0"])};${uuidRandom()};network/wifi;supportApplePay/0;hasUPPay/0;hasOCPay/0;model/iPhone11,6;addressid/7565095847;supportBestPay/0;appBuild/167541;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`;
 
     let config = {
