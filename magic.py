@@ -198,7 +198,7 @@ async def get_activity_info(text):
     return activity_id, url
 
 
-@client.on(events.NewMessage(chats=monitor_cars, pattern=r'(([\s\S]*)export\s?\w*=(".*"|\'.*\')([\s\S]*)|[/ikun])'))
+@client.on(events.NewMessage(chats=monitor_cars, pattern=r'(export\s?\w*=(".*"|\'.*\')|[/ikun])'))
 async def handler(event):
     origin = event.message.text
     text = re.findall(r'https://i.walle.com/api\?data=(.+)?\)', origin)
