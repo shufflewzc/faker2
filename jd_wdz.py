@@ -478,6 +478,10 @@ if __name__ == '__main__':
         venderIds = getSimAct[3]
         actRule = getSimAct[4]
         actRule0 = actRule.replace("\n", "").split("</br>4")[0].split("</br>3)")[1]
+        try:
+            maxGroups = int(actRule0.split("最多可组队")[1].split("次")[0])
+        except:
+            maxGroups = 5
         if num == 1:
             print(f"【活动规则】{actRule0}")
         print(f"【剩余京豆】{beansResidueByDay}")
@@ -542,8 +546,8 @@ if __name__ == '__main__':
                             print(f"🎉加入{isInvi['nickName']}队伍成功")
                             inviteSuccNum += 1
                             print(f"本次车头已邀请{inviteSuccNum}人")
-                            if inviteSuccNum >= maxGroup * 5:
-                                print(f"已达到{maxGroup}组好友,退出程序~")
+                            if inviteSuccNum >= maxGroup * maxGroups:
+                                print(f"已达到{maxGroups}组好友,退出程序~")
                                 sys.exit()
                     else:
                         print("😐加入队伍失败")
