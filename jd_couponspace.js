@@ -47,12 +47,12 @@ if ($.isNode()) {
             if ($.cardlist[0].isOpen){
                 let time = new Date($.exploreEndTime).toLocaleString();
                 console.log('已合成，等待开奖！' + time);
-                return;
+                continue;
             }
             if ($.collectedCardsNum === 5){
                 console.log('已集齐卡片，开始合成');
                 await explorePlanet_compositeCard();
-                return;
+                continue;
             }
             console.log('开始任务...')
             for (let i of Array(5)) {
@@ -82,7 +82,7 @@ if ($.isNode()) {
             if ($.collectedCardsNum === 5){
                 console.log('已集齐卡片，开始合成');
                 await explorePlanet_compositeCard();
-                return;
+                continue;
             }
 
         }
