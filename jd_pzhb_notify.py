@@ -54,7 +54,7 @@ load_send()
 def get_remarkinfo():
     url='http://127.0.0.1:5600/api/envs'
     try:
-        with open(os.getcwd().replace('scripts','config')+'/auth.json', 'r') as f:
+        with open(re.sub('scripts.*','config',os.getcwd())+'/auth.json', 'r') as f:
             token=json.loads(f.read())['token']
         headers={
             'Accept':'application/json',
@@ -118,8 +118,11 @@ if __name__ == '__main__':
         except:
             printf("--账号:" + urllib.parse.unquote(ptpin) + "--")
         getinfo(ck)
-        if inflateMaxAward != 0:
-            msg+=remarkinfos[ptpin] + ' 的膨胀红包最大金额为 '+str(inflateMaxAward)+' 元\n'
+        try:
+            if inflateMaxAward != 0:
+                msg+=remarkinfos[ptpin] + ' 的膨胀红包最大金额为 '+str(inflateMaxAward)+' 元\n'
+        except:
+                msg+=urllib.parse.unquote(ptpin) + ' 的膨胀红包最大金额为 '+str(inflateMaxAward)+' 元\n'
     if sendnoty:
         try:
            send('穿越寻宝膨胀红包',msg)
