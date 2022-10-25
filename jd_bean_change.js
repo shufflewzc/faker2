@@ -14,7 +14,8 @@ const JXUserAgent = $.isNode() ? (process.env.JX_USER_AGENT ? process.env.JX_USE
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 let NowHour = new Date().getHours();
 
-let checkbeanDetailMode=0;
+//默认开启缓存模式
+let checkbeanDetailMode=1;
 if ($.isNode() && process.env.BEANCHANGE_BEANDETAILMODE){
 	checkbeanDetailMode=process.env.BEANCHANGE_BEANDETAILMODE*1;
 }
