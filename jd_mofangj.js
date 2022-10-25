@@ -1,14 +1,17 @@
 /*
-空气、18豆、36豆、72豆
-cron "8 15 25 10 *" jd_mfredrain.js
+京东集魔方
  */
 
-const $ = new Env('魔方红包雨');
+const $ = new Env('京东集魔方');
 const notify = $.isNode() ? require('./sendNotify') : '';
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
-let jdNotify = true;
-let cookiesArr = [], cookie = '', message = '';
-let encryptProjectId = '3NhNqgKD5WYkmLLsudX1Z2vVS5pP';
+
+
+let jdNotify = true;//是否关闭通知，false打开通知推送，true关闭通知推送
+let cookiesArr = [], cookie = '', message;
+let uuid
+$.shareCodes = []
+let hotInfo = {}
 if ($.isNode()) {
     Object.keys(jdCookieNode).forEach((item) => {
         cookiesArr.push(jdCookieNode[item])
@@ -30,18 +33,24 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
             $.index = i + 1;
             $.isLogin = true;
             $.nickName = '';
-            //await TotalBean();
+            message = '';
+            await TotalBean();
             console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
             if (!$.isLogin) {
                 $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
+
                 if ($.isNode()) {
                     await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
                 }
                 continue
             }
-
-            await dotask();
-            await $.wait(1500)
+            $.sku = []
+            $.sku2 = []
+            $.adv = []
+            $.hot = false
+            uuid = randomString(40)
+            await jdMofang()
+            hotInfo[$.UserName] = $.hot
         }
     }
 })()
@@ -52,21 +61,101 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
         $.done();
     })
 
+async function jdMofang() {
+    console.log(`\n集魔方 抽京豆 赢新品`)
+    await getInteractionInfo()
+}
 
-
-async function dotask() {
+//第二个
+async function getInteractionInfo(type = true) {
     return new Promise(async (resolve) => {
-        $.get(taskUrl(), async (err, resp, data) => {
+        $.post(taskPostUrl("getInteractionInfo", {"geo":{"lng":"106.47647010204035","lat":"29.502312842810458"},"mcChannel":0,"sign":3}), async (err, resp, data) => {
             try {
                 if (err) {
                     console.log(`${JSON.stringify(err)}`)
-                    console.log(`doInteractiveAssignment API请求失败，请检查网路重试`)
+                    console.log(`getInteractionInfo API请求失败，请检查网路重试`)
                 } else {
-                    data = JSON.parse(data)
-                    if (data.subCode == 0){
-                        console.log(data.rewardsInfo?.successRewards[3][0]?.rewardName||'空气')
-                    }else{
-                        console.log(data.msg)
+                    if (safeGet(data)) {
+                        data = JSON.parse(data)
+                        // console.log(data.result.taskPoolInfo.taskList);
+                        if (type) {
+                            $.interactionId = data.result.interactionId
+                            $.taskPoolId = data.result.taskPoolInfo.taskPoolId
+                            for (let key of Object.keys(data.result.taskPoolInfo.taskList)) {
+                                let vo = data.result.taskPoolInfo.taskList[key]
+                                if (vo.taskStatus === 0) {
+                                    if (vo.taskId === 2004) {
+                                        await queryPanamaFloor()
+                                        for (let id of $.sku2) {
+                                            $.complete = false
+                                            await executeNewInteractionTask(vo.taskId, id)
+                                            await $.wait(2000)
+                                            if ($.complete) break
+                                        }
+                                    }
+                                    if (vo.taskId === 2002) {
+                                        await qryCompositeMaterials()
+                                        for (let id of $.sku) {
+                                            $.complete = false
+                                            await executeNewInteractionTask(vo.taskId, id)
+                                            await $.wait(2000)
+                                            if ($.complete) break
+                                        }
+                                    }
+                                    if (vo.taskId === 2006) {
+                                        await qryCompositeMaterials2()
+                                        for (let id2 of $.adv) {
+                                            $.complete = false
+                                            await executeNewInteractionTask(vo.taskId, id2)
+                                            await $.wait(2000)
+                                            if ($.complete) break
+                                        }
+                                    }
+                                } else {
+                                    console.log(`已找到当前魔方`)
+                                }
+                            }
+                            data = await getInteractionInfo(false)
+                            if (data.result.hasFinalLottery === 0) {
+                                let num = 0
+                                for (let key of Object.keys(data.result.taskPoolInfo.taskRecord)) {
+                                    let vo = data.result.taskPoolInfo.taskRecord[key]
+                                    num += vo
+                                }
+                                if (num >= 9) {
+                                    console.log(`共找到${num}个魔方，可开启礼盒`)
+                                    await getNewFinalLotteryInfo()
+                                } else {
+                                    console.log(`共找到${num}个魔方，不可开启礼盒`)
+                                }
+                            } else {
+                                console.log(`已开启礼盒`)
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(data)
+            }
+        })
+    })
+}
+function queryPanamaFloor() {
+    return new Promise((resolve) => {
+        $.post(taskPostUrl("qryCompositeMaterials", {"geo":{"lng":"106.47647010204035","lat":"29.502312842810458"},"mcChannel":0,"activityId":"01235772","pageId":"3620025","qryParam":"[{\"type\":\"advertGroup\",\"id\":\"06327486\",\"mapTo\":\"advData\",\"next\":[{\"type\":\"productGroup\",\"mapKey\":\"comment[0]\",\"mapTo\":\"productGroup\",\"attributes\":13}]}]","applyKey":"21new_products_h"}), (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(`queryPanamaFloor API请求失败，请检查网路重试`)
+                } else {
+                    if (safeGet(data)) {
+                        data = JSON.parse(data)
+                        if(data) {
+                            $.sku2 = ["100040841833","10061725999787","100006061653","100006061653","100026676965", "100040026969", "100042896729", "100037217923", "100038193673", "100039920647", "10057211785565"]
+                            // $.sku2.push(skuVo.advertId)
+                        }
                     }
                 }
             } catch (e) {
@@ -78,17 +167,157 @@ async function dotask() {
     })
 }
 
-function taskUrl() {
+function qryCompositeMaterials() {
+    return new Promise((resolve) => {
+        $.post(taskPostUrl("qryCompositeMaterials", {"geo":null,"mcChannel":0,"activityId":"01235772","pageId":"3620025","qryParam":"[{\"type\":\"advertGroup\",\"id\":\"06327486\",\"mapTo\":\"advData\",\"next\":[{\"type\":\"productGroup\",\"mapKey\":\"comment[0]\",\"mapTo\":\"productGroup\",\"attributes\":13}]}]","applyKey":"21new_products_h"}), (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(`qryCompositeMaterials API请求失败，请检查网路重试`)
+                } else {
+                    if (safeGet(data)) {
+                        data = JSON.parse(data)
+                        //console.log(data)
+                        if(data) {
+                            $.sku = ["100040841833","10061725999787","100006061653","100006061653","100026676965", "100040026969", "100042896729", "100037217923", "100038193673", "100039920647", "10057211785565"]
+                            // $.sku2.push(skuVo.advertId)
+                        }
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(data)
+            }
+        })
+    })
+}
+
+function qryCompositeMaterials2() {
+    return new Promise((resolve) => {
+        $.post(taskPostUrl("qryCompositeMaterials", {"geo":null,"mcChannel":0,"activityId":"01213138","pageId":"3513123","qryParam":"[{\"type\":\"advertGroup\",\"id\":\"06290597\",\"mapTo\":\"advData\",\"next\":[{\"type\":\"productGroup\",\"mapKey\":\"comment[0]\",\"mapTo\":\"productGroup\",\"attributes\":13}]}]","applyKey":"21new_products_h"}), (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(`qryCompositeMaterials API请求失败，请检查网路重试`)
+                } else {
+                    if (safeGet(data)) {
+                        data = JSON.parse(data)
+                        //console.log(data);
+                        if(data) {
+                            $.adv = ["8801668406","6301676863"]
+                            // $.sku2.push(skuVo.advertId)
+                        }
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(data)
+            }
+        })
+    })
+}
+function executeNewInteractionTask(taskType, advertId) {
+    body = { "geo": null, "mcChannel": 0, "sign": 3, "interactionId": $.interactionId, "taskPoolId": $.taskPoolId, "taskType": taskType, "advertId": advertId }
+    if (taskType === 2002) {
+        body = { "geo": null, "mcChannel": 0, "sign": 3, "interactionId": $.interactionId, "taskPoolId": $.taskPoolId, "taskType": taskType, "sku": advertId }
+    }
+    return new Promise((resolve) => {
+        $.post(taskPostUrl("executeNewInteractionTask", body), (err, resp, data) => {
+            // console.log(taskPostUrl("executeNewInteractionTask", body));
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(`${$.name} executeNewInteractionTask API请求失败，请检查网路重试`)
+                } else {
+                    if (safeGet(data)) {
+                        data = JSON.parse(data)
+                        if (data.result.hasDown === 1) {
+                            console.log(data.result.isLottery === 1 ? `找到了一个魔方，获得${data.result.lotteryInfoList[0].quantity || ''}${data.result.lotteryInfoList[0].name}` : `找到了一个魔方`)
+                            $.complete = true
+                        }
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(data)
+            }
+        })
+    })
+}
+function getNewFinalLotteryInfo() {
+    return new Promise((resolve) => {
+        $.post(taskPostUrl("getNewFinalLotteryInfo", { "geo": null, "mcChannel": 0, "sign": 3, "interactionId": $.interactionId }), (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(`${$.name} getNewFinalLotteryInfo API请求失败，请检查网路重试`)
+                } else {
+                    if (safeGet(data)) {
+                        data = JSON.parse(data)
+                        if (data.result.lotteryStatus === 1) {
+                            console.log(`开启礼盒成功：获得${data.result.lotteryInfoList[0].quantity}${data.result.lotteryInfoList[0].name}`)
+                        } else {
+                            console.log(`开启礼盒成功：${data.result.toast}`)
+                        }
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(data)
+            }
+        })
+    })
+}
+
+
+function taskPostUrl(functionId, body = {}) {
+    body = JSON.stringify(body)
+    if (functionId === "queryPanamaPage") body = escape(body)
     return {
-        url: `https://api.m.jd.com/client.action?client=wh5&clientVersion=1.0.0&appid=redrain-2021&functionId=doInteractiveAssignment&body=%7B%22completionFlag%22:true,%22sourceCode%22:%22acehby20210924%22,%22encryptProjectId%22:%222Hp1k6nThCcCdsG7Yu2fponFeVCv%22,%22encryptAssignmentId%22:%223c1UYoiXAuVCffASWpUEQeE2sx2a%22%7D`,
+        url: `${JD_API_HOST}?functionId=${functionId}&body=${encodeURI((body))}&client=wh5&clientVersion=10.1.4&appid=content_ecology&uuid=${uuid}&t=${Date.now()}`,
         headers: {
             'Host': 'api.m.jd.com',
-            'accept':'application/json, text/plain, */*',
+            'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/x-www-form-urlencoded',
             'Origin': 'https://prodev.m.jd.com',
+            'Accept-Language': 'zh-cn',
             'User-Agent': $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
+            'Referer': 'https://prodev.m.jd.com/mall/active/TqTRGRrp9HZTfeyRTL2UGmX4mHG/index.html?babelChannel=ttt30',
+            'Accept-Encoding': 'gzip, deflate, br',
             'Cookie': cookie
         }
     }
+}
+
+
+function taskSignUrl(url, body) {
+    return {
+        url,
+        body: `body=${escape(body)}`,
+        headers: {
+            'Cookie': cookie,
+            'Host': 'api.m.jd.com',
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Referer': '',
+            'User-Agent': 'JD4iPhone/167774 (iPhone; iOS 14.7.1; Scale/3.00)',
+            'Accept-Language': 'zh-Hans-CN;q=1',
+            'Accept-Encoding': 'gzip, deflate, br',
+        }
+    }
+}
+function randomString(e) {
+    let t = "abcdef0123456789"
+    if (e === 16) t = "abcdefghijklmnopqrstuvwxyz0123456789"
+    e = e || 32;
+    let a = t.length, n = "";
+    for (let i = 0; i < e; i++)
+        n += t.charAt(Math.floor(Math.random() * a));
+    return n
 }
 
 function TotalBean() {
@@ -114,7 +343,7 @@ function TotalBean() {
                     if (data) {
                         data = JSON.parse(data);
                         if (data['retcode'] === 1001) {
-                            $.isLogin = false;
+                            $.isLogin = false; //cookie过期
                             return;
                         }
                         if (data['retcode'] === 0 && data.data && data.data.hasOwnProperty("userInfo")) {
