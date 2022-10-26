@@ -306,7 +306,7 @@ if(DisableIndex!=-1){
 }	
 
 //金融养猪
-let EnablePigPet=true;
+let EnablePigPet=false;
 DisableIndex=strDisableList.findIndex((item) => item === "金融养猪");
 if(DisableIndex!=-1){
 	console.log("检测到设定关闭金融养猪查询");
