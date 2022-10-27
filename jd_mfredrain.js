@@ -1,11 +1,15 @@
 /*
 空气、18豆、36豆、72豆
-cron "8 15 25 10 *" jd_mfredrain.js
+自行替换
+cron "1 1 1 1 1" jd_mfredrain.js
+默认不执行
  */
 
 const $ = new Env('魔方红包雨');
 const notify = $.isNode() ? require('./sendNotify') : '';
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
+
+
 let jdNotify = true;
 let cookiesArr = [], cookie = '', message = '';
 let encryptProjectId = '3NhNqgKD5WYkmLLsudX1Z2vVS5pP';
@@ -17,6 +21,8 @@ if ($.isNode()) {
 } else {
     cookiesArr = [$.getdata('CookieJD'), $.getdata('CookieJD2'), ...jsonParse($.getdata('CookiesJD') || "[]").map(item => item.cookie)].filter(item => !!item);
 }
+
+
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
 !(async () => {
     if (!cookiesArr[0]) {
@@ -41,7 +47,7 @@ const JD_API_HOST = 'https://api.m.jd.com/client.action';
             }
 
             await dotask();
-            await $.wait(1500)
+            await $.wait(1800)
         }
     }
 })()

@@ -334,7 +334,8 @@ def shopmember(cookie):
 def bindWithVender(cookie):
     try:
         body = {"venderId": user_id, "shopId": user_id, "bindByVerifyCodeFlag": 1,"registerExtend": {},"writeChildFlag":0, "channel": 401}
-        url = f'https://api.m.jd.com/client.action?appid=jd_shop_member&functionId=bindWithVender&body={json.dumps(body)}&client=H5&clientVersion=9.2.0&uuid=88888&h5st=20220614102046318%3B7327310984571307%3Bef79a%3Btk02wa31b1c7718neoZNHBp75rw4pE%2Fw7fXko2SdFCd1vIeWy005pEHdm0lw2CimWpaw3qc9il8r9xVLHp%2Bhzmo%2B4swg%3Bdd9526fc08234276b392435c8623f4a737e07d4503fab90bf2cd98d2a3a778ac%3B3.0%3B1655173246318'
+        h5st = getH5st("bindWithVender", body)
+        url = f"https://api.m.jd.com/client.action?appid=jd_shop_member&functionId=bindWithVender&body={quote_plus(json.dumps(body, separators=(',', ':')))}&client=H5&clientVersion=9.2.0&uuid=88888&h5st={h5st}"
         headers = {
             'Host': 'api.m.jd.com',
             'Cookie': cookie,
@@ -345,7 +346,7 @@ def bindWithVender(cookie):
             'Referer': f'https://shopmember.m.jd.com/shopcard/?venderId={user_id}&channel=401&returnUrl={quote_plus(activityUrl + "&isOpenCard=1")}'
         }
         response = requests.get(url=url, headers=headers, timeout=30).text
-        res = json.loads(response)
+        res = json.loads(re.match(".*?({.*}).*", response, re.S).group(1))
         if res['success']:
             open_result = res['message']
             if "火爆" in open_result:
