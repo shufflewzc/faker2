@@ -1,8 +1,8 @@
 
 /*
-入口：领券中心-右侧悬浮
-15 8,14 * * * https://raw.githubusercontent.com/6dylan6/jdpro/main/jd_couponspace.js
-updatetime: 2022/10/20
+入口：领券中心
+15 8,12,21 * * * https://raw.githubusercontent.com/6dylan6/jdpro/main/jd_couponspace.js
+updatetime: 2022/10/27 
  */
 
 const $ = new Env('卷民空间站分红包');
@@ -11,6 +11,8 @@ const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 let jdNotify = true;
 //IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '', message = '';
+let groId = [];
+let mssion = false;
 if ($.isNode()) {
     Object.keys(jdCookieNode).forEach((item) => {
         cookiesArr.push(jdCookieNode[item])
@@ -40,16 +42,21 @@ if ($.isNode()) {
                 }
                 continue
             }
+
             //await getExploreStatus();
             await homepage();
             await $.wait(500);
-            console.log('当前已有卡片：'+$.collectedCardsNum);
-            if ($.cardlist[0].isOpen){
+            console.log('当前已有卡片：' + $.collectedCardsNum);
+            if ($.cardlist[0].isOpen) {
                 let time = new Date($.exploreEndTime).toLocaleString();
                 console.log('已合成，等待开奖！' + time);
+                if (Date.now() >= $.exploreEndTime) {
+                    console.log('已到开奖时间，去开奖')
+                    await explorePlanet_divideReward();
+                }
                 continue;
             }
-            if ($.collectedCardsNum === 5){
+            if ($.collectedCardsNum === 5) {
                 console.log('已集齐卡片，开始合成');
                 await explorePlanet_compositeCard();
                 continue;
@@ -60,14 +67,17 @@ if ($.isNode()) {
                 await $.wait(500);
                 for (let item of $.tasklist) {
                     if (item.completedItemCount === item.groupItemCount) continue;
-                    await explorePlanet_taskReport(item.encryptTaskId, item.itemId,0);
+                    mssion = true;
+                    await explorePlanet_taskReport(item.encryptTaskId, item.itemId, 0);
                     await $.wait(1000);
                 }
                 for (let item of $.specialComponentTaskInfo) {
                     if (item.completedItemCount === item.groupItemCount || item.waitDuration !== 0) continue;
-                    await explorePlanet_taskReport(item.encryptTaskId, item.itemId,1);
+                    mssion = true;
+                    await explorePlanet_taskReport(item.encryptTaskId, item.itemId, 1);
                     await $.wait(1000);
                 }
+                if (!mssion) break;
                 //await $.wait(1000);
             }
             await homepage();
@@ -77,17 +87,22 @@ if ($.isNode()) {
                 await explorePlanet_explore();
                 await $.wait(500);
             }
+
             await homepage();
             await $.wait(500);
-            if ($.collectedCardsNum === 5){
+            if ($.collectedCardsNum === 5) {
                 console.log('已集齐卡片，开始合成');
                 await explorePlanet_compositeCard();
                 continue;
             }
-
+            await $.wait(500);
+            await explorePlanet_openGroup();
         }
         await $.wait(2000)
     }
+
+    console.log('\n\n开始内部互助...')
+    await help();
 })()
     .catch((e) => {
         $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
@@ -96,8 +111,19 @@ if ($.isNode()) {
         $.done();
     })
 
-
-
+async function help() {
+    for (let i = 0; i < cookiesArr.length; i++) {
+        $.nohelp = false;
+        for (let j of groId) {
+            console.log('去助力-->' + j);
+            if (!$.nohelp) {
+                cookie = cookiesArr[i];
+                await explorePlanet_assist(j);
+                await $.wait(500);
+            }
+        }
+    }
+}
 async function homepage() {
     return new Promise(async (resolve) => {
         $.post(taskUrl('explorePlanet_homePage', 'body={ "channel": "1" }'), async (err, resp, data) => {
@@ -110,7 +136,7 @@ async function homepage() {
                     if (data.data.biz_code === 0) {
                         $.activityid = data.data.result.activityId;
                         $.collectedCardsNum = data.data.result.collectedCardsNum;
-                        $.drawCardChance = data.data.result.drawCardChance||0;
+                        $.drawCardChance = data.data.result.drawCardChance || 0;
                         $.cardlist = data.data.result.cards;
                         $.exploreEndTime = data.data.result.exploreEndTime;
                     } else {
@@ -127,7 +153,7 @@ async function homepage() {
 }
 async function explorePlanet_taskList() {
     return new Promise(async (resolve) => {
-        $.post(taskUrl('explorePlanet_taskList', 'body={"activityId":9}'), async (err, resp, data) => {
+        $.post(taskUrl('explorePlanet_taskList', `body={"activityId":${$.activityid}}`), async (err, resp, data) => {
             try {
                 if (err) {
                     console.log(`${JSON.stringify(err)}`)
@@ -156,7 +182,7 @@ async function explorePlanet_taskList() {
 async function explorePlanet_taskReport(encryptTaskId, itemId, flag) {
     if (flag === 1) $.componentTaskPid = $.specialComponentTaskPid;
     return new Promise(async (resolve) => {
-        $.post(taskUrl('explorePlanet_taskReport', `body={"activityId":9,"encryptTaskId":"${encryptTaskId}","encryptProjectId":"${$.componentTaskPid}","itemId":"${itemId}"}`), async (err, resp, data) => {
+        $.post(taskUrl('explorePlanet_taskReport', `body={"activityId":${$.activityid},"encryptTaskId":"${encryptTaskId}","encryptProjectId":"${$.componentTaskPid}","itemId":"${itemId}"}`), async (err, resp, data) => {
             try {
                 if (err) {
                     console.log(`${JSON.stringify(err)}`)
@@ -179,7 +205,7 @@ async function explorePlanet_taskReport(encryptTaskId, itemId, flag) {
 }
 async function explorePlanet_explore() {
     return new Promise(async (resolve) => {
-        $.post(taskUrl('explorePlanet_explore', 'body={"activityId":9}'), async (err, resp, data) => {
+        $.post(taskUrl('explorePlanet_explore', `body={"activityId":${$.activityid}}`), async (err, resp, data) => {
             try {
                 if (err) {
                     console.log(`${JSON.stringify(err)}`)
@@ -202,7 +228,7 @@ async function explorePlanet_explore() {
 }
 async function explorePlanet_compositeCard() {
     return new Promise(async (resolve) => {
-        $.post(taskUrl('explorePlanet_compositeCard', 'body={"activityId":9}'), async (err, resp, data) => {
+        $.post(taskUrl('explorePlanet_compositeCard', `body={"activityId":${$.activityid}}`), async (err, resp, data) => {
             try {
                 if (err) {
                     console.log(`${JSON.stringify(err)}`)
@@ -210,10 +236,83 @@ async function explorePlanet_compositeCard() {
                 } else {
                     data = JSON.parse(data)
                     if (data.data.biz_code === 0) {
-                        console.log('合成成功 ' + data.data.result.cardInfo.cardName||'');
-                        console.log('等待 '+new Date($.exploreEndTime).toLocaleString()+' 开奖');
+                        console.log('合成成功 ' + data.data.result.cardInfo.cardName || '');
+                        console.log('等待 ' + new Date($.exploreEndTime).toLocaleString() + ' 开奖');
                     } else {
                         console.log(data.data.biz_msg)
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(data)
+            }
+        })
+    })
+}
+
+async function explorePlanet_assist(gId) {
+    return new Promise(async (resolve) => {
+        $.post(taskUrl('explorePlanet_assist', `body={"activityId":${$.activityid},"groupId":${gId},"eu":"","fv":""}`), async (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(` API请求失败，请检查网路重试`)
+                } else {
+                    data = JSON.parse(data)
+                    if (data.data.biz_code === 0) {
+                        console.log('助力成功 ' + gId);
+                    } else if (data.data.biz_code === 1006) {
+                        $.nohelp = true;
+                    } else {
+                        console.log(data.data.biz_msg)
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(data)
+            }
+        })
+    })
+}
+async function explorePlanet_openGroup() {
+    return new Promise(async (resolve) => {
+        $.post(taskUrl('explorePlanet_openGroup', `body={"activityId":${$.activityid}}`), async (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(` API请求失败，请检查网路重试`)
+                } else {
+                    data = JSON.parse(data)
+                    if (data.data.biz_code !== 1004) {
+                        console.log('互助码：' + data.data.result.groupId)
+                        groId.push(data.data.result.groupId);
+                    } else {
+                        console.log(data.data.biz_msg)
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(data)
+            }
+        })
+    })
+}
+async function explorePlanet_divideReward() {
+    return new Promise(async (resolve) => {
+        $.post(taskUrl('explorePlanet_divideReward', `body={"activityId":${$.activityid}}`), async (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(` API请求失败，请检查网路重试`)
+                } else {
+                    data = JSON.parse(data)
+                    if (data.data.biz_code === 0) {
+                        console.log('获得红包：' + data.data.result.discount);
+                    } else {
+                        console.log(data.data.biz_msg);
                     }
                 }
             } catch (e) {
@@ -274,45 +373,33 @@ function taskUrl(fn, body) {
 }
 
 function TotalBean() {
-    return new Promise(async resolve => {
+    return new Promise((resolve) => {
         const options = {
-            url: "https://wq.jd.com/user_new/info/GetJDUserInfoUnion?sceneval=2",
+            url: 'https://plogin.m.jd.com/cgi-bin/ml/islogin',
             headers: {
-                Host: "wq.jd.com",
-                Accept: "*/*",
-                Connection: "keep-alive",
-                Cookie: cookie,
-                "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
-                "Accept-Language": "zh-cn",
-                "Referer": "https://home.m.jd.com/myJd/newhome.action?sceneval=2&ufc=&",
-                "Accept-Encoding": "gzip, deflate, br"
-            }
+                "Cookie": cookie,
+                "referer": "https://h5.m.jd.com/",
+                "User-Agent": $.UA,
+            },
+            timeout: 10000
         }
         $.get(options, (err, resp, data) => {
             try {
-                if (err) {
-                    $.logErr(err)
-                } else {
-                    if (data) {
-                        data = JSON.parse(data);
-                        if (data['retcode'] === 1001) {
-                            $.isLogin = false;
-                            return;
-                        }
-                        if (data['retcode'] === 0 && data.data && data.data.hasOwnProperty("userInfo")) {
-                            $.nickName = data.data.userInfo.baseInfo.nickname;
-                        }
-                    } else {
-                        console.log('京东服务器返回空数据');
+                if (data) {
+                    data = JSON.parse(data);
+                    if (data.islogin === "1") {
+                    } else if (data.islogin === "0") {
+                        $.isLogin = false;
                     }
                 }
             } catch (e) {
-                $.logErr(e)
-            } finally {
+                console.log(e);
+            }
+            finally {
                 resolve();
             }
-        })
-    })
+        });
+    });
 }
 function showMsg() {
     return new Promise(resolve => {

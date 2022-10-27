@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*
 '''
+定时自定义
+1 1 1 1 1 jd_wskey.py
 new Env('wskey转换');
 '''
 import socket  # 用于端口检测
@@ -32,7 +34,7 @@ except Exception as e:  # 异常捕捉
 os.environ['no_proxy'] = '*'  # 禁用代理
 requests.packages.urllib3.disable_warnings()  # 抑制错误
 try:  # 异常捕捉
-    from notify import send  # 导入青龙消息通知模块
+    from sendNotify import send  # 导入青龙消息通知模块
 except Exception as err:  # 异常捕捉
     logger.debug(str(err))  # 调试日志输出
     logger.info("无推送文件")  # 标准日志输出
@@ -283,7 +285,7 @@ def check_ck(ck):  # 方法 检查 Cookie有效性 使用变量传递 单次调�
             'user-agent': ua
         }  # 设置 HTTP头
         try:  # 异常捕捉
-            res = requests.get(url=url, headers=headers, verify=False, timeout=10)  # 进行 HTTP请求[GET] 超时 10秒
+            res = requests.get(url=url, headers=headers, verify=False, timeout=10, allow_redirects=False)  # 进行 HTTP请求[GET] 超时 10秒
         except Exception as err:  # 异常捕捉
             logger.debug(str(err))  # 调试日志输出
             logger.info("JD接口错误 请重试或者更换IP")  # 标准日志输出
