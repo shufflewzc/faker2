@@ -33,6 +33,7 @@ if ($.isNode()) {
             $.index = i + 1;
             $.isLogin = true;
             $.nickName = '';
+            $.end = false;
             await TotalBean();
             console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
             if (!$.isLogin) {
@@ -44,7 +45,9 @@ if ($.isNode()) {
             }
 
             //await getExploreStatus();
+            console.log('本期活动已结束！') ; break;
             await homepage();
+            if ($.end) break;
             await $.wait(500);
             console.log('当前已有卡片：' + $.collectedCardsNum);
             if ($.cardlist[0].isOpen) {
@@ -139,8 +142,11 @@ async function homepage() {
                         $.drawCardChance = data.data.result.drawCardChance || 0;
                         $.cardlist = data.data.result.cards;
                         $.exploreEndTime = data.data.result.exploreEndTime;
+                    } else if (data.data.biz_msg.indexOf('结束') > -1) {
+                        $.end = true;
+                        console.log('本期活动结束！');
                     } else {
-                        console.log(data.data.biz_msg)
+                        console.log(data.data.biz_msg);
                     }
                 }
             } catch (e) {
