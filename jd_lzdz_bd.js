@@ -135,7 +135,7 @@ async function member() {
           $.log(`>>> 去加入 ${vo}`);
           $.log(`>>> 准备加入会员`);
               bindWithVender({ venderId: vo, bindByVerifyCodeFlag: 1, registerExtend: {}, writeChildFlag: 0, activityId: 2317870, channel: 401 }, vo)
-              await $.wait(1000);
+              await $.wait(5000);
         }
       } else {
         $.log("没有获取到对应的任务。\n");
