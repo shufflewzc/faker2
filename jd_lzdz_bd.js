@@ -134,7 +134,7 @@ async function member() {
         for (const vo of $.openCardList) {
           $.log(`>>> 去加入 ${vo}`);
           $.log(`>>> 准备加入会员`);
-              bindWithVender({ venderId: vo, bindByVerifyCodeFlag: 1, registerExtend: {}, writeChildFlag: 0, activityId: 2317870, channel: 401 }, vo)
+              await bindWithVender({ venderId: vo, bindByVerifyCodeFlag: 1, registerExtend: {}, writeChildFlag: 0, activityId: 2317870, channel: 401 }, vo)
               await $.wait(5000);
         }
       } else {
