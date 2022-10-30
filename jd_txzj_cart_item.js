@@ -1,5 +1,5 @@
 /*
-txzj一键关注 领取好礼
+txzj 加购有礼
 不自动入会，不自动入会，不自动入会
 地址：
 https://t.me/proenvc
@@ -10,7 +10,7 @@ export jd_txzj_cart_item_num="15"                   执行前多少个号  不�
 cron "1 1 1 1 1" jd_txzj_cart_item.js
 */
 
-const $ = new Env('txzj一键关注 领取好礼')
+const $ = new Env('txzj 加购有礼')
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const notify = $.isNode() ? require('./sendNotify') : '';
 
