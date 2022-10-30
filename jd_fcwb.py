@@ -120,7 +120,7 @@ def taskGetUrl(functionId, body, cookie):
     }
     for n in range(3):
         try:
-            res=requests.get(url,headers=headers, timeout=10).json()
+            res=requests.get(url,headers=headers, timeout=30).json()
             return res
         except:
             if n==2:
@@ -221,7 +221,7 @@ def happyDigHome(cookie):
  # 玩一玩
 def apDoTask(cookie):
      print('开始做玩一玩任务')
-     body={"linkId":linkId,"taskType":"BROWSE_CHANNEL","taskId":840,"channel":4,"itemId":"https%3A%2F%2Fprodev.m.jd.com%2Fjdlite%2Factive%2FeVgKdaU5TKnGZfSWCRe79hqfLXp%2Findex.html","checkVersion":False}
+     body={"linkId":linkId,"taskType":"BROWSE_CHANNEL","taskId":962,"channel":4,"itemId":"https%3A%2F%2Fwqs.jd.com%2Fsns%2F202210%2F20%2Fmake-money-shop%2Findex.html%3FactiveId%3D63526d8f5fe613a6adb48f03","checkVersion":False}
      res=taskGetUrl('apDoTask', body, cookie)
      if not res:
          return
@@ -338,7 +338,7 @@ def spring_reward_list(cookie):
                     continue
                 else:
                     print('\n去提现微信零钱 💰')
-                    time.sleep(3.2)
+                    time.sleep(5)
                     wecat(cookie,amountid,poolBaseId,prizeGroupId,prizeBaseId)
         else:
             print(f'获取数据失败\n{res}\n')
@@ -364,7 +364,7 @@ def wecat(cookie,amountid,poolBaseId,prizeGroupId,prizeBaseId):
     data=f"functionId=apCashWithDraw&body={json.dumps(body)}&t=1635596380119&appid=activities_platform&client=H5&clientVersion=1.0.0"
     for n in range(3):
         try:
-            res=requests.post(url,headers=headers,data=data,timeout=10).json()
+            res=requests.post(url,headers=headers,data=data,timeout=30).json()
             break
         except:
             if n==2:
