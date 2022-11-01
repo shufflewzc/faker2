@@ -1,5 +1,5 @@
 /*
-10 18 * * * jd_star.js
+10 1 1 1 1 jd_star1.js
 */
 const jdCookieNode = require(`./jdCookie`);
 const $ = new Env('幸运⭐️-一次性活动');
