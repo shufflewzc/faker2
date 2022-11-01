@@ -11,6 +11,7 @@ new Env('jinggeng邀请入会有礼');
 活动入口: https://jinggeng-isv.isvjcloud.com/ql/front/showInviteJoin?id=9e80809282a4bdc90182ab254c7e0a12&user_id=1000121005
 变量设置: export redis_url="xxx", export redis_port="xxx"(没有可省略), export redis_pwd="xxx"(没有可省略)
         export jinggengInviteJoin="9e80809282a4bdc90182ab254c7e0a12&1000121005"(活动id&店铺id)
+Update: 2022/11/01 更新入会算法，内置船新入会本地算法
 """
 
 import time, requests, sys, re, os, json, random
@@ -331,28 +332,32 @@ def shopmember(cookie):
     }
     requests.request("GET", url, headers=headers)
 
-def bindWithVender(cookie):
+def bindWithVender(cookie, venderId):
     try:
-        body = {"venderId": user_id, "shopId": user_id, "bindByVerifyCodeFlag": 1,"registerExtend": {},"writeChildFlag":0, "channel": 401}
-        h5st = getH5st("bindWithVender", body)
-        url = f"https://api.m.jd.com/client.action?appid=jd_shop_member&functionId=bindWithVender&body={quote_plus(json.dumps(body, separators=(',', ':')))}&client=H5&clientVersion=9.2.0&uuid=88888&h5st={h5st}"
-        headers = {
-            'Host': 'api.m.jd.com',
-            'Cookie': cookie,
-            'Accept-Encoding': 'gzip, deflate, br',
+        shopcard_url0 = f"https://lzdz1-isv.isvjcloud.com/dingzhi/joinCommon/activity/7854908?activityId={activityId}&shareUuid={shareUuid}"
+        shopcard_url = f"https://shopmember.m.jd.com/shopcard/?venderId={venderId}&channel=401&returnUrl={quote_plus(shopcard_url0)}"
+        s.headers = {
             'Connection': 'keep-alive',
-            'Accept': '*/*',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
             'User-Agent': ua,
-            'Referer': f'https://shopmember.m.jd.com/shopcard/?venderId={user_id}&channel=401&returnUrl={quote_plus(activityUrl + "&isOpenCard=1")}'
+            'Cookie': cookie,
+            'Host': 'api.m.jd.com',
+            'Referer': 'https://shopmember.m.jd.com/',
+            'Accept-Language': 'zh-Hans-CN;q=1 en-CN;q=0.9',
+            'Accept': '*/*'
         }
-        response = requests.get(url=url, headers=headers, timeout=30).text
-        res = json.loads(re.match(".*?({.*}).*", response, re.S).group(1))
+        s.params = {
+            'appid': 'jd_shop_member',
+            'functionId': 'bindWithVender',
+            'body': json.dumps({
+                'venderId': venderId,
+                'shopId': venderId,
+                'bindByVerifyCodeFlag': 1
+            }, separators=(',', ':'))
+        }
+        res = s.post('https://api.m.jd.com/', verify=False, timeout=30).json()
         if res['success']:
-            open_result = res['message']
-            if "火爆" in open_result:
-                print(f"\t⛈⛈⛈{open_result}")
-            else:
-                print(f"\t🎉🎉🎉{open_result}")
             return res['message']
     except Exception as e:
         print(e)
