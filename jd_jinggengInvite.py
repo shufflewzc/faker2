@@ -332,10 +332,8 @@ def shopmember(cookie):
     }
     requests.request("GET", url, headers=headers)
 
-def bindWithVender(cookie, venderId):
+def bindWithVender(cookie):
     try:
-        shopcard_url0 = f"https://lzdz1-isv.isvjcloud.com/dingzhi/joinCommon/activity/7854908?activityId={activityId}&shareUuid={shareUuid}"
-        shopcard_url = f"https://shopmember.m.jd.com/shopcard/?venderId={venderId}&channel=401&returnUrl={quote_plus(shopcard_url0)}"
         s.headers = {
             'Connection': 'keep-alive',
             'Accept-Encoding': 'gzip, deflate, br',
@@ -343,7 +341,7 @@ def bindWithVender(cookie, venderId):
             'User-Agent': ua,
             'Cookie': cookie,
             'Host': 'api.m.jd.com',
-            'Referer': 'https://shopmember.m.jd.com/',
+            'Referer': f'https://shopmember.m.jd.com/shopcard/?venderId={user_id}&returnUrl={quote_plus(activityUrl + "&isOpenCard=1")}',
             'Accept-Language': 'zh-Hans-CN;q=1 en-CN;q=0.9',
             'Accept': '*/*'
         }
@@ -351,13 +349,17 @@ def bindWithVender(cookie, venderId):
             'appid': 'jd_shop_member',
             'functionId': 'bindWithVender',
             'body': json.dumps({
-                'venderId': venderId,
-                'shopId': venderId,
+                'venderId': user_id,
+                'shopId': user_id,
                 'bindByVerifyCodeFlag': 1
             }, separators=(',', ':'))
         }
         res = s.post('https://api.m.jd.com/', verify=False, timeout=30).json()
         if res['success']:
+            if "火爆" in res['message'] or "失败" in res['message']:
+                print(f"\t⛈⛈⛈{res['message']}")
+            else:
+                print(f"\t🎉🎉🎉{res['message']}")
             return res['message']
     except Exception as e:
         print(e)
@@ -503,11 +505,11 @@ if __name__ == '__main__':
         print("现在去开卡")
         open_result = bindWithVender(cookie)
         if open_result is not None:
-            if "火爆" in open_result:
+            if "火爆" in open_result or "失败" in open_result:
                 time.sleep(1.5)
                 print("\t尝试重新入会 第1次")
                 open_result = bindWithVender(cookie)
-                if "火爆" in open_result:
+                if "火爆" in open_result or "失败" in open_result:
                     time.sleep(1.5)
                     print("\t尝试重新入会 第2次")
                     open_result = bindWithVender(cookie)
