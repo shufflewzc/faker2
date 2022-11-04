@@ -53,7 +53,7 @@ const JD_API_HOST = `https://api.m.jd.com/client.action`;
 
 async function main() {
     await starShopPageInfo({"taskId":"","linkId":linkId,"encryptPin":""})
-	if (!$.flag) await starShopDraw({"linkId":linkId,"isDailyRaffle":true});
+	//if (!$.flag) await starShopDraw({"linkId":linkId,"isDailyRaffle":true});
     await $.wait(1000);
     await apTaskList({"linkId":linkId});
     if ($.allList){

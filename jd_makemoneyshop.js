@@ -9,7 +9,7 @@
 DYJSHAREID = 'xxx&xxx&xxx'
 10 10 10 10 * https://raw.githubusercontent.com/6dylan6/jdpro/main/jd_makemoneyshop.js
 By: https://github.com/6dylan6/jdpro
-updatetime: 2022/11/3 自动领取邀请奖励，其他优化
+updatetime: 2022/11/4 修复领取奖励不全的问题
  */
 
 const $ = new Env('特价版大赢家');
@@ -102,10 +102,12 @@ let helpinfo = {};
             await gettask();
             await $.wait(500);
             for (let item of $.tasklist) {
-                if (item.completedTimes < item.realCompletedTimes) {
-                    console.log(`去领取${item.taskName}奖励`);
-                    await Award(item.taskId);
-                    await $.wait(500);
+                if (item.awardStatus !== 1) {
+                    for (let k = 0; k < (item.realCompletedTimes - item.targetTimes + 1); k++) {
+                        console.log(`去领取${item.taskName}奖励`);
+                        await Award(item.taskId);
+                        await $.wait(500);
+                    }
                 }
             }
             await $.wait(1000);
