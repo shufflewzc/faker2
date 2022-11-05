@@ -2,7 +2,7 @@
  特务集卡
  脚本没有自动开卡，会尝试领取开卡奖励
 10 10,17,19 * * * https://raw.githubusercontent.com/6dylan6/jdpro/main/jd_twjk_new.js
-updatetime: 2022/11/4 fix
+updatetime: 2022/11/5 fix
 * */
 const $ = new Env('特务集卡');
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
@@ -20,7 +20,7 @@ if ($.isNode()) {
         $.getdata("CookieJD2"),
         ...$.toObj($.getdata("CookiesJD") || "[]").map((item) => item.cookie)].filter((item) => !!item);
 }
-console.log('\n活动地址：首页下拉，1没集齐就做开卡任务，集齐晚上8点前瓜分\n')
+console.log('\n活动地址：首页下拉，没集齐就手动做开卡任务，集齐晚上8点前瓜分\n')
 let shareList = [];
 $.flag = false
 !(async () => {
@@ -47,7 +47,7 @@ $.flag = false
                 await main($.cookie);
                 if (_0x44559b == 0 && $.flag) return;
             } catch (_0x282ca) {
-                console.log(JSON.stringify(_0x282ca));
+                console.log(_0x282ca);
             }
         }
     }
@@ -85,6 +85,9 @@ $.flag = false
             } else if (_0x224f8e.bizCode === '108') {
                 console.log('助力次数已用完');
                 _0x4ce29d = false;
+            } else if (_0x224f8e.bizMsg.indexOf('风控') > -1) {
+                console.log('黑号跳过！');
+                break;
             }
             console.log('助力结果：' + _0x224f8e.bizMsg);
             await $.wait(2000);
@@ -101,6 +104,9 @@ async function main(_0x14f2ac) {
     if (_0x43a9de.bizCode == 'MP001') {
         console.log('本期活动结束，等待下期。。。');
         $.flag = true
+        return;
+    } else if (_0x43a9de.bizCode == '2001') {
+        console.log('黑号了！');
         return;
     }
     let _0x215414 = _0x43a9de.result.activityBaseInfo;
@@ -144,7 +150,7 @@ async function main(_0x14f2ac) {
             console.log('任务：' + _0x4a424c.assignmentName + ',已完成');
             continue;
         } if (_0x4a424c.assignmentType === 1) {
-            for (let i = 0;i<(_0x4a424c.assignmentTimesLimit - _0x4a424c.completionCnt);i++) {
+            for (let i = 0; i < (_0x4a424c.assignmentTimesLimit - _0x4a424c.completionCnt); i++) {
                 console.log('任务：' + _0x4a424c.assignmentName + ',去执行');
                 let _0x3c7f29 = _0x4a424c.ext.shoppingActivity[i].itemId || '';
                 if (!_0x3c7f29) {
