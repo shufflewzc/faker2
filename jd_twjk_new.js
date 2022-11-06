@@ -83,7 +83,7 @@ $.flag = false
                 console.log('助力已满');
                 _0x383730.max = true;
             } else if (_0x224f8e.bizCode === '108') {
-                console.log('助力次数已用完');
+                //console.log('助力次数已用完');
                 _0x4ce29d = false;
             } else if (_0x224f8e.bizMsg.indexOf('风控') > -1) {
                 console.log('黑号跳过！');
@@ -161,14 +161,16 @@ async function main(_0x14f2ac) {
                 await $.wait(3000);
             }
         } if (_0x4a424c.assignmentType === 3) {
+			for (let i = 0; i < (_0x4a424c.assignmentTimesLimit - _0x4a424c.completionCnt); i++) {
             console.log('任务：' + _0x4a424c.assignmentName + ',去执行');
-            let _0x440f46 = _0x4a424c.ext.followShop[0].itemId || '';
+            let _0x440f46 = _0x4a424c.ext.followShop[i].itemId || '';
             if (!_0x440f46) {
                 console.log('任务：' + _0x4a424c.assignmentName + ',信息异常');
             }
             let _0x2d2e7c = await takeRequest(_0x14f2ac, 'superBrandDoTask', '{"source":"card","activityId":' + _0x23add7 + ',"encryptProjectId":"' + _0x5add38 + '","encryptAssignmentId":"' + _0x4a424c.encryptAssignmentId + '","assignmentType":' + _0x4a424c.assignmentType + ',"itemId":"' + _0x440f46 + '","actionType":0}');
             console.log('执行结果：' + _0x2d2e7c.bizMsg);
             await $.wait(3000);
+			}
         } if (_0x4a424c.assignmentType === 7) {
             console.log('任务：' + _0x4a424c.assignmentName + ',去执行');
             let _0x25a600 = _0x4a424c.ext.brandMemberList[0].itemId || '';
