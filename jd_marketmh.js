@@ -2,7 +2,7 @@
 超市盲盒
 入口：京东APP-更多-超市盲盒
 39 12,21 * * *  jd_marketmh.js
-updatetime：2022-11-7 开盒
+updatetime：2022-10-28
 jdpro
  */
 
@@ -39,12 +39,14 @@ const JD_API_HOST = `https://api.m.jd.com/client.action`;
             $.isLogin = true;
             $.nickName = '';
             $.flag = true;
+            UA = getUA();
             if (!$.isLogin) {
                 $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
                 continue
             }
             console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
-            await main()
+            await main();
+            await $.wait(2000);
         }
     };
 })()
@@ -120,9 +122,7 @@ function starShopDraw(body) {
         url: 'https://api.m.jd.com/?functionId=starShopDraw&body={%22linkId%22:%22qHqXOx2bvqgFOzTH_-iJoQ%22}&appid=activities_platform&t=1667822944208&client=android&clientVersion=11.3.0&h5st=20221107200904210%3B6499624445078456%3B568c6%3Btk02w69911b1718n4BJd1F3S7xUk5Lw%2Bnu3d2ZLLORy0io21aJoCapEcA8gbK9tvLzON1FQ1iLeder0OAU4Th%2F7yWwZn%3Beb5ae376b553da072432e7749e8b852745ad3ea35e554ce04d1eb2b0ab1c3bfa%3B3.1%3B1667822944210%3B62f4d401ae05799f14989d31956d3c5f0a269d1342e4ecb6ab00268fc69555cdc3295f00e681fd72cd76a48b9fb3faf3579d80b37c85b023e9e8ba94d8d2b852b9cbef42726bbe41ffd8c74540f4a1ced584468ba9e46bfbef62144b678f5532e02456edc95e6131cb12c2dd5fa5c6c0ca7e28a3c717e0dd9ae889f2eaf9441c5254165d7b1aa2509f8e74f626a4f631',
         //body: `functionId=${functionId}&body=${JSON.stringify(body)}&client=wh5&clientVersion=1.0.0&uuid=ef746bc0663f7ca06cdd1fa724c15451900039cf`,
         headers: {
-            'User-Agent': 'jdapp;android;11.3.0;;;appBuild/98413;ef/1;ep/%7B%22hdid%22%3A%22JM9F1ywUPwflvMIpYPok0tt5k9kW4ArJEU3lfLhxBqw%3D%22%2C%22ts%22%3A1667822922035%2C%22ridx%22%3A-1%2C%22cipher%22%3A%7B%22sv%22%3A%22EG%3D%3D%22%2C%22ad%22%3A%22ZwS1ZQC4ZwVrZJZuDzC0ZK%3D%3D%22%2C%22od%22%3A%22ZQHuZtc3CzCjZtdvZM1rEQO5BJvsD2OjCzPsZwHsZQU2YzKz%22%2C%22ov%22%3A%22Ctq%3D%22%2C%22ud%22%3A%22ZwS1ZQC4ZwVrZJZuDzC0ZK%3D%3D%22%7D%2C%22ciphertype%22%3A5%2C%22version%22%3A%221.2.0%22%2C%22appname%22%3A%22com.jingdong.app.mall%22%7D;jdSupportDarkMode/0;Mozilla/5.0 (Linux; Android 9; LYA-AL00 Build/HUAWEILYA-AL00L; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/89.0.4389.72 MQQBrowser/6.2 TBS/046033 Mobile Safari/537.36',
-            //'Content-Type': 'application/x-www-form-urlencoded',
-            //'Host': 'api.m.jd.com',
+            'User-Agent': UA,
             'Cookie': cookie,
             'Origin': 'https://prodev.m.jd.com',
             'Referer': 'https://prodev.m.jd.com/',
@@ -282,7 +282,20 @@ function openBox(body) {
         })
     })
 }
-
+function getUA() {
+	getstr = function (x) {
+		let e = '', t = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		for (let i = 0; i < x; i++) {
+			let n = Math.round(Math.random() * (t.length - 1));
+			e += t.substring(n, n + 1);
+		}
+		return e;
+	}
+	let adod = Buffer.from(getstr(16), 'utf8').toString('base64');
+	let od = getstr(48);
+	ep = encodeURIComponent(JSON.stringify({ 'hdid': 'JM9F1ywUPwflvMIpYPok0tt5k9kW4ArJEU3lfLhxBqw=', 'ts': Date.now(), 'ridx': -1, 'cipher': { 'sv': 'EG==', 'ad': adod, 'od': od, 'ov': 'Ctq=', 'ud': adod }, 'ciphertype': 5, 'version': '1.2.0', 'appname': 'com.jingdong.app.mall' }));
+	return `jdapp;android;11.2.0;;;appBuild/98413;ef/1;ep/${ep};Mozilla/5.0 (Linux; Android 9; LYA-AL00 Build/HUAWEILYA-AL00L; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/89.0.4389.72 MQQBrowser/6.2 TBS/046033 Mobile Safari/537.36`;
+}
 function getToken(timeout = 0) {
     return new Promise((resolve) => {
         setTimeout(() => {
@@ -313,7 +326,7 @@ function taskGetUrl(functionId, body = {}) {
         url: `${JD_API_HOST}?functionId=${functionId}&body=${JSON.stringify(body)}&_t=${Date.now()}&appid=activities_platform&client=wh5&clientVersion=1.0.0`,
         //body: `functionId=${functionId}&body=${JSON.stringify(body)}&client=wh5&clientVersion=1.0.0&uuid=ef746bc0663f7ca06cdd1fa724c15451900039cf`,
         headers: {
-            'User-Agent': $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
+            'User-Agent': UA,
             'Content-Type': 'application/x-www-form-urlencoded',
             'Host': 'api.m.jd.com',
             'Cookie': cookie,
@@ -328,7 +341,7 @@ function taskPostUrl(functionId, body = {}) {
         url: `${JD_API_HOST}?functionId=${functionId}`,
         body: `functionId=${functionId}&body=${JSON.stringify(body)}&_t=${Date.now()}&appid=activities_platform&client=wh5&clientVersion=1.0.0`,
         headers: {
-            'User-Agent': $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
+            'User-Agent': UA,
             'Content-Type': 'application/x-www-form-urlencoded',
             'Host': 'api.m.jd.com',
             'Cookie': cookie,
