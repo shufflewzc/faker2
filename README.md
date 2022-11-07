@@ -1,7 +1,11 @@
-## 重要通知
-### 落霞与孤鹜齐飞,秋水共长天一色。
+## 仓库说明
+### 不破楼兰终不还
 
-Faker自用仓库。本地接口计算方法，保证账户信息安全。已适配Spy插件24小时全天监控。
+Faker自用仓库。本地秘钥计算方法，保证账户信息安全。已适配Spy插件24小时全天监控。
+
+* 推荐配合spy使用
+* 自有拉库代理
+* 每日保持更新
 
 ##  助力池版
 
@@ -19,9 +23,9 @@ Faker2 助力池版
 
 ql repo https://git.metauniverse-cn.com/https://github.com/shufflewzc/faker2.git "jd_|jx_|gua_|jddj_|jdCookie" "activity|backUp" "^jd[^_]|USER|function|utils|sendNotify|ZooFaker_Necklace.js|JDJRValidator_|sign_graphics_validate|ql|JDSignValidator|magic|depend|h5sts" "main"
 
-【青龙说明】
-https://www.notion.so/Cent-OS-7-6-1c598629675145988b43a37998a1604a
-
+【教程合集】
+[https://www.notion.so/Cent-OS-7-6-1c598629675145988b43a37998a1604a
+]()
 
 ## Special statement:
 
