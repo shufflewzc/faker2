@@ -13,7 +13,7 @@ const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 let cookiesArr = [], cookie = '';
-let actCode = process.env.prodevactCode ?? '7b860c50471145b09296d9263c609ebc';
+let actCode = process.env.prodevactCode ?? '';
 let invitePin = process.env.prodevinvitePin ?? '';
 let inviteNum = process.env.prodevinviteNum ?? true;
 let help = 0
