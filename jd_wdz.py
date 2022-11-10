@@ -302,7 +302,7 @@ def getUserInfo(pin):
     else:
         print(res['errorMessage'])
 
-def getOpenCardAllStatuesNew(pin):
+def getOpenCardAllStatuesNew(pin, again=1):
     url = "https://cjhy-isv.isvjcloud.com/microDz/invite/activity/wx/getOpenCardAllStatuesNew"
     payload = f"activityId={activityId}&pin={quote_plus(quote_plus(pin))}&isInvited=1"
     headers = {
@@ -322,6 +322,12 @@ def getOpenCardAllStatuesNew(pin):
     # refresh_cookies(response)
     res = response.json()
     if res['result']:
+        if not res['data']['list']:
+            print(f"第{again}次重试")
+            if again <= 3:
+                time.sleep(2)
+                again += 1
+                return getOpenCardAllStatuesNew(pin, again=again)
         return res['data']['isCanJoin'], res['data']['reward'], res['data']['list']
     else:
         print(res['errorMessage'])
