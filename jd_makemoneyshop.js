@@ -9,7 +9,7 @@
 DYJSHAREID = 'xxx&xxx&xxx'
 10 10 10 10 * https://raw.githubusercontent.com/6dylan6/jdpro/main/jd_makemoneyshop.js
 By: https://github.com/6dylan6/jdpro
-updatetime: 2022/11/4 修复领取奖励不全的问题
+updatetime: 2022/11/10 助力满下一个
  */
 
 const $ = new Env('特价版大赢家');
@@ -70,7 +70,9 @@ let helpinfo = {};
         console.log('\n\n开始助力...')
         for (let j = 0; j < shareId.length; j++) {
             console.log('\n去助力--> ' + shareId[j]);
+            helpnum = 1;
             for (let i = 0; i < cookiesArr.length; i++) {
+                if (helpnum == 10) {console.log('助力已满，跳出！\n');break};
                 if (cookiesArr[i]) {
                     cookie = cookiesArr[i];
                     $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
@@ -217,6 +219,7 @@ function help(shareid) {
                     if (data.code == 0) {
                         console.log('助力成功！');
                         helpinfo[$.UserName].nohelp = 1;
+                        helpnum++;
                     } else if (data.msg === '已助力') {
                         console.log('你已助力过TA！')
                         helpinfo[$.UserName].nohelp = 1;
