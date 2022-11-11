@@ -9,7 +9,7 @@
 DYJSHAREID = 'xxx&xxx&xxx'
 10 10 10 10 * https://raw.githubusercontent.com/6dylan6/jdpro/main/jd_makemoneyshop.js
 By: https://github.com/6dylan6/jdpro
-updatetime: 2022/11/10 助力满下一个
+updatetime: 2022/11/11 助力逻辑
  */
 
 const $ = new Env('特价版大赢家');
@@ -65,14 +65,19 @@ let helpinfo = {};
             await getinfo(1);
             await $.wait(1000);
         }
+        
     }
     if (shareId.length > 0) {
         console.log('\n\n开始助力...')
+        $.index = 1;
+		let k = 0;		
+        let m = cookiesArr.length;
         for (let j = 0; j < shareId.length; j++) {
             console.log('\n去助力--> ' + shareId[j]);
-            helpnum = 1;
-            for (let i = 0; i < cookiesArr.length; i++) {
-                if (helpnum == 10) {console.log('助力已满，跳出！\n');break};
+            helpnum = 0;
+			if ($.index === m) {console.log('已无账号可用于助力！结束\n');break};
+            for (let i = k; i < m - k; i++) {
+                if (helpnum == 10) {console.log('助力已满，跳出！\n');k = i;break};
                 if (cookiesArr[i]) {
                     cookie = cookiesArr[i];
                     $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
@@ -82,8 +87,8 @@ let helpinfo = {};
                     if (helpinfo[$.UserName].nohelp) { console.log('已无助力次数了'); continue };
                     if (helpinfo[$.UserName].hot) { console.log('可能黑了，跳过！'); continue };
                     await help(shareId[j]);
-                    console.log('随机等待2-5秒');
-                    await $.wait(parseInt(Math.random() * 3000 + 2000, 10))
+                    //console.log('随机等待1-2秒');
+                    await $.wait(parseInt(Math.random() * 1000 + 1000, 10))
                 }
             }
         }
@@ -225,6 +230,8 @@ function help(shareid) {
                         helpinfo[$.UserName].nohelp = 1;
                     } else if (data.code === 1006) {
                         console.log('不能助力自己！');
+                        // $.qqq = [];
+                        // $.qqq.push($.index);
                     } else if (data.code === 1008) {
                         console.log('今日无助力次数了！');
                     } else {
