@@ -1,23 +1,16 @@
 
 /*
-京东特价APP首页-赚钱大赢家
-进APP看看，能不能进去，基本都黑的！！！
-有的能进去，助力确是黑的！！
-默认定时不跑！
-运行流程：设置助力码--过滤黑号--助力--领取任务奖励！！！
-助理吗变量：多个用&号隔开
-DYJSHAREID = 'xxx&xxx&xxx'
-10 10 10 10 * https://raw.githubusercontent.com/6dylan6/jdpro/main/jd_makemoneyshop.js
-By: https://github.com/6dylan6/jdpro
-updatetime: 2022/11/13 不过滤黑号了，直接助力
- */
+入口：https://prodev.m.jd.com/mall/active/4JVvmjx2XwTx7cB64eAFPds1xCox/index.html
+22 0-23/3 * * * jd_subject.js
+*/
 
-const $ = new Env('特价版大赢家');
+const $ = new Env('短视频点赞抽奖');
+const dylan = require('./function/dylan.js')
 const notify = $.isNode() ? require('./sendNotify') : '';
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
+let jdNotify = true;
 //IOS等用户直接用NobyDa的jd cookie
-let cookiesArr = [], cookie = '';
-let shareId = [];
+let cookiesArr = [], cookie = '', message = '';
 if ($.isNode()) {
 	Object.keys(jdCookieNode).forEach((item) => {
 		cookiesArr.push(jdCookieNode[item])
@@ -26,112 +19,58 @@ if ($.isNode()) {
 } else {
 	cookiesArr = [$.getdata('CookieJD'), $.getdata('CookieJD2'), ...jsonParse($.getdata('CookiesJD') || "[]").map(item => item.cookie)].filter(item => !!item);
 }
-if (process.env.DYJSHAREID) {
-	if (process.env.DYJSHAREID.indexOf('&') > -1) {
-		shareId = process.env.DYJSHAREID.split('&');
-	} else {
-		shareId = [process.env.DYJSHAREID];
-	}
-}
-let helpinfo = {};
 !(async () => {
 	if (!cookiesArr[0]) {
 		$.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
 		return;
 	}
-	console.log('\n运行一遍可以看到助力码，然后设置需要助力的！')
-	console.log('\n运行流程：助力--领取任务奖励！！！\n')
-	// for (let i = 0; i < cookiesArr.length; i++) {
-	//     if (cookiesArr[i]) {
-	//         cookie = cookiesArr[i];
-	//         $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
-	//         $.index = i + 1;
-	//         $.isLogin = true;
-	//         $.nickName = '';
-	//         $.canUseCoinAmount = 0;
-	//         helpinfo[$.UserName] = {};
-	//         UA = require('./USER_AGENTS').UARAM();
-	//         helpinfo[$.UserName].ua = UA;
-	//         await TotalBean();
-	//         console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
-	//         if (!$.isLogin) {
-	//             $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
-	//             if ($.isNode()) {
-	//                 await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
-	//             }
-	//             continue
-	//         }
-
-	//         await getinfo(1);
-	//         await $.wait(1000);
-	//     }
-
-	// }
-	if (shareId.length > 0) {
-		console.log('\n\n开始助力...')
-		$.index = 1;
-		$.fullhelp = false;
-		let k = 0;
-		let m = cookiesArr.length;
-		for (let j = 0; j < shareId.length; j++) {
-			console.log('\n去助力--> ' + shareId[j]);
-			helpnum = 0;
-			if ($.index === m) { console.log('已无账号可用于助力！结束\n'); break };
-			for (let i = k; i < m; i++) {
-				if (helpnum == 10) { console.log('助力已满，跳出！\n'); k = i; break };
-				if ($.fullhelp) { console.log('助力已满，跳出！\n'); k = i - 1; break };
-				if (cookiesArr[i]) {
-					cookie = cookiesArr[i];
-					$.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
-					$.index = i + 1;
-					helpinfo[$.UserName] = {};
-					UA = require('./USER_AGENTS').UARAM();
-					helpinfo[$.UserName].ua = UA;
-					console.log(`\n开始【账号${$.index}】${$.nickName || $.UserName}`);
-					if (helpinfo[$.UserName].nohelp) { console.log('已无助力次数了'); continue };
-					if (helpinfo[$.UserName].hot) { console.log('可能黑了，跳过！'); continue };
-					await help(shareId[j]);
-					//console.log('随机等待1-2秒');
-					await $.wait(parseInt(Math.random() * 1000 + 1000, 10))
-				}
-			}
-		}
-	} else {
-		console.log('无助立马请设置！！\n')
-	}
-
-	console.log('开始领取任务奖励...')
-
 	for (let i = 0; i < cookiesArr.length; i++) {
 		if (cookiesArr[i]) {
 			cookie = cookiesArr[i];
 			$.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
 			$.index = i + 1;
-            $.canUseCoinAmount = 0;
-			try {
-				UA = helpinfo[$.UserName].ua;
-			} catch (e) {
-				UA = require('./USER_AGENTS').UARAM();
+			$.isLogin = true;
+			$.nickName = '';
+            UA = require('./USER_AGENTS').UARAM();
+			await TotalBean();
+			console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
+			if (!$.isLogin) {
+				$.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
+				if ($.isNode()) {
+					await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
+				}
+				continue
 			}
-			console.log(`\n开始【账号${$.index}】${$.UserName}`);
-			//if (helpinfo[$.UserName].hot) continue;
-			await getinfo(1);	
-			await $.wait(200);			
-			await gettask();
-			await $.wait(500);
-			for (let item of $.tasklist) {
-				if (item.awardStatus !== 1) {
-					for (let k = 0; k < (item.realCompletedTimes - item.targetTimes + 1); k++) {
-						console.log(`去领取${item.taskName}奖励`);
-						await Award(item.taskId);
-						await $.wait(500);
+            $.hotflag = false;
+			for (let i = 0;i < 2;i++) {
+                if ($.hotflag) break;
+				let x ='recommend';
+                (i == 1) ? x = 'joined':'';
+				await homepage(x);
+				await $.wait(1000);
+				for (let item of $.listData) {
+                    if ($.hotflag) break;
+					console.log(item.subjectTitle);
+					$.fullflag = false;
+					for (let y = 0 ;y < 1; y++) {
+						await channelBff_querySubject(y+1,item.subjectId);
+						await $.wait(1000);
+						for (let j of $.contentList) {
+							if ($.fullflag) break;
+                            if ($.hotflag) break;
+							//console.log(j.contentId, item.subjectId);
+							//await subject_interactive_get(j.contentId, item.subjectId);
+							//await $.wait(1000);
+							await subject_interactive_done(j.contentId, item.subjectId);
+							await $.wait(parseInt(Math.random() * 2000 + 3000, 10))
+						}
 					}
+					await $.wait(1000);
 				}
 			}
-			await $.wait(1000);
+			await $.wait(2000)
 		}
 	}
-
 })()
 	.catch((e) => {
 		$.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '')
@@ -140,28 +79,82 @@ let helpinfo = {};
 		$.done();
 	})
 
-function getinfo(xc) {
+
+
+async function channelBff_querySubject(page,id) {
 	return new Promise(async (resolve) => {
-		$.get(taskUrl('makemoneyshop/home', 'activeId=63526d8f5fe613a6adb48f03&_stk=activeId&_ste=1'), async (err, resp, data) => {
+		$.post(taskUrl('channelBff_querySubject', { "page": page, "pageSize": "15", "scene": "", "subjectId": id, "tabId": "-1", "tabType": "2", "topContentId": "", "topContents": "" }), async (err, resp, data) => {
 			try {
 				if (err) {
 					console.log(`${JSON.stringify(err)}`)
 					console.log(` API请求失败，请检查网路重试`)
 				} else {
-					let tostr = data.match(/\((\{.*?\})\)/)[1];
-					data = eval('(' + tostr + ')');
-					if (data.code == 0) {
-						if (xc) {
-							let sId = data.data.shareId;
-							helpinfo[$.UserName].sId = `${sId}`;
-							console.log('助力码：' + sId);
-							console.log('当前营业金：' + data.data.canUseCoinAmount);
+					data = JSON.parse(data)
+					if (data.busiCode == '0') {
+						//console.log(data)
+						$.contentList = data.result.subjectVo.contentList;
+					} else {
+						console.log(data.message)
+					}
+				}
+			} catch (e) {
+				$.logErr(e, resp)
+			} finally {
+				resolve(data)
+			}
+		})
+	})
+}
+
+async function subject_interactive_get(cid, sid) {
+	return new Promise(async (resolve) => {
+		$.post(taskUrl('subject_interactive_get', '{"contentId":"272271439","monitorSurce":"videoDetail","style":11,"subjectId":"10002535"}'), async (err, resp, data) => {
+			try {
+				if (err) {
+					console.log(`${JSON.stringify(err)}`)
+					console.log(` API请求失败，请检查网路重试`)
+				} else {
+					data = JSON.parse(data)
+					console.log(data);
+					if (data.busiCode == '0') {
+                        
+					} else {
+						console.log(data.message)
+					}
+				}
+			} catch (e) {
+				$.logErr(e, resp)
+			} finally {
+				resolve(data)
+			}
+		})
+	})
+}
+
+async function subject_interactive_done(cid, sid) {
+	return new Promise(async (resolve) => {
+		$.post(taskUrl('subject_interactive_done', `{"contentId": "${cid}","subjectId":"${sid}"}`), async (err, resp, data) => {
+			try {
+				if (err) {
+					console.log(`${JSON.stringify(err)}`)
+					console.log(` API请求失败，请检查网路重试`)
+				} else {
+					data = JSON.parse(data)
+					//console.log(data);
+					if (data.busiCode == '0') {
+						//(data.data.assignmentInfo.completionCnt % 5 == 0 ) && await $.wait(10000);
+						(data.data.assignmentInfo.completionCnt == 5) && ($.fullflag = true);
+						if (data.data.rewardsInfo) {
+							console.log('获得：' + data.data.rewardsInfo.rewardMsg)
+							$.rewardflag = true;
+						} else {
+							console.log(data.message)
 						}
-					} else if (data.msg.indexOf('火爆') > -1) {
-						console.log('此CK可能黑了！');
-					} else {
-						console.log(data.msg);
-						helpinfo[$.UserName].hot = 1;
+					} else if (data.message.indexOf('火爆') > -1){
+                        console.log('火爆了，跳出');
+                        $.hotflag = true;
+                    } else {
+						console.log(data.message)
 					}
 				}
 			} catch (e) {
@@ -173,85 +166,31 @@ function getinfo(xc) {
 	})
 }
 
-function gettask() {
+async function homepage(type) {
+	let opt = {
+		url: `https://api.m.jd.com/subject_challenge_main`,
+		body: `appid=contenth5_common&functionId=subject_challenge_main&body={"page":1,"pageSize":10,"tabSource":"${type}"}&client=h5&clientVersion=11.3.0`,
+		headers: {
+			'Host': 'api.m.jd.com',
+			'Origin': 'https://h5.m.jd.com',
+			'Referer': 'https://h5.m.jd.com/',
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'User-Agent': UA,
+			'Cookie': cookie
+		}
+	}
 	return new Promise(async (resolve) => {
-		$.get(taskUrl('newtasksys/newtasksys_front/GetUserTaskStatusList', `__t=${Date.now}&source=makemoneyshop&bizCode=makemoneyshop`), async (err, resp, data) => {
+		$.post(opt, async (err, resp, data) => {
 			try {
 				if (err) {
 					console.log(`${JSON.stringify(err)}`)
 					console.log(` API请求失败，请检查网路重试`)
 				} else {
-					let tostr = data.match(/\((\{.*?\})\n\)/)[1];
-					data = eval('(' + tostr + ')');
-					if (data.ret == 0) {
-						$.tasklist = data.data.userTaskStatusList;
+					data = JSON.parse(data)
+					if (data.busiCode == 0) {
+						$.listData = data.result.data.listData;
 					} else {
-						console.log(data.msg);
-					}
-				}
-			} catch (e) {
-				$.logErr(e, resp)
-			} finally {
-				resolve(data)
-			}
-		})
-	})
-}
-function Award(id) {
-	return new Promise(async (resolve) => {
-		$.get(taskUrl('newtasksys/newtasksys_front/Award', `__t=${Date.now()}&source=makemoneyshop&taskId=${id}&bizCode=makemoneyshop`), async (err, resp, data) => {
-			try {
-				if (err) {
-					console.log(`${JSON.stringify(err)}`)
-					console.log(` API请求失败，请检查网路重试`)
-				} else {
-					let tostr = data.match(/\((\{.*?\})\n\)/)[1];
-					data = eval('(' + tostr + ')');
-					if (data.ret == 0) {
-						console.log('获得营业金：' + (data.data.prizeInfo / 100) + '元');
-					} else {
-						console.log(data.msg);
-					}
-				}
-			} catch (e) {
-				$.logErr(e, resp)
-			} finally {
-				resolve(data)
-			}
-		})
-	})
-}
-
-
-function help(shareid) {
-	return new Promise(async (resolve) => {
-		$.get(taskUrl('makemoneyshop/guesthelp', `activeId=63526d8f5fe613a6adb48f03&shareId=${shareid}&_stk=activeId,shareId&_ste=1`), async (err, resp, data) => {
-			try {
-				if (err) {
-					console.log(`${JSON.stringify(err)}`)
-					console.log(` API请求失败，请检查网路重试`)
-				} else {
-					let tostr = data.match(/\((\{.*?\})\)/)[1];
-					data = eval('(' + tostr + ')');
-					if (data.code == 0) {
-						console.log('助力成功！');
-						helpinfo[$.UserName].nohelp = 1;
-						helpnum++;
-					} else if (data.msg === '已助力') {
-						console.log('你已助力过TA！')
-						helpinfo[$.UserName].nohelp = 1;
-					} else if (data.msg === '助力任务已完成') {
-						$.fullhelp = true;
-					} else if (data.code === 1006) {
-						console.log('不能助力自己！');
-						// $.qqq = [];
-						// $.qqq.push($.index);
-					} else if (data.code === 1008) {
-						console.log('今日无助力次数了！');
-					} else if (data.msg.indexOf('火爆') > -1) {
-						console.log('此CK助力可能黑了！');
-					} else {
-						console.log(data.msg);
+						console.log(data.message)
 					}
 				}
 			} catch (e) {
@@ -264,11 +203,13 @@ function help(shareid) {
 }
 
 function taskUrl(fn, body) {
+	body = dylan.getbody(fn, body);
+	//if (fn == 'subject_interactive_done') body = body+'&joylog=DCE647899FAC6434216F0BEEF18DCAA5*1668326919930%7E2cmqrqro0Dm01ecmEh012.VFVbfVtUWll9WVdWXTsWBE8XaUJJUxNzFhtRKwdRUlJbARY*tbzuX82hwbvbPQwYFhbRjw.e81b17fe%7Ew%2C0%7E7A5F66B9794D40FFCEA90B9BF5586D97%7E%7E21%7ENjc0NTc0NTkhBlmmhwtaA1AB848GBBsGGgX2ggQ3KCkl%7E0pfo0n5'
 	return {
-		url: `https://wq.jd.com/${fn}?g_ty=h5&g_tk=&appCode=msc588d6d5&${body}&h5st=&sceneval=2&callback=__jsonp1667344808184`,
+		url: `https://api.m.jd.com/client.action?functionId=${fn}&${body}`,
+		//body,
 		headers: {
-			'Origin': 'https://wq.jd.com',
-			'Referer': 'https://wqs.jd.com/sns/202210/20/make-money-shop/index.html?activeId=63526d8f5fe613a6adb48f03',
+			'Content-Type': 'application/x-www-form-urlencoded',
 			'User-Agent': UA,
 			'Cookie': cookie
 		}
@@ -276,35 +217,67 @@ function taskUrl(fn, body) {
 }
 
 function TotalBean() {
-	return new Promise((resolve) => {
+	return new Promise(async resolve => {
 		const options = {
-			url: 'https://plogin.m.jd.com/cgi-bin/ml/islogin',
+			url: "https://wq.jd.com/user_new/info/GetJDUserInfoUnion?sceneval=2",
 			headers: {
-				"Cookie": cookie,
-				"referer": "https://h5.m.jd.com/",
-				"User-Agent": UA,
-			},
-			timeout: 10000
+				Host: "wq.jd.com",
+				Accept: "*/*",
+				Connection: "keep-alive",
+				Cookie: cookie,
+				"User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"),
+				"Accept-Language": "zh-cn",
+				"Referer": "https://home.m.jd.com/myJd/newhome.action?sceneval=2&ufc=&",
+				"Accept-Encoding": "gzip, deflate, br"
+			}
 		}
 		$.get(options, (err, resp, data) => {
 			try {
-				if (data) {
-					data = JSON.parse(data);
-					if (data.islogin === "1") {
-					} else if (data.islogin === "0") {
-						$.isLogin = false;
+				if (err) {
+					$.logErr(err)
+				} else {
+					if (data) {
+						data = JSON.parse(data);
+						if (data['retcode'] === 1001) {
+							$.isLogin = false;
+							return;
+						}
+						if (data['retcode'] === 0 && data.data && data.data.hasOwnProperty("userInfo")) {
+							$.nickName = data.data.userInfo.baseInfo.nickname;
+						}
+					} else {
+						console.log('京东服务器返回空数据');
 					}
 				}
 			} catch (e) {
-				console.log(e);
-			}
-			finally {
+				$.logErr(e)
+			} finally {
 				resolve();
 			}
-		});
-	});
+		})
+	})
 }
-
+function showMsg() {
+	return new Promise(resolve => {
+		if (!jdNotify) {
+			$.msg($.name, '', `${message}`);
+		} else {
+			$.log(`京东账号${$.index}${$.nickName}\n${message}`);
+		}
+		resolve()
+	})
+}
+function safeGet(data) {
+	try {
+		if (typeof JSON.parse(data) == "object") {
+			return true;
+		}
+	} catch (e) {
+		console.log(e);
+		console.log(`京东服务器访问数据为空，请检查自身设备网络情况`);
+		return false;
+	}
+}
 function jsonParse(str) {
 	if (typeof str == "string") {
 		try {
