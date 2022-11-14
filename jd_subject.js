@@ -1,7 +1,9 @@
 
 /*
 入口：https://prodev.m.jd.com/mall/active/4JVvmjx2XwTx7cB64eAFPds1xCox/index.html
-22 0-23/3 * * * jd_subject.js
+点赞5次抽奖1-5豆，完成后瓜分都池；
+定时随机！
+updatetime:2022/11/14 
 */
 
 const $ = new Env('短视频点赞抽奖');
@@ -19,19 +21,20 @@ if ($.isNode()) {
 } else {
 	cookiesArr = [$.getdata('CookieJD'), $.getdata('CookieJD2'), ...jsonParse($.getdata('CookiesJD') || "[]").map(item => item.cookie)].filter(item => !!item);
 }
+let fff = Math.random()+1;
 !(async () => {
 	if (!cookiesArr[0]) {
 		$.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
 		return;
 	}
-	for (let i = 0; i < 20; i++) {
+	for (let i = 0; i < 15; i++) {
 		if (cookiesArr[i]) {
 			cookie = cookiesArr[i];
 			$.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
 			$.index = i + 1;
 			$.isLogin = true;
 			$.nickName = '';
-            UA = require('./USER_AGENTS').UARAM();
+			UA = require('./USER_AGENTS').UARAM();
 			await TotalBean();
 			console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
 			if (!$.isLogin) {
@@ -41,29 +44,29 @@ if ($.isNode()) {
 				}
 				continue
 			}
-            $.hotflag = false;
-			for (let i = 0;i < 2;i++) {
-                if ($.hotflag) break;
-				let x ='recommend';
-                (i == 1) ? x = 'joined':'';
+			$.hotnum = 0;
+			for (let i = 0; i < 2; i++) {
+				if ($.hotnum > 1) fff = Math.random()+1;
+				let x = 'recommend';
+				let y = 0;
+				(i == 1) ? (x = 'joined', y = 1) : '';
 				await homepage(x);
 				await $.wait(1000);
+				if ($.listData == null) continue;
 				for (let item of $.listData) {
-                    if ($.hotflag) break;
-					console.log(item.subjectTitle);
-					$.fullflag = false;
-					for (let y = 0 ;y < 1; y++) {
-						await channelBff_querySubject(y+1,item.subjectId);
-						await $.wait(1000);
-						for (let j of $.contentList) {
-							if ($.fullflag) break;
-                            if ($.hotflag) break;
-							//console.log(j.contentId, item.subjectId);
-							//await subject_interactive_get(j.contentId, item.subjectId);
-							//await $.wait(1000);
-							await subject_interactive_done(j.contentId, item.subjectId);
-							await $.wait(parseInt(Math.random() * 2000 + 3000, 10))
-						}
+					if ($.hotnum > 0) fff = Math.random()+1;
+                    if ($.hotnum > 1) break;
+					if (item.remainGradNum == 0) continue;
+					console.log('\n开始主题：'+item.subjectTitle);
+                    UA = require('./USER_AGENTS').UARAM();
+					await channelBff_querySubject(y + 1, item.subjectId);
+					await $.wait(1000);
+					for (let j of $.contentList) {
+						if ($.hotnum > 0) fff = Math.random()+1;
+                        if ($.hotnum > 1) break;
+						//console.log(j.contentId, item.subjectId);
+						await subject_interactive_done(j.contentId, item.subjectId);
+						await $.wait(parseInt(Math.random() * 3000 + 3000, 10))
 					}
 					await $.wait(1000);
 				}
@@ -81,7 +84,7 @@ if ($.isNode()) {
 
 
 
-async function channelBff_querySubject(page,id) {
+async function channelBff_querySubject(page, id) {
 	return new Promise(async (resolve) => {
 		$.post(taskUrl('channelBff_querySubject', { "page": page, "pageSize": "15", "scene": "", "subjectId": id, "tabId": "-1", "tabType": "2", "topContentId": "", "topContents": "" }), async (err, resp, data) => {
 			try {
@@ -117,7 +120,7 @@ async function subject_interactive_get(cid, sid) {
 					data = JSON.parse(data)
 					console.log(data);
 					if (data.busiCode == '0') {
-                        
+
 					} else {
 						console.log(data.message)
 					}
@@ -133,7 +136,7 @@ async function subject_interactive_get(cid, sid) {
 
 async function subject_interactive_done(cid, sid) {
 	return new Promise(async (resolve) => {
-		$.post(taskUrl('subject_interactive_done', `{"contentId": "${cid}","subjectId":"${sid}"}`), async (err, resp, data) => {
+		$.post(taskUrl('subject_interactive_done', `{"contentId":"${cid}","subjectId":"${sid}"}`), async (err, resp, data) => {
 			try {
 				if (err) {
 					console.log(`${JSON.stringify(err)}`)
@@ -142,18 +145,17 @@ async function subject_interactive_done(cid, sid) {
 					data = JSON.parse(data)
 					//console.log(data);
 					if (data.busiCode == '0') {
-						//(data.data.assignmentInfo.completionCnt % 5 == 0 ) && await $.wait(10000);
-						(data.data.assignmentInfo.completionCnt == 5) && ($.fullflag = true);
 						if (data.data.rewardsInfo) {
 							console.log('获得：' + data.data.rewardsInfo.rewardMsg)
-							$.rewardflag = true;
 						} else {
 							console.log(data.message)
 						}
-					} else if (data.message.indexOf('火爆') > -1){
-                        console.log('火爆了，跳出');
-                        $.hotflag = true;
-                    } else {
+						$.hotnum = 0;
+					} else if (data.message.indexOf('火爆') > -1) {
+						console.log('火爆了，跳出');
+                        await $.wait(10000);
+						$.hotnum++;
+					} else {
 						console.log(data.message)
 					}
 				}
@@ -203,16 +205,16 @@ async function homepage(type) {
 }
 
 function taskUrl(fn, body) {
-	body = dylan.getbody(fn, body);
-	//if (fn == 'subject_interactive_done') body = body+'&joylog=DCE647899FAC6434216F0BEEF18DCAA5*1668326919930%7E2cmqrqro0Dm01ecmEh012.VFVbfVtUWll9WVdWXTsWBE8XaUJJUxNzFhtRKwdRUlJbARY*tbzuX82hwbvbPQwYFhbRjw.e81b17fe%7Ew%2C0%7E7A5F66B9794D40FFCEA90B9BF5586D97%7E%7E21%7ENjc0NTc0NTkhBlmmhwtaA1AB848GBBsGGgX2ggQ3KCkl%7E0pfo0n5'
+	body = dylan.getbody(fn, body, fff);
+	//console.log(body)
 	return {
 		url: `https://api.m.jd.com/client.action?functionId=${fn}&${body}`,
-		//body,
 		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded',
+			'Content-Type': 'application/json',
 			'User-Agent': UA,
 			'Cookie': cookie
-		}
+		},
+		timeout: 10000
 	}
 }
 
