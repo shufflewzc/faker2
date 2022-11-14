@@ -47,62 +47,65 @@ async function main() {
     $.code = '0'
     await subjectChallengeMain('recommend')
     // console.log($.listData)
-    for (const vo of $.listData) {
-        console.log(vo.subjectTitle+" "+vo.taskMsg)
-        let contentList = await task('channelBff_querySubject', { "page": 1, "pageSize": "15", "scene": "", "subjectId": vo.subjectId, "tabId": "-1", "tabType": "2", "topContentId": "", "topContents": "" })
-        if (contentList.result.subjectVo.contentList) {
-            for (const v of contentList.result.subjectVo.contentList) {
-                // console.log(v)
-                let rewardsInfo = await task('subject_interactive_done', {"contentId":v.contentId,"subjectId":vo.subjectId})
-                if (rewardsInfo) {
-                    console.log(rewardsInfo.message)
-                    if (rewardsInfo.data) {
-                        console.log(rewardsInfo.data)
+    if ($.listData) {
+        for (const vo of $.listData) {
+            console.log(vo.subjectTitle+" "+vo.taskMsg)
+            let contentList = await task('channelBff_querySubject', { "page": 1, "pageSize": "15", "scene": "", "subjectId": vo.subjectId, "tabId": "-1", "tabType": "2", "topContentId": "", "topContents": "" })
+            if (contentList.result.subjectVo.contentList) {
+                for (const v of contentList.result.subjectVo.contentList) {
+                    // console.log(v)
+                    let rewardsInfo = await task('subject_interactive_done', {"contentId":v.contentId,"subjectId":vo.subjectId})
+                    if (rewardsInfo) {
+                        console.log(rewardsInfo.message)
+                        if (rewardsInfo.data) {
+                            console.log(rewardsInfo.data)
+                        }
+                        $.code = rewardsInfo.code
                     }
-                    $.code = rewardsInfo.code
+                    await $.wait(2000);
+                    if ($.code === '202') {
+                        return
+                    }
                 }
-                await $.wait(2000);
-                if ($.code === '202') {
-                    return
-                }
+    
             }
-
+            if ($.code === '202') {
+                return
+            }
+    
         }
-        if ($.code === '202') {
-            return
+    
+        $.code = '0'
+        await subjectChallengeMain('joined')
+        // console.log($.listData)
+        for (const vo of $.listData) {
+            console.log(vo.subjectTitle+" "+vo.taskMsg)
+            let contentList = await task('channelBff_querySubject', { "page": 1, "pageSize": "15", "scene": "", "subjectId": vo.subjectId, "tabId": "-1", "tabType": "2", "topContentId": "", "topContents": "" })
+            if (contentList.result.subjectVo.contentList) {
+                for (const v of contentList.result.subjectVo.contentList) {
+                    // console.log(v)
+                    let rewardsInfo = await task('subject_interactive_done', {"contentId":v.contentId,"subjectId":vo.subjectId})
+                    if (rewardsInfo) {
+                        console.log(rewardsInfo.message)
+                        if (rewardsInfo.data) {
+                            console.log(rewardsInfo.data)
+                        }
+                        $.code = rewardsInfo.code
+                    }
+                    await $.wait(2000);
+                    if ($.code === '202') {
+                        return
+                    }
+                }
+    
+            }
+            if ($.code === '202') {
+                return
+            }
+    
         }
-
     }
 
-    $.code = '0'
-    await subjectChallengeMain('joined')
-    // console.log($.listData)
-    for (const vo of $.listData) {
-        console.log(vo.subjectTitle+" "+vo.taskMsg)
-        let contentList = await task('channelBff_querySubject', { "page": 1, "pageSize": "15", "scene": "", "subjectId": vo.subjectId, "tabId": "-1", "tabType": "2", "topContentId": "", "topContents": "" })
-        if (contentList.result.subjectVo.contentList) {
-            for (const v of contentList.result.subjectVo.contentList) {
-                // console.log(v)
-                let rewardsInfo = await task('subject_interactive_done', {"contentId":v.contentId,"subjectId":vo.subjectId})
-                if (rewardsInfo) {
-                    console.log(rewardsInfo.message)
-                    if (rewardsInfo.data) {
-                        console.log(rewardsInfo.data)
-                    }
-                    $.code = rewardsInfo.code
-                }
-                await $.wait(2000);
-                if ($.code === '202') {
-                    return
-                }
-            }
-
-        }
-        if ($.code === '202') {
-            return
-        }
-
-    }
 }
 function getUUID(format = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", UpperCase = 0) {
   return format.replace(/[xy]/g, function (c) {
