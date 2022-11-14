@@ -108,6 +108,7 @@ let helpinfo = {};
 			$.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
 			$.index = i + 1;
             $.canUseCoinAmount = 0;
+			if (Object.keys(helpinfo).length == 0) helpinfo[$.UserName] = {};
 			try {
 				UA = helpinfo[$.UserName].ua;
 			} catch (e) {
