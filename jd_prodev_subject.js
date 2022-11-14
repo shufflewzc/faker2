@@ -2,7 +2,7 @@
 /**
 活动入口
 https://prodev.m.jd.com/mall/active/4JVvmjx2XwTx7cB64eAFPds1xCox/index.html
-6 10 * * * jd_prodev_subject.js
+6 8,10,12 * * * jd_prodev_subject.js
 */
 const $ = new Env('短视频点赞抽奖');
 const notify = $.isNode() ? require('./sendNotify') : '';
