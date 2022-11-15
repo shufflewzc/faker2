@@ -89,7 +89,7 @@ let helpinfo = {};
 					helpinfo[$.UserName].ua = UA;
 					console.log(`\n开始【账号${$.index}】${$.nickName || $.UserName}`);
 					if (helpinfo[$.UserName].nohelp) { console.log('已无助力次数了'); continue };
-					if (helpinfo[$.UserName].hot) { console.log('可能黑了，跳过！'); continue };
+					//if (helpinfo[$.UserName].hot) { console.log('可能黑了，跳过！'); continue };
 					await help(shareId[j]);
 					//console.log('随机等待1-2秒');
 					await $.wait(parseInt(Math.random() * 1000 + 1000, 10))
@@ -108,7 +108,6 @@ let helpinfo = {};
 			$.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
 			$.index = i + 1;
             $.canUseCoinAmount = 0;
-			if (Object.keys(helpinfo).length == 0) helpinfo[$.UserName] = {};
 			try {
 				UA = helpinfo[$.UserName].ua;
 			} catch (e) {
@@ -154,7 +153,7 @@ function getinfo(xc) {
 					if (data.code == 0) {
 						if (xc) {
 							let sId = data.data.shareId;
-							helpinfo[$.UserName].sId = `${sId}`;
+							//helpinfo[$.UserName].sId = `${sId}`;
 							console.log('助力码：' + sId);
 							console.log('当前营业金：' + data.data.canUseCoinAmount);
 						}
@@ -162,7 +161,7 @@ function getinfo(xc) {
 						console.log('此CK可能黑了！');
 					} else {
 						console.log(data.msg);
-						helpinfo[$.UserName].hot = 1;
+						//helpinfo[$.UserName].hot = 1;
 					}
 				}
 			} catch (e) {
