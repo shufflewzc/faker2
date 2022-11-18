@@ -1,11 +1,11 @@
 /*
-头文字J 每月限兑换一次
+头文字J 
 活动快捷入口： 11:/参与头文字J，集能量兑换京豆，【Jιιngヵ栋】 ￥Z9yfjBqzLWt￥
 日常任务，助力，游戏
 第一个账号助力作者 其他依次助力CK1
 默认不做加购任务，如需要设置变量erport car_addsku='true'
 只跑前5个CK
-45 10,18 * * * jd_mpdz_car.js 
+33 10,19 * * * jd_mpdz_car.js 
 */
 
 const $ = new Env("头文字JJJ");
@@ -136,8 +136,9 @@ async function run(){
         await $.wait(1000);
 		console.log(`当前剩余能量：${$.remainPoint}\n`);
 		await $.wait(1000);
-		//console.log('开始兑换5豆。。。'):
-		//await takePostRequest('exchange');
+		console.log('开始兑换5豆。。。');
+		await takePostRequest('exchange');
+		await $.wait(500);
 		await takePostRequest('missionInviteList');
         await $.wait(1000);
         console.log(`去助力：${$.inviteNick}`);
@@ -229,8 +230,8 @@ async function takePostRequest(type){
             break;
 		case 'exchange':
 		    url=`${domain}/dm/front/jdCardRunning/exchange/exchangeJdMarket?open_id=&mix_nick=${$.MixNick}`;
-			admJson={"awardId": "10082bd15b4703","method": "/jdCardRunning/exchange/exchangeJdMarket","userId": 10299171,"actId": 1760007,"buyerNick": $.inviteNick}
-			body=_0x5338bf('/jdCardRunning/cusShop/getCusShop',{});
+			admJson={"awardId": "10082bd15b4703","userId": 10299171,"actId": 1760007,"buyerNick": $.inviteNick}
+			body=_0x5338bf('/jdCardRunning/exchange/exchangeJdMarket',admJson);
             break;			
 		default:
 			console.log('错误'+type);
