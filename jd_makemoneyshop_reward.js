@@ -1,9 +1,10 @@
 /*
 赚钱大赢家提现
 
-58 59 23 * * * jd_makemoneyshop_reward.js
-
+cron "2 2 29 2 *" jd_makemoneyshop_reward.js
+from: 小埋
 默认不执行
+定时根据自身情况进行设置
 默认只执行1个ck,多账号请单独指定ck
 全部ck并发 task jd_makemoneyshop_reward.js conc JD_COOKIE
 指定某个ck或者某些ck task jd_fruit.js desi JD_COOKIE 1 或者 task jd_fruit.js desi JD_COOKIE 1-5
@@ -11,270 +12,271 @@
 */
 const $ = new Env("赚钱大赢家提现");
 const notify = $.isNode() ? require('./sendNotify') : '';
-//Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
+
+
 let cookiesArr = [], cookie = '';
 let cashout = []
 let isCashOut = process.env.isCashOut ?? false;
 if ($.isNode()) {
-  Object.keys(jdCookieNode).forEach((item) => {
-    cookiesArr.push(jdCookieNode[item])
-  })
-  if (process.env.JD_DEBUG && process.env.JD_DEBUG === 'false') console.log = () => {
-  };
+    Object.keys(jdCookieNode).forEach((item) => {
+        cookiesArr.push(jdCookieNode[item])
+    })
+    if (process.env.JD_DEBUG && process.env.JD_DEBUG === 'false') console.log = () => {
+    };
 } else {
-  cookiesArr = [$.getdata('CookieJD'), $.getdata('CookieJD2'), ...jsonParse($.getdata('CookiesJD') || "[]").map(item => item.cookie)].filter(item => !!item);
+    cookiesArr = [$.getdata('CookieJD'), $.getdata('CookieJD2'), ...jsonParse($.getdata('CookiesJD') || "[]").map(item => item.cookie)].filter(item => !!item);
 }
 !(async () => {
-  if (!cookiesArr[0]) {
-    $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
-    return;
-  }
-  if (isCashOut === false) {
-    console.log('[赚钱大赢家提现]默认不执行,需要执行 isCashOut 设置为 true,更多说明看注释')
-    return
-  }
-  for (let i = 0; i < 1; i++) {
-    if (cookiesArr[i]) {
-      cookie = cookiesArr[i];
-      $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
-      $.index = i + 1;
-      $.isLogin = true;
-      $.nickName = '';
-      $.isNormal = false
-      message = '';
-      await TotalBean();
-      console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
-      if (!$.isLogin) {
-        $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
-        if ($.isNode()) {
-          // await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
-        }
-        continue
-      }
-      $.ADID = getUUID("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", 1);
-      $.UUID = getUUID("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-      await getHome()
-      if ($.isNormal) {
-        await getExchangequery()
-        await getExchange()
-        if (cashout) {
-          cashout = cashout.reverse()
-          // console.log(cashout)
-          for (const cash of cashout) {
-            console.log('去提现 -> '+cash.name)
-            await getExchangeOut(cash.id)
-          }
-        }
-      }
+    if (!cookiesArr[0]) {
+        $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
+        return;
     }
-  }
+    if (isCashOut === false) {
+        console.log('[赚钱大赢家提现]默认不执行,需要执行 isCashOut 设置为 true,更多说明看注释')
+        return
+    }
+    for (let i = 0; i < 1; i++) {
+        if (cookiesArr[i]) {
+            cookie = cookiesArr[i];
+            $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
+            $.index = i + 1;
+            $.isLogin = true;
+            $.nickName = '';
+            $.isNormal = false
+            message = '';
+            // await TotalBean();
+            console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
+            if (!$.isLogin) {
+                $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
+                if ($.isNode()) {
+                    // await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
+                }
+                continue
+            }
+            $.ADID = getUUID("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", 1);
+            $.UUID = getUUID("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+            await getHome()
+            if ($.isNormal) {
+                await getExchangequery()
+                await getExchange()
+                if (cashout) {
+                    cashout = cashout.reverse()
+                    // console.log(cashout)
+                    for (const cash of cashout) {
+                        console.log('去提现 -> '+cash.name)
+                        await getExchangeOut(cash.id)
+                    }
+                }
+            }
+        }
+    }
 })().catch((e) => { $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '') }).finally(() => { $.done(); })
 
 async function getHome(){
-  return new Promise(async resolve => {
-    const options = {
-      url: `https://wq.jd.com/makemoneyshop/home?g_ty=h5&g_tk=&appCode=msc588d6d5&activeId=63526d8f5fe613a6adb48f03&_stk=activeId&_ste=1&sceneval=2`,
-      headers: {
-        'Accept':'*/*',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
-        'Cookie': cookie,
-        'Referer': 'https://wqs.jd.com/',
-        "User-Agent": `jdapp;iPhone;9.5.4;13.6;${$.UUID};network/wifi;ADID/${$.ADID};model/iPhone10,3;addressid/0;appBuild/167668;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`,
-      }
-    }
-    $.get(options, (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-        } else {
-          if (data) {
-            data = JSON.parse(data);
-            if (data.data && data.code === 0) {
-              $.isNormal = true
-              // console.log('白号')
+    return new Promise(async resolve => {
+        const options = {
+            url: `https://wq.jd.com/makemoneyshop/home?g_ty=h5&g_tk=&appCode=msc588d6d5&activeId=63526d8f5fe613a6adb48f03&_stk=activeId&_ste=1&sceneval=2`,
+            headers: {
+                'Accept':'*/*',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+                'Cookie': cookie,
+                'Referer': 'https://wqs.jd.com/',
+                "User-Agent": `jdapp;iPhone;9.5.4;13.6;${$.UUID};network/wifi;ADID/${$.ADID};model/iPhone10,3;addressid/0;appBuild/167668;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`,
             }
-          } else {
-            console.log(`京东服务器返回空数据`)
-          }
         }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
+        $.get(options, (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                } else {
+                    if (data) {
+                        data = JSON.parse(data);
+                        if (data.data && data.code === 0) {
+                            $.isNormal = true
+                            // console.log('白号')
+                        }
+                    } else {
+                        console.log(`京东服务器返回空数据`)
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve();
+            }
+        })
     })
-  })
 }
 async function getExchangequery(){
-  return new Promise(async resolve => {
-    const options = {
-      url: `https://wq.jd.com/makemoneyshop/home?g_ty=h5&g_tk=&appCode=msc588d6d5&activeId=63526d8f5fe613a6adb48f03&_stk=activeId&_ste=1&sceneval=2`,
-      headers: {
-        'Accept':'*/*',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
-        'Cookie': cookie,
-        'Referer': 'https://wqs.jd.com/',
-        "User-Agent": `jdapp;iPhone;9.5.4;13.6;${$.UUID};network/wifi;ADID/${$.ADID};model/iPhone10,3;addressid/0;appBuild/167668;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`,
-      }
-    }
-    $.get(options, (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-        } else {
-          if (data) {
-            data = JSON.parse(data);
-            if (data.data && data.code === 0) {
-              console.log('可提现金额 -> ' + data.data.canUseCoinAmount)
-              // console.log(data.data.exchangeRuleList)
-              if (data.data.exchangeRuleList) {
-                for (const vo of data.data.exchangeRuleList) {
-                  // console.log(vo)
-                  if (vo.exchangeStatus === 1 && vo.cashoutAmount <= data.data.canUseCoinAmount) {
-                    console.log('可提现 -> ', vo.name)
-                    cashout.push(vo)
-                  }
-                }
-              }
+    return new Promise(async resolve => {
+        const options = {
+            url: `https://wq.jd.com/makemoneyshop/home?g_ty=h5&g_tk=&appCode=msc588d6d5&activeId=63526d8f5fe613a6adb48f03&_stk=activeId&_ste=1&sceneval=2`,
+            headers: {
+                'Accept':'*/*',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+                'Cookie': cookie,
+                'Referer': 'https://wqs.jd.com/',
+                "User-Agent": `jdapp;iPhone;9.5.4;13.6;${$.UUID};network/wifi;ADID/${$.ADID};model/iPhone10,3;addressid/0;appBuild/167668;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`,
             }
-          } else {
-            console.log(`京东服务器返回空数据`)
-          }
         }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
+        $.get(options, (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                } else {
+                    if (data) {
+                        data = JSON.parse(data);
+                        if (data.data && data.code === 0) {
+                            console.log('可提现金额 -> ' + data.data.canUseCoinAmount)
+                            // console.log(data.data.exchangeRuleList)
+                            if (data.data.exchangeRuleList) {
+                                for (const vo of data.data.exchangeRuleList) {
+                                    // console.log(vo)
+                                    if (vo.exchangeStatus === 1 && vo.cashoutAmount <= data.data.canUseCoinAmount) {
+                                        console.log('可提现 -> ', vo.name)
+                                        cashout.push(vo)
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        console.log(`京东服务器返回空数据`)
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve();
+            }
+        })
     })
-  })
 }
 
 async function getExchange(){
-  return new Promise(async resolve => {
-    const options = {
-      url: `https://wq.jd.com/prmt_exchange/client/exchange/list-record?g_ty=h5&g_tk=&appCode=msc588d6d5&bizCode=makemoneyshop&exchangeType=2&current=1&size=20&sceneval=2`,
-      headers: {
-        'Accept':'*/*',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
-        'Cookie': cookie,
-        'Referer': 'https://wqs.jd.com/',
-        "User-Agent": `jdapp;iPhone;9.5.4;13.6;${$.UUID};network/wifi;ADID/${$.ADID};model/iPhone10,3;addressid/0;appBuild/167668;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`,
-      }
-    }
-    $.get(options, (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-        } else {
-          if (data) {
-            data = JSON.parse(data);
-            if (data.data && data.ret === 0) {
-              // console.log(data.data.records)
+    return new Promise(async resolve => {
+        const options = {
+            url: `https://wq.jd.com/prmt_exchange/client/exchange/list-record?g_ty=h5&g_tk=&appCode=msc588d6d5&bizCode=makemoneyshop&exchangeType=2&current=1&size=20&sceneval=2`,
+            headers: {
+                'Accept':'*/*',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+                'Cookie': cookie,
+                'Referer': 'https://wqs.jd.com/',
+                "User-Agent": `jdapp;iPhone;9.5.4;13.6;${$.UUID};network/wifi;ADID/${$.ADID};model/iPhone10,3;addressid/0;appBuild/167668;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`,
             }
-          } else {
-            console.log(`京东服务器返回空数据`)
-          }
         }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
+        $.get(options, (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                } else {
+                    if (data) {
+                        data = JSON.parse(data);
+                        if (data.data && data.ret === 0) {
+                            // console.log(data.data.records)
+                        }
+                    } else {
+                        console.log(`京东服务器返回空数据`)
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve();
+            }
+        })
     })
-  })
 }
 
 async function getExchangeOut(id){
-  return new Promise(async resolve => {
-    const options = {
-      url: `https://wq.jd.com/prmt_exchange/client/exchange?g_ty=h5&g_tk=&appCode=msc588d6d5&bizCode=makemoneyshop&ruleId=${id}&sceneval=2`,
-      headers: {
-        'Accept':'*/*',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
-        'Cookie': cookie,
-        'Referer': 'https://wqs.jd.com/',
-        "User-Agent": `jdapp;iPhone;9.5.4;13.6;${$.UUID};network/wifi;ADID/${$.ADID};model/iPhone10,3;addressid/0;appBuild/167668;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`,
-      }
-    }
-    $.get(options, (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-        } else {
-          if (data) {
-            data = JSON.parse(data);
-            if (data.data) {
-              console.log(data)
+    return new Promise(async resolve => {
+        const options = {
+            url: `https://wq.jd.com/prmt_exchange/client/exchange?g_ty=h5&g_tk=&appCode=msc588d6d5&bizCode=makemoneyshop&ruleId=${id}&sceneval=2`,
+            headers: {
+                'Accept':'*/*',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+                'Cookie': cookie,
+                'Referer': 'https://wqs.jd.com/',
+                "User-Agent": `jdapp;iPhone;9.5.4;13.6;${$.UUID};network/wifi;ADID/${$.ADID};model/iPhone10,3;addressid/0;appBuild/167668;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`,
             }
-          } else {
-            console.log(`京东服务器返回空数据`)
-          }
         }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
+        $.get(options, (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                } else {
+                    if (data) {
+                        data = JSON.parse(data);
+                        if (data.data) {
+                            console.log(data)
+                        }
+                    } else {
+                        console.log(`京东服务器返回空数据`)
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve();
+            }
+        })
     })
-  })
 }
 
 function TotalBean() {
-  return new Promise(async resolve => {
-    const options = {
-      "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
-      "headers": {
-        "Accept": "application/json,text/plain, */*",
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "zh-cn",
-        "Connection": "keep-alive",
-        "Cookie": cookie,
-        "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
-        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.2 Mobile/15E148 Safari/604.1"
-      }
-    }
-    $.post(options, (err, resp, data) => {
-      try {
-        if (err) {
-          console.log(`${JSON.stringify(err)}`)
-          console.log(`${$.name} API请求失败，请检查网路重试`)
-        } else {
-          if (data) {
-            data = JSON.parse(data);
-            if (data['retcode'] === 13) {
-              $.isLogin = false; //cookie过期
-              return
+    return new Promise(async resolve => {
+        const options = {
+            "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
+            "headers": {
+                "Accept": "application/json,text/plain, */*",
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Accept-Language": "zh-cn",
+                "Connection": "keep-alive",
+                "Cookie": cookie,
+                "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
+                "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.2 Mobile/15E148 Safari/604.1"
             }
-            if (data['retcode'] === 0) {
-              $.nickName = (data['base'] && data['base'].nickname) || $.UserName;
-            } else {
-              $.nickName = $.UserName
-            }
-          } else {
-            console.log(`京东服务器返回空数据`)
-          }
         }
-      } catch (e) {
-        $.logErr(e, resp)
-      } finally {
-        resolve();
-      }
+        $.post(options, (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(`${$.name} API请求失败，请检查网路重试`)
+                } else {
+                    if (data) {
+                        data = JSON.parse(data);
+                        if (data['retcode'] === 13) {
+                            $.isLogin = false; //cookie过期
+                            return
+                        }
+                        if (data['retcode'] === 0) {
+                            $.nickName = (data['base'] && data['base'].nickname) || $.UserName;
+                        } else {
+                            $.nickName = $.UserName
+                        }
+                    } else {
+                        console.log(`京东服务器返回空数据`)
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve();
+            }
+        })
     })
-  })
 }
 function getUUID(x = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", t = 0) {
-  return x.replace(/[xy]/g, function (x) {
-    var r = (16 * Math.random()) | 0,
-      n = "x" == x ? r : (3 & r) | 8;
-    return (uuid = t ? n.toString(36).toUpperCase() : n.toString(36)), uuid;
-  });
+    return x.replace(/[xy]/g, function (x) {
+        var r = (16 * Math.random()) | 0,
+            n = "x" == x ? r : (3 & r) | 8;
+        return (uuid = t ? n.toString(36).toUpperCase() : n.toString(36)), uuid;
+    });
 }
 
 
