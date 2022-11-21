@@ -59,6 +59,7 @@ let FEED_NUM = 20;   //喂食数量默认20g,可选 10,20,40,80 , 其他数字�
             }
             $.validate = '';
             $.validate = await Slider.injectToRequest()
+            if (!$.validate) {console.log('滑块验证失败过多，跳出');continue};
             await feedPets(FEED_NUM);//喂食
             //await ThreeMeals();//三餐
             await showMsg();
