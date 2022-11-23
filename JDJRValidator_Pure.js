@@ -234,7 +234,7 @@ class JDJRValidator {
           return x;
         }
         // retry
-        return await tryRecognize();
+        return 124;
       };
       const puzzleX = await tryRecognize();
       // console.log(puzzleX);
@@ -243,7 +243,7 @@ class JDJRValidator {
 
       // console.log(pos[pos.length-1][2] -Date.now());
       // await sleep(4500);
-      await sleep(pos[pos.length - 1][2] - Date.now());
+      //await sleep(pos[pos.length - 1][2] - Date.now());
       const result = await JDJRValidator.jsonp('/slide/s.html', {d, ...this.data}, scene);
 
       if (result.message === 'success') {
