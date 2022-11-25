@@ -9,7 +9,7 @@
 DYJSHAREID = 'xxx&xxx&xxx'
 10 10 10 10 * https://raw.githubusercontent.com/6dylan6/jdpro/main/jd_makemoneyshop.js
 By: https://github.com/6dylan6/jdpro
-updatetime: 2022/11/13 不过滤黑号了，直接助力
+updatetime: 2022/11/25 
  */
 
 const $ = new Env('特价版大赢家');
@@ -78,7 +78,7 @@ let helpinfo = {};
 			helpnum = 0;
 			if ($.index === m) { console.log('已无账号可用于助力！结束\n'); break };
 			for (let i = k; i < m; i++) {
-				if (helpnum == 10) { console.log('助力已满，跳出！\n'); k = i; break };
+				if (helpnum == 5) { console.log('助力已满，跳出！\n'); k = i; break };
 				if ($.fullhelp) { console.log('助力已满，跳出！\n'); k = i - 1; break };
 				if (cookiesArr[i]) {
 					cookie = cookiesArr[i];
