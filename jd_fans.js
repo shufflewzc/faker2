@@ -8,8 +8,8 @@
 
 //活动列表
 let activityList = [
-  { 'id': '56881c929e5f4918aec928b3dbc56620', 'endTime': 1664553606000 },
-  { 'id': '2d52f30124b041808e68e8a470ce0ef7', 'endTime': 1666025778000 },
+  { 'id': "6db6851a9cd14261badf3645515bad22", 'endTime': 1669824000000 },
+  { 'id': "2b793b802aec4bc49f0358dbad059087", 'endTime': 1671811200000 },
 ];
 
 const $ = new Env('粉丝互动-加密');
