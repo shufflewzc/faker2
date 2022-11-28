@@ -339,7 +339,7 @@ function apTaskDrawAward(taskId, taskType) {
 
 function taskPostClientActionUrl(body, functionId) {
   return {
-    url: `https://api.m.jd.com/client.action?${functionId ? `functionId=${functionId}` : ``}`,
+    url: `https://api.m.jd.com/client.action${functionId ? `?functionId=${functionId}` : ''}`,
     body: body,
     headers: {
       'User-Agent': $.UA,
