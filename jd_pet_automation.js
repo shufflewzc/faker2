@@ -1,11 +1,11 @@
-//40 5,12,21 * * * m_jd_pet_automation.js
-//问题反馈:https://t.me/Wall_E_Channel
-const {Env} = require('./magic');
+//20 14 10 4 *  jd_pet_automation.js
+
+const {Env} = require('./function/magic');
 const $ = new Env('M萌宠自动化');
 let commodityName = process.env.M_JD_PET_COMMODITY
     ? process.env.M_JD_PET_COMMODITY
     : ''
-$.log('默认4级商品，生产指定商品请自行配置 M_JD_PET_COMMODITY')
+$.log('默认5级商品，生产指定商品请自行配置 M_JD_PET_COMMODITY')
 $.logic = async function () {
     let info = await api('initPetTown', {"version": 1});
     $.log(JSON.stringify(info));
@@ -28,7 +28,7 @@ $.logic = async function () {
         info = await api('goodsInfoList', {"type": 2})
         let goods = commodityName ? info.result.goodsList.filter(
             o => o.goodsName.includes(commodityName))[0]
-            : info.result.goodsList.filter(o => o.exchangeMedalNum === 4)[0];
+            : info.result.goodsList.filter(o => o.exchangeMedalNum === 5)[0];
         if (!goods) {
             $.putMsg(`没找到你要生产的 ${commodityName}`)
             return
@@ -38,10 +38,7 @@ $.logic = async function () {
     }
 };
 
-$.run({
-    wait: [2000, 3000], whitelist: ['1-15']
-}).catch(
-    reason => $.log(reason));
+$.run({wait: [2000, 3000]}).catch(reason => $.log(reason));
 
 // noinspection DuplicatedCode
 async function api(fn, body) {
@@ -61,4 +58,3 @@ async function api(fn, body) {
     await $.wait(1000, 3000)
     return data;
 }
-

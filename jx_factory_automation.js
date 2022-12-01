@@ -1,18 +1,18 @@
-//20 * * * * m_jx_factory_automation.js
-//问题反馈:https://t.me/Wall_E_Channel
-const {Env} = require('./magic');
-const $ = new Env('M工厂自动化');
-let commodityName = process.env.M_JX_FACTORY_COMMODITY
-    ? process.env.M_JX_FACTORY_COMMODITY
-    : '你还没设置要生产的变量M_JX_FACTORY_COMMODITY'
-let stop = false;
-$.logic = async function () {
-    if (stop) {
-        return;
-    }
-    let info = await GetUserInfo();
-    $.log(JSON.stringify(info));
+/*
+[task_local]
+京喜工厂自动化
+变量：京喜工厂自动化生产(填写需要生产的商品名)
+配合京喜工厂商品列表详情使用
+//export COMMODITY_NAME="芦荟洗手液2瓶"
+2 10 20 5 * jx_factory_automation.js
+*/
+const {Env} = require('./function/magic');
+const $ = new Env('M京喜工厂自动化');
+let commodityName = process.env.COMMODITY_NAME ? process.env.COMMODITY_NAME
+    : '还没设置要生产商品的变量COMMODITY_NAME,先运行获取商品任务，例：export COMMODITY_NAME="芦荟洗手液2瓶"'
 
+$.logic = async function () {
+    let info = await GetUserInfo();
     if (!info) {
         $.putMsg('没有找到工厂信息');
         return;
@@ -26,7 +26,7 @@ $.logic = async function () {
             return
         }
         let productionId = product.productionId;
-        await $.wait(300, 500)
+        await $.wait(3000, 5000)
         let {active} = await ExchangeCommodity(productionId);
         await $.wait(300, 500)
         await QueryHireReward();
@@ -39,58 +39,23 @@ $.logic = async function () {
     let deviceId = info?.deviceList[0].deviceId;
     $.log('获取设备id', deviceId);
     let {commodityList} = await GetCommodityList();
+    await $.wait(1300, 1500)
+    await GetShelvesList()
     let filter = commodityList.filter(o => o.name.includes(commodityName));
     if (filter.length === 1) {
-        let commodity = filter[0];
-        if (commodity?.flashStartTime && commodity?.flashStartTime
-            > $.timestamp()) {
-            $.log(`还没到时间`)
-            return;
-        }
-        let data = await GetCommodityDetails(commodity.commodityId);
+        let data = await GetCommodityDetails(filter[0].commodityId);
+        await GetDeviceDetails();
         await $.wait(300, 500)
         let newVar = await AddProduction(factoryId, deviceId, data.commodityId);
         if (newVar?.productionId) {
             $.putMsg(`${data.name}已经开始生产`)
-            info = await GetUserInfo();
-            let product = info?.productionList[0];
-            let productionId = product.productionId;
-            await InvestElectric(productionId);//添加电力
-            await InvestElectric(productionId);
         }
     } else {
         $.putMsg(`没找到你要生产的 ${commodityName}`)
-        stop = true;
     }
 };
 
-$.run({
-    wait: [2000, 3000]
-}).catch(
-    reason => $.log(reason));
-
-async function InvestElectric(productionId) {
-    let url = `https://m.jingxi.com/dreamfactory/userinfo/InvestElectric?zone=dream_factory&productionId=${productionId}&_time=1637743936757&_ts=1637743936757&_=1637743936758&sceneval=2&g_login_type=1&callback=jsonpCBKR&g_ty=ls`;
-    // noinspection DuplicatedCode
-    let headers = {
-        'Accept': '*/*',
-        'Connection': 'keep-alive',
-        'Referer': 'https://st.jingxi.com/pingou/dream_factory/index.html',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Host': 'm.jingxi.com',
-        'Accept-Language': 'zh-cn'
-    }
-    // noinspection DuplicatedCode
-    headers['Cookie'] = $.cookie
-    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.randomString(
-        40)};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
-    let data = await $.get(url, headers)
-    // noinspection DuplicatedCode
-    if (data?.ret === 0) {
-        return data?.data
-    }
-    return false;
-}
+$.run({wait: [2000, 3000]}).catch(reason => $.log(reason));
 
 async function AddProduction(factoryId, deviceId, commodityDimId) {
     let url = `https://m.jingxi.com/dreamfactory/userinfo/AddProduction?zone=dream_factory&factoryId=${factoryId}&deviceId=${deviceId}&commodityDimId=${commodityDimId}&replaceProductionId=&_time=1637282973549&_ts=1637282973549&_=1637282973550&sceneval=2&g_login_type=1&callback=jsonpCBKGGG&g_ty=ls`;
@@ -105,8 +70,7 @@ async function AddProduction(factoryId, deviceId, commodityDimId) {
         'Cookie': $.cookie
     }
     // noinspection DuplicatedCode
-    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.randomString(
-        40)};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
+    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.uuid()};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
     let data = await $.get(url, headers)
     // noinspection DuplicatedCode
     if (data?.ret === 0) {
@@ -130,8 +94,7 @@ async function GetDeviceDetails() {
         'Cookie': $.cookie
     }
     // noinspection DuplicatedCode
-    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.randomString(
-        40)};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
+    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.uuid()};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
     let data = await $.get(url, headers)
     // noinspection DuplicatedCode
     if (data?.ret === 0) {
@@ -153,8 +116,7 @@ async function GetUserComponent(pin) {
         'Cookie': $.cookie
     }
     // noinspection DuplicatedCode
-    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.randomString(
-        40)};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
+    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.uuid()};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
     let data = await $.get(url, headers)
     // noinspection DuplicatedCode
     if (data?.ret === 0) {
@@ -177,8 +139,7 @@ async function GetUserInfo() {
         'Cookie': $.cookie
     }
     // noinspection DuplicatedCode
-    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.randomString(
-        40)};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
+    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.uuid()};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
     let data = await $.get(url, headers)
     // noinspection DuplicatedCode
     if (data?.ret === 0) {
@@ -201,8 +162,7 @@ async function ExchangeCommodity(productionId) {
         'Cookie': $.cookie
     }
     // noinspection DuplicatedCode
-    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.randomString(
-        40)};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
+    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.uuid()};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
     let data = await $.get(url, headers)
     // noinspection DuplicatedCode
     if (data?.ret === 0) {
@@ -225,8 +185,7 @@ async function GetCommodityList() {
         'Cookie': $.cookie
     }
     // noinspection DuplicatedCode
-    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.randomString(
-        40)};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
+    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.uuid()};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
     let data = await $.get(url, headers)
     // noinspection DuplicatedCode
     if (data?.ret === 0) {
@@ -249,8 +208,7 @@ async function GetCommodityDetails(commodityId) {
         'Cookie': $.cookie
     }
     // noinspection DuplicatedCode
-    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.randomString(
-        40)};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
+    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.uuid()};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
     let data = await $.get(url, headers)
     // noinspection DuplicatedCode
     return data?.data?.commodityList?.[0]
@@ -269,8 +227,7 @@ async function queryprizedetails(actives) {
         'Cookie': $.cookie
     }
     // noinspection DuplicatedCode
-    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.randomString(
-        40)};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
+    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.uuid()};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
     let data = await $.get(url, headers)
     // noinspection DuplicatedCode
     if (data?.ret === 0) {
@@ -292,8 +249,7 @@ async function QueryHireReward() {
         'Cookie': $.cookie
     }
     // noinspection DuplicatedCode
-    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.randomString(
-        40)};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
+    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.uuid()};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
     let data = await $.get(url, headers)
     // noinspection DuplicatedCode
     if (data?.ret === 0) {
@@ -315,8 +271,7 @@ async function GetShelvesList() {
         'Cookie': $.cookie
     }
     // noinspection DuplicatedCode
-    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.randomString(
-        40)};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
+    headers['User-Agent'] = `jdpingou;iPhone;5.2.2;14.3;${$.uuid()};network/wifi;model/iPhone12,1;appBuild/100630;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/0;hasOCPay/0;supportBestPay/0;session/1;pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
     let data = await $.get(url, headers)
     // noinspection DuplicatedCode
     if (data?.ret === 0) {
