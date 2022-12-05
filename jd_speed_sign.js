@@ -658,7 +658,6 @@ function taskGetUrl(function_id, body) {
 
 function invite2() {
   let inviterIdArr = [
-    "5V7vHE23qh2EkdBHXRFDuA==",
     "wXX9SjXOdYMWe5Ru/1+x9A==",
     "wXX9SjXOdYMWe5Ru/1+x9A==",
     "4AVQao+eH8Q8kvmXnWmkG8ef/fNr5fdejnD9+9Ugbec="
