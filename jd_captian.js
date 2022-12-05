@@ -11,8 +11,8 @@ const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const notify = $.isNode() ? require('./sendNotify') : '';
 let cookiesArr = [], cookie = '', message = '';
 let activityList = [
-    {'activityId' : '49aad82a1afb4bd7b84eb6e79f633a67' ,'activityShopId' : '1000002527' , 'activityName':'欧乐b' , 'updateCaptainNum' : '2' , 'type' : '0'}, //0
-    {'activityId' : '9dfd1384e00a411cbd9e82a34cc8d803' ,'activityShopId' : '1000003691' , 'activityName':'安佳' , 'updateCaptainNum' : '2' , 'type' : '0'},  //1
+    {'activityId' : '5280930d84294555b7a1e61cb97ce9de' ,'activityShopId' : '1000014486' , 'activityName':'安佳' , 'updateCaptainNum' : '20', 'type' : '0'},
+    {'activityId' : 'd923d226bc734984a11d450912de6297' ,'activityShopId' : '1000002527' , 'activityName':'新安怡' , 'updateCaptainNum' : '20', 'type' : '0'},
 ]
 let activityNum = process.env.captian_id ?? 0;
 if ($.isNode()) {
