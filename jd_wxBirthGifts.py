@@ -2,15 +2,16 @@
 # -*- coding: utf-8 -*-
 
 """
-File: jd_wxBirthGifts.py(生日礼包-监控脚本)
+File: jd_wxBirthGifts.py(生日等级礼包-监控脚本)
 Author: HarbourJ
 Date: 2022/8/8 19:52
 TG: https://t.me/HarbourToulu
-TgChat: https://t.me/HarbourSailing
+TgChat: https://t.me/HarbourChat
 cron: 1 1 1 1 1 1
-new Env('生日礼包-JK');
+new Env('生日等级礼包-JK');
 ActivityEntry: https://cjhy-isv.isvjcloud.com/mc/wxMcLevelAndBirthGifts/activity?activityId=f3325e3375a14866xxxxxxxxxxxx
-               变量 export jd_wxBirthGiftsId="f3325e3375a14866xxxxxxxxxxxx"
+               变量 export jd_wxBirthGiftsId="活动🆔"
+Update: 20221205 新增等级礼包模块
 """
 
 import time, requests, sys, re, os, json, random
@@ -25,7 +26,8 @@ try:
 except ImportError as e:
     print(e)
     if "No module" in str(e):
-        print("请先运行Faker库依赖一键安装脚本(jd_check_dependent.py)，安装jd_sign.so依赖")
+        print("请先运行HarbourJ库依赖一键安装脚本(jd_check_dependent.py)，安装jd_sign.so依赖")
+    sys.exit()
 try:
     from jdCookie import get_cookies
     getCk = get_cookies()
@@ -330,9 +332,9 @@ def accessLog(venderId, pin, activityType):
     }
     requests.request("POST", url, headers=headers, data=payload)
 
-def activityContent(pin, activityType):
+def activityContent(pin, level):
     url = "https://cjhy-isv.isvjcloud.com/mc/wxMcLevelAndBirthGifts/activityContent"
-    payload = f"activityId={activityId}&pin={quote_plus(pin)}&level={activityType}"
+    payload = f"activityId={activityId}&pin={quote_plus(pin)}&level={level}"
     headers = {
         'Host': 'cjhy-isv.isvjcloud.com',
         'Accept': 'application/json',
@@ -438,6 +440,30 @@ def sendBirthGifts(venderId, pin, level):
     else:
         print(f"⛈{res['errorMessage']}")
 
+def sendLevelGifts(venderId, pin, level):
+    url = "https://cjhy-isv.isvjcloud.com/mc/wxMcLevelAndBirthGifts/sendLevelGifts"
+    payload = f"venderId={venderId}&pin={quote_plus(pin)}&activityId={activityId}&level={level}"
+    headers = {
+        'Host': 'cjhy-isv.isvjcloud.com',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Origin': 'https://cjhy-isv.isvjcloud.com',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl,
+        'Cookie': f'IsvToken={token};{activityCookie}'
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    refresh_cookies(response)
+    res = response.json()
+    if res['result']:
+        return res['data']
+    else:
+        print(f"⛈{res['errorMessage']}")
+
 
 if __name__ == '__main__':
     r = redis_conn()
@@ -468,15 +494,15 @@ if __name__ == '__main__':
             print(f"⚠️获取Token失败！⏰等待2s")
             time.sleep(2)
             continue
-        time.sleep(0.3)
+        time.sleep(0.2)
         activityCookie = getActivity()
-        time.sleep(0.5)
+        time.sleep(0.3)
         getOpenStatus()
         time.sleep(0.2)
         getSimAct = getSimpleActInfoVo()
         venderId = getSimAct['venderId']
         activityType = getSimAct['activityType']
-        time.sleep(0.5)
+        time.sleep(0.3)
         getPin = getMyPing(venderId)
         if getPin:
             nickname = getPin[0]
@@ -489,11 +515,11 @@ if __name__ == '__main__':
                 if memberLev:
                     level = memberLev['level']
                     shopTitle = memberLev['shopTitle']
-                    print(f"✅开启{shopTitle} 生日礼包")
+                    print(f"✅开启{shopTitle} 生日等级礼包")
                     time.sleep(0.2)
                     accessLog(venderId, secretPin, activityType)
                     time.sleep(0.2)
-                    actContent = activityContent(secretPin, activityType)
+                    actContent = activityContent(secretPin, level)
                     if actContent:
                         if actContent['isReceived'] == 1:
                             print(f"💨{nickname} 今年已经领过了,明年再来吧~")
@@ -503,21 +529,31 @@ if __name__ == '__main__':
                             getInfo()
                             time.sleep(0.2)
                             try:
-                                getBirthInfo(venderId, secretPin)
-                                time.sleep(0.2)
-                                saveBirthDay(venderId, secretPin)
-                                time.sleep(0.2)
-                                sendGift = sendBirthGifts(venderId, secretPin, level)
-                                birthdayResult = sendGift['birthdayResult']
-                                if birthdayResult:
-                                    birthdayData = sendGift['birthdayData']
-                                    gifts = [(f"{x['beanNum']}{x['name']}") for x in birthdayData]
-                                    print(f"🎉🎉🎉{nickname} 成功领取 {','.join(gifts)}")
+                                if activityType == 104:
+                                    sendGift = sendLevelGifts(venderId, secretPin, level)
+                                    levelResult = sendGift['levelResult']
+                                    if levelResult:
+                                        levelData = sendGift['levelData']
+                                        gifts = [(f"{x['beanNum']}{x['name']}") for x in levelData]
+                                        print(f"🎉🎉🎉{nickname} 成功领取 {','.join(gifts)}")
+                                    else:
+                                        print(f"💨{nickname} 生日等级礼包领取失败,请重试~")
                                 else:
-                                    print(f"💨{nickname} 生日礼包领取失败,请重试~")
+                                    getBirthInfo(venderId, secretPin)
+                                    time.sleep(0.2)
+                                    saveBirthDay(venderId, secretPin)
+                                    time.sleep(0.2)
+                                    sendGift = sendBirthGifts(venderId, secretPin, level)
+                                    birthdayResult = sendGift['birthdayResult']
+                                    if birthdayResult:
+                                        birthdayData = sendGift['birthdayData']
+                                        gifts = [(f"{x['beanNum']}{x['name']}") for x in birthdayData]
+                                        print(f"🎉🎉🎉{nickname} 成功领取 {','.join(gifts)}")
+                                    else:
+                                        print(f"💨{nickname} 生日等级礼包领取失败,请重试~")
                             except:
-                                print(f"💨{nickname} 生日礼包领取失败,请重试~")
+                                print(f"💨{nickname} 生日等级礼包领取失败,请重试~")
             else:
-                print(f"⛈{nickname} 非店铺会员无法领取生日礼包！")
+                print(f"⛈{nickname} 非店铺会员无法领取生日等级礼包！")
                 continue
-        time.sleep(2.5)
+        time.sleep(1.5)
