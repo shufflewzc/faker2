@@ -185,7 +185,8 @@ async function doTask(subTitleId, taskId, batchId) {
     "itemId": "1",
     "rankId": $.skuList[randIndex]['rankId'],
     "type": 1,
-    batchId
+    batchId,
+	"version": "2"
   };
   await goldCreatorDoTask(body);
 }
@@ -194,7 +195,7 @@ async function doTask2(batchId) {
     task = task.filter(vo => !!vo && vo['taskStatus'] === 1);
     for (let item of task) {
       console.log(`\n做额外任务：${item['taskName']}`)
-      const body = {"taskId": item['taskId'], "itemId": item['taskItemInfo']['itemId'], "type": item['taskType'], batchId};
+      const body = {"taskId": item['taskId'], "itemId": item['taskItemInfo']['itemId'], "type": item['taskType'], batchId, "version":"2"};
       if (item['taskType'] === 1) {
         body['type'] = 2;
       }
@@ -267,13 +268,8 @@ function goldCreatorPublish() {
 }
 function taskUrl(function_id, body = {}) {
   return {
-    url: `${JD_API_HOST}?functionId=${function_id}&body=${escape(JSON.stringify(body))}&appid=content_ecology&clientVersion=10.0.0&client=wh5&eufv=false&uuid=`,
+    url: `${JD_API_HOST}?functionId=${function_id}&body=${escape(JSON.stringify(body))}&appid=content_ecology&clientVersion=11.3.0&client=wh5&jsonp=`,
     headers: {
-      "Accept": "*/*",
-      "Accept-Encoding": "gzip, deflate, br",
-      "Accept-Language": "zh-cn",
-      "Connection": "keep-alive",
-      "Content-Type": "application/x-www-form-urlencoded",
       "Host": "api.m.jd.com",
       "Referer": "https://h5.m.jd.com/",
       "Cookie": cookie,
