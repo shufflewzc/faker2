@@ -2,16 +2,17 @@
 /**
 入口
 
-10:/￥HAJor9Jk6J￥，➔亰★Dσδδng复制全部内容，打开京东，即可为我助力，领大额红包！红包限时翻倍，一起来领年终奖吧！
+19:/！M6gHGDHwlC！☞綡✯D○ōσng复制全部内容，打开京东，即可为我助力，领大额红包！红包限时翻倍，一起来领年终奖吧！
 
 自己解析出助力码 inviteId
 
 https://h5.m.jd.com/pb/013927490/25wTmNQhkZY7UdAzu8cTBS9YfR1p/index.html&babelChannel=ttt11?inviteId=T022v_xzQRgc80nWKBv3kPMNfACjRQl4aW5kRrbA&from=kouling&sid=e5a0395c81eb223f6812496826b0af3w&un_area=19_1666_36267_36272
 
-环境变量 taskToken
-10 20 * * *
+环境变量 export taskToken=""
+7 7 7 7 7 jd_harmony.js
+
 */
-const $ = new Env('为我助力，领大额红包，至高1212元！');
+const $ = new Env('金榜年终奖助力');
 const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
