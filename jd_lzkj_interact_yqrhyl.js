@@ -1,11 +1,11 @@
 /*
 
-https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/index?activityType=10006&activityId=1595961017469161473&templateId=20201228083300yqrhyl011&nodeId=101001005&sid=&un_area=
+https://lzkj-isv.isvjcloud.com/prod/cc/interact/index?activityType=10006&activityId=1595961017469161473&templateId=20201228083300yqrhyl011&nodeId=101001005&sid=&un_area=
 邀请入会有礼
 如果在参加活动前已经入会了， 是不算邀请个数的 !!!
-export jd_lzkj_interactsaas_yqrhyl_activityId="活动id"            必须
+export jd_lzkj_interact_yqrhyl_activityId="活动id"            必须
 
-cron "2 2 29 2 *" jd_lzkj_interactsaas_yqrhyl.js
+cron "2 2 29 2 *" jd_lzkj_interact_yqrhyl.js
 */
 const $ = new Env('lzkj邀请入会有礼')
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
