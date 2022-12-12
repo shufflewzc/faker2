@@ -759,9 +759,16 @@ async function showMsg() {
 		
 	if ($.JingXiang) {
 		if ($.isRealNameAuth)
-			ReturnMessageTitle += `(已实名)\n`;
+			if (cookie.includes("app_open"))
+				ReturnMessageTitle += `(wskey已实名)\n`;
+			else
+				ReturnMessageTitle += `(已实名)\n`;
 		else
-			ReturnMessageTitle += `(未实名)\n`;
+			if (cookie.includes("app_open"))
+				ReturnMessageTitle += `(wskey未实名)\n`;
+			else
+				ReturnMessageTitle += `(未实名)\n`;
+			
 	    ReturnMessage += `【账号信息】`;
 	    if ($.isPlusVip) {
 	        ReturnMessage += `Plus会员`;
@@ -1133,9 +1140,16 @@ async function showMsg() {
 		var strTitle="京东资产变动";
 		if($.JingXiang){
 			if ($.isRealNameAuth)
-				ReturnMessage=`【账号名称】${$.nickName || $.UserName}(已实名)\n`+ReturnMessage;				
+				if (cookie.includes("app_open"))
+					ReturnMessage=`【账号名称】${$.nickName || $.UserName}(wskey已实名)\n`+ReturnMessage;
+				else
+					ReturnMessage=`【账号名称】${$.nickName || $.UserName}(已实名)\n`+ReturnMessage;
 			else
-				ReturnMessage=`【账号名称】${$.nickName || $.UserName}(未实名)\n`+ReturnMessage;				
+				if (cookie.includes("app_open"))
+					ReturnMessage=`【账号名称】${$.nickName || $.UserName}(wskey未实名)\n`+ReturnMessage;
+				else
+					ReturnMessage=`【账号名称】${$.nickName || $.UserName}(未实名)\n`+ReturnMessage;
+			
 		}else{
 			ReturnMessage=`【账号名称】${$.nickName || $.UserName}\n`+ReturnMessage;
 		}

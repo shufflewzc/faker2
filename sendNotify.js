@@ -902,7 +902,7 @@ function getuuid(strRemark, PtPin) {
         if (Tempindex != -1) {
             console.log(PtPin + ": 检测到NVJDC的一对一格式,瑞思拜~!");
             var TempRemarkList = strRemark.split("@@");
-            for (let j = 1; j < TempRemarkList.length; j++) {
+            for (let j = 0; j < TempRemarkList.length; j++) {
                 if (TempRemarkList[j]) {
                     if (TempRemarkList[j].length > 4) {
                         if (TempRemarkList[j].substring(0, 4) == "UID_") {
