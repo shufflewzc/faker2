@@ -74,7 +74,7 @@ if ($.isNode()) {
 async function getHome(){
   return new Promise(async resolve => {
     const options = {
-      url: `https://wq.jd.com/makemoneyshop/home?g_ty=h5&g_tk=&appCode=msc588d6d5&activeId=63526d8f5fe613a6adb48f03&_stk=activeId&_ste=1&sceneval=2`,
+      url: `https://api.m.jd.com/api?g_ty=h5&g_tk=&appCode=msc588d6d5&body=%7B%22activeId%22%3A%2263526d8f5fe613a6adb48f03%22%2C%22isFirst%22%3A1%2C%22operType%22%3A1%7D&appid=jdlt_h5&client=jxh5&functionId=makemoneyshop_home&clientVersion=1.2.5&h5st=20221202224421183%3B5zi6yg6hy6dijtc6%3B638ee%3Btk02waef91cf118n77Hw3bHueBsVVy52Wbcx9h4HMPM7fpi9ntRoot7vaa118bRqqEnduYVLqW8kyzHpNsDp5PtrZ8tJ%3B8e13afd153316da1c4878705d9e1f17b27db283c%3B400%3B1669992261183%3Bf28308408a6bad45ead939c02e9cf1e489ad7a120db68c73bdee607bdb6db9daaf6fd9e2d4b87320f4ec869d11fb7fa97ea7bffc29059dfb373214547287d0a2f8d2de03200d84c4776d0464313a08e3488339db94ee9194cfb8237a7678d9020d0c6d9df83ea6c18193626f396ff6f9d41ff0a831b19868640ee15d264ac55bdd144f2a8323f8168cb761f298ab19b00bc20f917401a5f65df079011591dba83f9ee65e3fc211cbadb9211443680603&loginType=2&sceneval=2`,
       headers: {
         'Accept':'*/*',
         'Accept-Encoding': 'gzip, deflate, br',
@@ -110,7 +110,7 @@ async function getHome(){
 async function getExchangequery(){
   return new Promise(async resolve => {
     const options = {
-      url: `https://wq.jd.com/makemoneyshop/home?g_ty=h5&g_tk=&appCode=msc588d6d5&activeId=63526d8f5fe613a6adb48f03&_stk=activeId&_ste=1&sceneval=2`,
+      url: `https://api.m.jd.com/api?functionId=makemoneyshop_exchangequery&appid=jdlt_h5&channel=jxh5&cv=1.2.5&clientVersion=1.2.5&client=jxh5&uuid=7296248594457&cthr=1&body=%7B%22activeId%22%3A%2263526d8f5fe613a6adb48f03%22%2C%22sceneval%22%3A2%2C%22buid%22%3A325%2C%22appCode%22%3A%22msc588d6d5%22%2C%22time%22%3A1671265664838%2C%22signStr%22%3A%22%22%7D&t=1671265664839&loginType=2`,
       headers: {
         'Accept':'*/*',
         'Accept-Encoding': 'gzip, deflate, br',
@@ -130,8 +130,8 @@ async function getExchangequery(){
             if (data.data && data.code === 0) {
               console.log('可提现金额 -> ' + data.data.canUseCoinAmount)
               // console.log(data.data.exchangeRuleList)
-              if (data.data.exchangeRuleList) {
-                for (const vo of data.data.exchangeRuleList) {
+              if (data.data.cashExchangeRuleList) {
+                for (const vo of data.data.cashExchangeRuleList) {
                   // console.log(vo)
                   if (vo.exchangeStatus === 1 && vo.cashoutAmount <= data.data.canUseCoinAmount) {
                     console.log('可提现 -> ', vo.name)

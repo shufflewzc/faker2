@@ -16,7 +16,7 @@ const notify = $.isNode() ? require('./sendNotify') : '';
 let cookiesArr = [], cookie = '', message = '';
 // https://lzkj-isv.isvjcloud.com/sign/sevenDay/signActivity?activityId=
 let activityIdList = [
-    '4dba6f1f51f34d5a85a4bf03353d4517',
+    //'4dba6f1f51f34d5a85a4bf03353d4517',
     //'f3207d49ac8e4fcfbd542befc1338916',
     //'ba2d672b1fc44814aef1c3ee4c3ac5fa',
     //'f46601936b40496b97a85de2b5ab97eb',
@@ -78,7 +78,7 @@ if ($.isNode()) {
         $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
         return;
     }
-    $.actList = activityIdList.length + activityIdList.length + activityIdList.length
+    $.actList = activityIdList.length + activityIdList2.length + activityIdList3.length
 
     for (let i = 0; i < runnum; i++) {
         if ($.actList === 0) {
