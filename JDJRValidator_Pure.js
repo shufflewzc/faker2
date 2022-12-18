@@ -243,7 +243,7 @@ class JDJRValidator {
 
       // console.log(pos[pos.length-1][2] -Date.now());
       // await sleep(4500);
-	  console.log(pos[pos.length - 1][2] - Date.now());
+	  //console.log(pos[pos.length - 1][2] - Date.now());
       await sleep(pos[pos.length - 1][2] - Date.now());
       const result = await JDJRValidator.jsonp('/slide/s.html', {d, ...this.data}, scene);
 
@@ -267,6 +267,7 @@ class JDJRValidator {
     try {
       const data = await JDJRValidator.jsonp('/slide/g.html', {e: ''}, scene);
       const {bg, patch, y} = data;
+	  if (bg.length < 30000) return;
       // const uri = 'data:image/png;base64,';
       // const re = new PuzzleRecognizer(uri+bg, uri+patch, y);
       const re = new PuzzleRecognizer(bg, patch, y);

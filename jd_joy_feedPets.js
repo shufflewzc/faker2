@@ -2,9 +2,8 @@
 宠汪汪喂食(默认20g)
 更新时间：2022-10-14
 活动入口：京东APP我的-更多工具-宠汪汪
-33 0-23/4 * * * jd_joy_feedPets.js
 */
-const $ = new Env('宠汪汪🐕喂食');
+const $ = new Env('宠汪汪喂食');
 const Slider = require('./JDJRValidator_Pure');
 //$.get = Slider.injectToRequest2($.get.bind($));
 const notify = $.isNode() ? require('./sendNotify') : '';
