@@ -1,6 +1,6 @@
 /*
 多合一签到
-jd_bean_sign.js
+0 7 * * * jd_bean_sign.js
  */
 const $ = new Env('多合一签到');
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
