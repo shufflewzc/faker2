@@ -1,9 +1,9 @@
 /*
 入口：https://prodev.m.jd.com/mall/active/3YDEucGmCvu1uNmyq4GHMMgwczjE/index.html
-45 2 * * * https://raw.githubusercontent.com/6dylan6/jdpro/main/jd_lottery_chwl.js
+7 7 7 7 7 https://raw.githubusercontent.com/6dylan6/jdpro/main/jd_lottery_chwl.js
 updatetime:2022/12/20
 
-7 7 7 7 7 jd_lottery_chwl.js
+
 
  */
 const $ = new Env('吃喝玩乐抽豆-手动执行');
