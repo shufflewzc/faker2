@@ -5,7 +5,7 @@ cron:35 12,18 * * *
 ============Quantumultx===============
 [task_local]
 #12.23-12.27 小米预约抽奖
-35 12,18 * * * jd_xm.js, tag=12.23-12.27 小米预约抽奖, enabled=true
+7 7 7 7 7 jd_xm.js, tag=12.23-12.27 小米预约抽奖, enabled=true
 */
 
 const $ = new Env("12.23-12.27 小米预约抽奖");
