@@ -1,6 +1,7 @@
 /*
 店铺礼包
 export jd_shopGifts_ids="shopId&venderId"           必须
+export jd_shopGifts_num="15"                        不设置默认最多跑15个号
 cron "2 2 29 2 *" jd_shopGifts.js
  */
 const $ = new Env('店铺礼包');
