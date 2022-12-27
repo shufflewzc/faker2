@@ -15,7 +15,7 @@ let cookiesArr = [], cookie = '', message;
 let secretp='',inviteId=[]
 let helpnum=3;
 //助力码
-let inviteId1='oyZh8_csMRZKE-HdtBCyCPM';
+let inviteId1='';
 
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
