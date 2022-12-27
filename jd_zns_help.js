@@ -61,7 +61,7 @@ $.inviteId.push(inviteId1);
     $.UA = $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1")
     
     if (cookiesArr && cookiesArr.length >= 2) {
-      console.log(`\n\n自己账号内部互助`);
+      console.log(`\n\n自己账号内部互助,晚上8点后才可互助！`);
       for (let j = 0; j < $.inviteId .length && $.canHelp; j++) {
         console.log(`账号 ${$.index} ${$.UserName} 开始给 ${$.inviteId [j]} 进行助力`)
         $.max = false;
