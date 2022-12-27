@@ -15,7 +15,7 @@ let cookiesArr = [], cookie = '', message;
 let secretp='',inviteId=[]
 let helpnum=3;
 //助力码
-let inviteId1='';
+let inviteId1=process.env.FAKERPZ
 
 if ($.isNode()) {
   Object.keys(jdCookieNode).forEach((item) => {
