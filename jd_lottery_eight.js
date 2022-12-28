@@ -1,5 +1,8 @@
 /*
 定时随机
+
+10 16 * * * jd_lottery_eight.js
+
 */
 
 const $ = new Env('每日抽8豆');
