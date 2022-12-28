@@ -152,7 +152,7 @@ async function main(_0x14f2ac) {
         } if (_0x4a424c.assignmentType === 1) {
             for (let i = 0; i < (_0x4a424c.assignmentTimesLimit - _0x4a424c.completionCnt); i++) {
                 console.log('任务：' + _0x4a424c.assignmentName + ',去执行');
-                let _0x3c7f29 = _0x4a424c.ext.shoppingActivity[i].itemId || '';
+                let _0x3c7f29 = _0x4a424c.ext.shoppingActivity && _0x4a424c.ext.shoppingActivity[i].itemId || _0x4a424c.ext.productsInfo[i].itemId ||'';
                 if (!_0x3c7f29) {
                     console.log('任务：' + _0x4a424c.assignmentName + ',信息异常');
                 }
