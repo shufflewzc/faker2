@@ -29,6 +29,7 @@ except ImportError as e:
     print(e)
     if "No module" in str(e):
         print("请先运行Faker库依赖一键安装脚本(jd_check_dependent.py)，安装jd_sign.so依赖")
+    sys.exit()
 try:
     from jdCookie import get_cookies
     getCk = get_cookies()
@@ -77,47 +78,18 @@ def redis_conn():
 def getToken(ck, r=None):
     host = f'{activityUrl.split("com/")[0]}com'
     try:
-        # redis缓存Token 活动域名+pt_pin
         pt_pin = unquote_plus(re.compile(r'pt_pin=(.*?);').findall(ck)[0])
     except:
-        # redis缓存Token 活动域名+ck前7位(获取pin失败)
         pt_pin = ck[:15]
     try:
-        if r is not None:
+        try:
             Token = r.get(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}')
-            # print("Token过期时间", r.ttl(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}'))
-            if Token is not None:
-                print(f"♻️获取缓存Token")
-                return Token
-            else:
-                # print("🈳去设置Token缓存")
-                s.headers = {
-                    'Connection': 'keep-alive',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'User-Agent': '',
-                    'Cookie': ck,
-                    'Host': 'api.m.jd.com',
-                    'Referer': '',
-                    'Accept-Language': 'zh-Hans-CN;q=1 en-CN;q=0.9',
-                    'Accept': '*/*'
-                }
-                sign_txt = sign({"url": f"{host}", "id": ""}, 'isvObfuscator')
-                # print(sign_txt)
-                f = s.post('https://api.m.jd.com/client.action', verify=False, timeout=30)
-                if f.status_code != 200:
-                    print(f.status_code)
-                    return
-                else:
-                    if "参数异常" in f.text:
-                        return
-                Token_new = f.json()['token']
-                # print(f"Token->: {Token_new}")
-                if r.set(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}', Token_new, ex=1800):
-                    print("✅Token缓存成功")
-                else:
-                    print("❌Token缓存失败")
-                return Token_new
+        except Exception as e:
+            # print(f"redis get error: {str(e)}")
+            Token = None
+        if Token is not None:
+            print(f"♻️获取缓存Token")
+            return Token
         else:
             s.headers = {
                 'Connection': 'keep-alive',
@@ -130,19 +102,27 @@ def getToken(ck, r=None):
                 'Accept-Language': 'zh-Hans-CN;q=1 en-CN;q=0.9',
                 'Accept': '*/*'
             }
-            sign_txt = sign({"url": f"{host}", "id": ""}, 'isvObfuscator')
-            # print(sign_txt)
+            sign({"url": f"{host}", "id": ""}, 'isvObfuscator')
             f = s.post('https://api.m.jd.com/client.action', verify=False, timeout=30)
             if f.status_code != 200:
                 print(f.status_code)
                 return
             else:
                 if "参数异常" in f.text:
+                    print(f.text)
                     return
-            Token = f.json()['token']
-            print(f"✅获取实时Token")
-            return Token
-    except:
+            Token_new = f.json()['token']
+            try:
+                if r.set(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}', Token_new, ex=1800):
+                    print("✅Token缓存成功")
+                else:
+                    print("❌Token缓存失败")
+            except Exception as e:
+                # print(f"redis set error: {str(e)}")
+                print(f"✅获取实时Token")
+            return Token_new
+    except Exception as e:
+        print(f"Get Token Error: {str(e)}")
         return
 
 def getJdTime():
@@ -512,8 +492,6 @@ def bindWithVender(cookie, venderId):
         print(e)
 
 def getShopOpenCardInfo(cookie, venderId):
-    shopcard_url0 = f"https://lzdz1-isv.isvjcloud.com/dingzhi/joinCommon/activity/7854908?activityId={activityId}&shareUuid={shareUuid}"
-    shopcard_url = f"https://shopmember.m.jd.com/shopcard/?venderId={venderId}&channel=401&returnUrl={quote_plus(shopcard_url0)}"
     try:
         body = {"venderId": str(venderId), "channel": "401"}
         url = f'https://api.m.jd.com/client.action?appid=jd_shop_member&functionId=getShopOpenCardInfo&body={json.dumps(body)}&client=H5&clientVersion=9.2.0&uuid=88888'
@@ -524,7 +502,7 @@ def getShopOpenCardInfo(cookie, venderId):
             'Cookie': cookie,
             'User-Agent': ua,
             'Accept-Language': 'zh-cn',
-            'Referer': shopcard_url,
+            'Referer': 'https://shopmember.m.jd.com/',
             'Accept-Encoding': 'gzip, deflate'
         }
         response = requests.get(url=url, headers=headers, timeout=5).text
@@ -569,7 +547,8 @@ if __name__ == '__main__':
             pt_pin = re.compile(r'pt_pin=(.*?);').findall(cookie)[0]
             pt_pin = unquote_plus(pt_pin)
         except IndexError:
-            pt_pin = f'用户{num}'
+            pt_pin = re.compile(r'pin=(.*?);').findall(cookie)[0]
+            pt_pin = unquote_plus(pt_pin)
         print(f'\n******开始【京东账号{num}】{pt_pin} *********\n')
         print(datetime.now())
 
@@ -639,9 +618,7 @@ if __name__ == '__main__':
             if openAll0:
                 print("已完成全部开卡任务")
                 if assistState0 == 0:
-                    print("已经助力过你~")
-                # elif assistState0 == 0:
-                #     print("无法助力自己~")
+                    print("无法助力自己~")
                 elif assistState0 == 3:
                     print("已助力过其他好友~")
                 elif assistState0 == 1:
@@ -663,19 +640,7 @@ if __name__ == '__main__':
                     getShopOpenCardInfo(cookie, venderId)
                     open_result = bindWithVender(cookie, venderId)
                     if open_result is not None:
-                        if "火爆" in open_result or "失败" in open_result:
-                            time.sleep(1.5)
-                            print("\t尝试重新入会 第1次")
-                            open_result = bindWithVender(cookie, venderId)
-                            if "火爆" in open_result or "失败" in open_result:
-                                time.sleep(2)
-                                print("\t尝试重新入会 第2次")
-                                open_result = bindWithVender(cookie, venderId)
-                                if "火爆" in open_result or "失败" in open_result:
-                                    time.sleep(3)
-                                    print("\t尝试重新入会 第3次")
-                                    open_result = bindWithVender(cookie, venderId)
-                        if "火爆" in open_result or "失败" in open_result:
+                        if "火爆" in open_result or "失败" in open_result or "解绑" in open_result:
                             print(f"\t⛈⛈{venderCardName} {open_result}")
                             assStat = False
                             break
@@ -692,12 +657,17 @@ if __name__ == '__main__':
             assistState1 = ass1['assistState']
             if assStat and assistState1 == 1:
                 print("🎉🎉🎉助力成功~")
-                inviteSuccNum += 1
-                print(f"本次车头已邀请{inviteSuccNum}人")
+                if num != 1:
+                    inviteSuccNum += 1
+                    print(f"本次车头已邀请{inviteSuccNum}人")
+            elif assStat and assistState0 == 1:
+                print("🎉🎉🎉助力成功~")
+                if num != 1:
+                    inviteSuccNum += 1
+                    print(f"本次车头已邀请{inviteSuccNum}人")
 
             if num == 1:
                 print(f"后面账号全部助力 {actorUuid}")
-            if num == 1:
                 shareUuid = actorUuid
                 activityUrl = f"https://lzdz1-isv.isvjcloud.com/dingzhi/joinCommon/activity/5929859?activityId={activityId}&shareUuid={shareUuid}&adsource=null&shareuserid4minipg=null&lng=00.000000&lat=00.000000&sid=&un_area=&&shopid={shopId}"
 
