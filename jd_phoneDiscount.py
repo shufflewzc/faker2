@@ -36,8 +36,34 @@ except:
 redis_url = os.environ.get("redis_url") if os.environ.get("redis_url") else "172.17.0.1"
 redis_port = os.environ.get("redis_port") if os.environ.get("redis_port") else "6379"
 redis_pwd = os.environ.get("redis_pwd") if os.environ.get("redis_pwd") else ""
+baseInfo = os.environ.get("baseInfo") if os.environ.get("baseInfo") else ""
 
-activity_url = f"https://sjtx-dz.isvjcloud.com/phone_discount/?invite_id=63ad1171068bd98098&source=test&baseInfo=LM6HIKdH%2Cbrand_two"
+if not baseInfo:
+    print('未设置export baseInfo="品牌编号",默认运行第二个任务brand_two')
+    baseInfo = "LM6HIKdH%2Cbrand_two"
+else:
+    if baseInfo == "1":
+        baseInfo = "HXu94GdF%2Cbrand_one"
+    elif baseInfo == "2":
+        baseInfo = "LM6HIKdH%2Cbrand_two"
+    elif baseInfo == "3":
+        baseInfo = "KmwM4N4L%2Cbrand_three"
+    elif baseInfo == "4":
+        baseInfo = "8pTg6fXi%2Cbrand_four"
+    elif baseInfo == "5":
+        baseInfo = "Sr5zisvb%2Cbrand_five"
+    elif baseInfo == "6":
+        baseInfo = "B0cRJYyC%2Cbrand_six"
+    elif baseInfo == "7":
+        baseInfo = "ZRco56US%2Cbrand_seven"
+    elif baseInfo == "8":
+        baseInfo = "4tqyLzac%2Cbrand_eight"
+    else:
+        print('export baseInfo="品牌编号"设置有误,默认运行第二个任务brand_two')
+appKey = baseInfo.split('%2C')[0]
+brand = baseInfo.split('%2C')[1]
+
+activity_url = f"https://sjtx-dz.isvjcloud.com/phone_discount/?invite_id=63ad1171068bd98098&source=test&baseInfo={baseInfo}"
 print(f"【🛳活动入口】{activity_url}")
 
 def redis_conn():
@@ -169,8 +195,8 @@ def getAuth():
     headers = {
         'Host': 'sjtx-dz.isvjcloud.com',
         'Accept': 'application/json, text/plain, */*',
-        'App-Key': 'LM6HIKdH',
-        'brand': 'brand_two',
+        'App-Key': appKey,
+        'brand': brand,
         'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
         'Accept-Encoding': 'gzip, deflate, br',
         'Content-Type': 'application/json',
@@ -191,9 +217,9 @@ def getUserInfo(authToken):
     headers = {
         'Host': 'sjtx-dz.isvjcloud.com',
         'Accept': 'application/json, text/plain, */*',
-        'App-Key': 'LM6HIKdH',
+        'App-Key': appKey,
         'Authorization': f'Bearer {authToken}',
-        'brand': 'brand_two',
+        'brand': brand,
         'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
         'Accept-Encoding': 'gzip, deflate, br',
         'Content-Type': 'application/json',
@@ -215,9 +241,9 @@ def getFriendList(authToken):
     headers = {
         'Host': 'sjtx-dz.isvjcloud.com',
         'Accept': 'application/json, text/plain, */*',
-        'App-Key': 'LM6HIKdH',
+        'App-Key': appKey,
         'Authorization': f'Bearer {authToken}',
-        'brand': 'brand_two',
+        'brand': brand,
         'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
         'Accept-Encoding': 'gzip, deflate, br',
         'Content-Type': 'application/json',
@@ -241,9 +267,9 @@ def inviteFriend(inviter_id, authToken):
     headers = {
         'Host': 'sjtx-dz.isvjcloud.com',
         'Accept': 'application/json, text/plain, */*',
-        'App-Key': 'LM6HIKdH',
+        'App-Key': appKey,
         'Authorization': f'Bearer {authToken}',
-        'brand': 'brand_two',
+        'brand': brand,
         'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
         'Accept-Encoding': 'gzip, deflate, br',
         'Content-Type': 'application/json',
@@ -262,9 +288,9 @@ def inviteDrawPrize(invite_type, authToken):
     headers = {
         'Host': 'sjtx-dz.isvjcloud.com',
         'Accept': 'application/json, text/plain, */*',
-        'App-Key': 'LM6HIKdH',
+        'App-Key': appKey,
         'Authorization': f'Bearer {authToken}',
-        'brand': 'brand_two',
+        'brand': brand,
         'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
         'Accept-Encoding': 'gzip, deflate, br',
         'Content-Type': 'application/json',
@@ -290,10 +316,10 @@ if __name__ == '__main__':
     global shareUuid, inviteSuccNum, activityUrl, firstCk
     inviteSuccNum = 0
     try:
-        shareUuid = remote_redis(f"sjtx", 1)
+        shareUuid = remote_redis(brand, 1)
     except:
         shareUuid = "63ad1171068bd98098"
-    activityUrl = f"https://sjtx-dz.isvjcloud.com/phone_discount/?invite_id={shareUuid}&source=test&baseInfo=LM6HIKdH%2Cbrand_two"
+    activityUrl = f"https://sjtx-dz.isvjcloud.com/phone_discount/?invite_id={shareUuid}&source=test&baseInfo={baseInfo}"
 
     num = 0
     for cookie in cks[:]:
@@ -362,7 +388,31 @@ if __name__ == '__main__':
         inviteInfo = inviteFriend(shareUuid, authToken)
         if "prize_info" not in inviteInfo:
             print(inviteInfo['message'])
-            pass
+            if "已达到好友邀请上限" in inviteInfo['message']:
+                if num == 1:
+                    shareUuid = shareUuid1
+                    activityUrl = f"https://sjtx-dz.isvjcloud.com/phone_discount/?invite_id={shareUuid}&source=test&baseInfo={baseInfo}"
+                    print(f"🤖后面的号全部助力: {shareUuid}")
+                    continue
+                else:
+                    token = getToken(firstCk, r)
+                    time.sleep(0.2)
+                    getActivity()
+                    time.sleep(0.2)
+                    authToken0 = getAuth()
+                    time.sleep(0.2)
+                    getUserInfo(authToken0)
+                    time.sleep(0.2)
+                    for i in range(2):
+                        invite_type = i + 1
+                        print(f"开始第{invite_type}次抽奖")
+                        drawPrize0 = inviteDrawPrize(str(invite_type), authToken0)
+                        if "prize_info" not in drawPrize0:
+                            print(drawPrize0['message'])
+                        else:
+                            prize_info = f"{drawPrize0['prize_info']['user_prize']['prize_name']}{drawPrize0['prize_info']['user_prize']['prize_info']['quota']}"
+                            print(f"🎁抽奖获得:{prize_info}")
+                    sys.exit()
         else:
             inviteSuccNum += 1
             print(f"🎉助力成功！已邀请{inviteSuccNum}人")
@@ -389,7 +439,7 @@ if __name__ == '__main__':
                 sys.exit()
         if num == 1:
             shareUuid = shareUuid1
-            activityUrl = f"https://sjtx-dz.isvjcloud.com/phone_discount/?invite_id={shareUuid}&source=test&baseInfo=LM6HIKdH%2Cbrand_two"
+            activityUrl = f"https://sjtx-dz.isvjcloud.com/phone_discount/?invite_id={shareUuid}&source=test&baseInfo={baseInfo}"
             print(f"🤖后面的号全部助力: {shareUuid}")
 
         time.sleep(2)
