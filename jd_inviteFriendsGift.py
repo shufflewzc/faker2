@@ -325,7 +325,7 @@ async def main():
                     except IndexError:
                         pin = f'用户{n}'
                     print(f'******开始【京东账号{n}】{pin} *********\n')
-                    for n, numbers in enumerate(needinviteNum, 1):
+                    for i, numbers in enumerate(needinviteNum, 1):
                         for numbers in needdel:
                             if success >= numbers:
                                 print(numbers)
