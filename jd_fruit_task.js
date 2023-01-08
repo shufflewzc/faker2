@@ -33,10 +33,14 @@ let shareCodes = [ // 这个列表填入你要助力的好友的shareCode
 let message = '', subTitle = '', option = {}, isFruitFinished = false;
 const retainWater = 100;//保留水滴大于多少g,默认100g;
 let jdNotify = false;//是否关闭通知，false打开通知推送，true关闭通知推送
+let codeType = 0;
 let jdFruitBeanCard = false;//农场使用水滴换豆卡(如果出现限时活动时100g水换20豆,此时比浇水划算,推荐换豆),true表示换豆(不浇水),false表示不换豆(继续浇水),脚本默认是浇水
 let randomCount = $.isNode() ? 20 : 5;
 const JD_API_HOST = 'https://api.m.jd.com/client.action';
 const urlSchema = `openjd://virtual?params=%7B%20%22category%22:%20%22jump%22,%20%22des%22:%20%22m%22,%20%22url%22:%20%22https://h5.m.jd.com/babelDiy/Zeus/3KSjXqQabiTuD1cJ28QskrpWoBKT/index.html%22%20%7D`;
+const JD_ZLC_URL = process.env.JD_ZLC_URL ? process.env.JD_ZLC_URL : "https://zlc1.chaoyi996.com";
+
+
 !(async () => {
     await requireConfig();
     if (!cookiesArr[0]) {
@@ -64,7 +68,7 @@ const urlSchema = `openjd://virtual?params=%7B%20%22category%22:%20%22jump%22,%2
             subTitle = '';
             option = {};
             $.UA = require('./USER_AGENTS').UARAM();
-            //await shareCodesFormat();
+            await shareCodesFormat();
             await jdFruit();
         }
     }
@@ -223,7 +227,7 @@ async function doDailyTask() {
     // await Promise.all([
     //   clockInIn(),//打卡领水
     //   executeWaterRains(),//水滴雨
-    //   masterHelpShare(),//助力好友
+      masterHelpShare(),//助力好友
     //   getExtraAward(),//领取额外水滴奖励
     //   turntableFarm()//天天抽奖得好礼
     // ])
@@ -673,73 +677,115 @@ async function getExtraAward() {
 }
 //助力好友
 async function masterHelpShare() {
-    console.log('开始助力好友')
+    console.log("开始助力好友");
     let salveHelpAddWater = 0;
-    let remainTimes = 3;//今日剩余助力次数,默认3次（京东农场每人每天3次助力机会）。
-    let helpSuccessPeoples = '';//成功助力好友
-    //console.log(`格式化后的助力码::${JSON.stringify(newShareCodes)}\n`);
+    let remainTimes = 3; //今日剩余助力次数,默认3次（京东农场每人每天3次助力机会）。
+    let helpSuccessPeoples = ""; //成功助力好友
+    console.log(`格式化后的助力码::${JSON.stringify(newShareCodes)}\n`);
 
+    helpStatisticArr = {}
+    helpStatisticArr['fromCode'] = $.farmInfo.farmUserPro.shareCode
+    helpStatisticArr['codeType'] = codeType;
+    helpStatisticArr['results'] = {};
+
+    helpStatisticStatus = 2
+    helpStatisticRemark = ''
     for (let code of newShareCodes) {
-        console.log(`去助力: ${code}`);
+        console.log(`开始助力京东账号${$.index} - ${$.nickName || $.UserName}的好友: ${code}`);
         if (!code) continue;
         if (code === $.farmInfo.farmUserPro.shareCode) {
-            console.log('不能为自己助力哦，跳过自己的shareCode\n')
-            continue
+            console.log("不能为自己助力哦，跳过自己的shareCode\n");
+            continue;
         }
+        // $.helpResult = await doWxApi("initForFarmWX", { shareCode: code, mpin: "", imageUrl: "", nickName: "", version, channel: 2, babelChannel: 0 }, 0);
         await masterHelp(code);
-        await $.wait(1000)
-        if ($.helpResult.code === '0') {
-            if ($.helpResult.helpResult.code === '0') {
+        if ($.helpResult.code === "0") {
+            if ($.helpResult.helpResult.code === "0") {
                 //助力成功
+                helpStatisticStatus = 1;
                 salveHelpAddWater += $.helpResult.helpResult.salveHelpAddWater;
-                console.log(`【助力结果】: 助力成功`);
-                console.log(`助力获得${$.helpResult.helpResult.salveHelpAddWater}g水滴`)
-                helpSuccessPeoples += ($.helpResult.helpResult.masterUserInfo.nickName || '匿名用户') + ',';
-            } else if ($.helpResult.helpResult.code === '8') {
-                console.log(`【助力结果】: 助力失败，今天助力次数已耗尽`);
-            } else if ($.helpResult.helpResult.code === '9') {
-                console.log(`【助力结果】: 已经助力过TA了`);
-            } else if ($.helpResult.helpResult.code === '10') {
-                console.log(`【助力结果】: 对方已满助力`);
+                console.log(`【助力好友结果】: 已成功给【${$.helpResult.helpResult.masterUserInfo.nickName}】助力`);
+                console.log(`给好友【${$.helpResult.helpResult.masterUserInfo.nickName}】助力获得${$.helpResult.helpResult.salveHelpAddWater}g水滴`);
+                helpSuccessPeoples += ($.helpResult.helpResult.masterUserInfo.nickName || "匿名用户") + ",";
+            } else if ($.helpResult.helpResult.code === "8") {
+                helpStatisticStatus = 3;
+                console.log(`【助力好友结果】: 助力【${$.helpResult.helpResult.masterUserInfo.nickName}】失败，您今天助力次数已耗尽`);
+            } else if ($.helpResult.helpResult.code === "9") {
+                helpStatisticStatus = 5;
+                console.log(`【助力好友结果】: 之前给【${$.helpResult.helpResult.masterUserInfo.nickName}】助力过了`);
+            } else if ($.helpResult.helpResult.code === "10") {
+                helpStatisticStatus = 4;
+                console.log(`【助力好友结果】: 好友【${$.helpResult.helpResult.masterUserInfo.nickName}】已满五人助力`);
             } else {
+                helpStatisticStatus = 6;
+                helpStatisticRemark = JSON.stringify($.helpResult.helpResult)
                 console.log(`助力其他情况：${JSON.stringify($.helpResult.helpResult)}`);
             }
-            console.log(`【助力次数还剩】${$.helpResult.helpResult.remainTimes}次\n`);
+            console.log(`【今日助力次数还剩】${$.helpResult.helpResult.remainTimes}次\n`);
             remainTimes = $.helpResult.helpResult.remainTimes;
             if ($.helpResult.helpResult.remainTimes === 0) {
                 console.log(`您当前助力次数已耗尽，跳出助力`);
+                if (!(helpStatisticStatus in helpStatisticArr['results'])) {
+                    helpStatisticArr['results'][helpStatisticStatus] = [code]
+                } else {
+                    helpStatisticArr['results'][helpStatisticStatus].push(code)
+                }
                 break;
             }
         } else {
+            helpStatisticStatus = 2;
+            helpStatisticRemark = JSON.stringify($.helpResult.helpResult)
             console.log(`助力失败::${JSON.stringify($.helpResult)}`);
-            break;
+        }
+        if (!(helpStatisticStatus in helpStatisticArr['results'])) {
+            helpStatisticArr['results'][helpStatisticStatus] = [code]
+        } else {
+            helpStatisticArr['results'][helpStatisticStatus].push(code)
         }
     }
+    helpStatisticArr['Remark'] = helpStatisticRemark;
+    console.log(`当前使用助力池${JD_ZLC_URL}`)
+    r = { url: `https://zlc1.chaoyi996.com/api/app/booster-code/submit-real-contribution`, body: JSON.stringify(helpStatisticArr), headers: { "Content-Type": "application/json" } };
+    $.post(r, (err, resp, data) => {
+        try {
+            if (err) {
+                console.log(`${JSON.stringify(err)}`)
+                console.log(`${$.name} 提交助力结果API请求失败`)
+            } else {
+                if (data) {
+                    console.log(`提交成功`)
+                    data = JSON.parse(data);
+                }
+            }
+        } catch (e) {
+            $.logErr(e, resp)
+        }
+    })
     if ($.isLoon() || $.isQuanX() || $.isSurge()) {
         let helpSuccessPeoplesKey = timeFormat() + $.farmInfo.farmUserPro.shareCode;
         if (!$.getdata(helpSuccessPeoplesKey)) {
             //把前一天的清除
-            $.setdata('', timeFormat(Date.now() - 24 * 60 * 60 * 1000) + $.farmInfo.farmUserPro.shareCode);
-            $.setdata('', helpSuccessPeoplesKey);
+            $.setdata("", timeFormat(Date.now() - 24 * 60 * 60 * 1000) + $.farmInfo.farmUserPro.shareCode);
+            $.setdata("", helpSuccessPeoplesKey);
         }
         if (helpSuccessPeoples) {
             if ($.getdata(helpSuccessPeoplesKey)) {
-                $.setdata($.getdata(helpSuccessPeoplesKey) + ',' + helpSuccessPeoples, helpSuccessPeoplesKey);
+                $.setdata($.getdata(helpSuccessPeoplesKey) + "," + helpSuccessPeoples, helpSuccessPeoplesKey);
             } else {
                 $.setdata(helpSuccessPeoples, helpSuccessPeoplesKey);
             }
         }
         helpSuccessPeoples = $.getdata(helpSuccessPeoplesKey);
     }
-    //if (helpSuccessPeoples && helpSuccessPeoples.length > 0) {
-    //message += `【您助力的好友👬】${helpSuccessPeoples.substr(0, helpSuccessPeoples.length - 1)}\n`;
-    //}
+    if (helpSuccessPeoples && helpSuccessPeoples.length > 0) {
+        message += `【您助力的好友👬】${helpSuccessPeoples.substr(0, helpSuccessPeoples.length - 1)}\n`;
+    }
     if (salveHelpAddWater > 0) {
         // message += `【助力好友👬】获得${salveHelpAddWater}g💧\n`;
         console.log(`【助力好友👬】获得${salveHelpAddWater}g💧\n`);
     }
     message += `【今日剩余助力👬】${remainTimes}次\n`;
-    console.log('助力好友结束，即将开始领取额外水滴奖励\n');
+    console.log("助力好友结束，即将开始领取额外水滴奖励\n");
 }
 //水滴雨
 async function executeWaterRains() {
@@ -1317,16 +1363,17 @@ function timeFormat(time) {
     }
     return date.getFullYear() + '-' + ((date.getMonth() + 1) >= 10 ? (date.getMonth() + 1) : '0' + (date.getMonth() + 1)) + '-' + (date.getDate() >= 10 ? date.getDate() : '0' + date.getDate());
 }
-function readShareCode() {
+function readShareCode(code) {
     return new Promise(async resolve => {
-        $.get({ url: `https://cdn.jsdelivr.net/gh/shufflewzc/updateTeam@main/shareCodes/fruit.json`, timeout: 10000 }, (err, resp, data) => {
+        console.log(`当前使用助力池${JD_ZLC_URL}`)
+        $.get({ url: JD_ZLC_URL + `/farm?code=` + code, timeout: 10000, }, (err, resp, data) => {
             try {
                 if (err) {
-                    console.log(JSON.stringify(err))
+                    console.log(`${JSON.stringify(err)}`)
                     console.log(`${$.name} API请求失败，请检查网路重试`)
                 } else {
                     if (data) {
-                        //console.log(`随机取个${randomCount}码放到您固定的互助码后面(不影响已有固定互助)`)
+                        console.log(`随机取20个码来助力`)
                         data = JSON.parse(data);
                     }
                 }
@@ -1341,24 +1388,16 @@ function readShareCode() {
     })
 }
 function shareCodesFormat() {
-    return new Promise(async resolve => {
+    return new Promise(async (resolve) => {
         // console.log(`第${$.index}个京东账号的助力码:::${$.shareCodesArr[$.index - 1]}`)
         newShareCodes = [];
-        if ($.shareCodesArr[$.index - 1]) {
-            newShareCodes = $.shareCodesArr[$.index - 1].split('@');
-        } else {
-            //console.log(`由于您第${$.index}个京东账号未提供shareCode,将采纳本脚本自带的助力码\n`)
-            const tempIndex = $.index > shareCodes.length ? (shareCodes.length - 1) : ($.index - 1);
-            newShareCodes = shareCodes[tempIndex].split('@');
-        }
-        const readShareCodeRes = await readShareCode();
+        const readShareCodeRes = await readShareCode($.shareCodesArr[$.index - 1]);
         if (readShareCodeRes && readShareCodeRes.code === 200) {
-            //newShareCodes = newShareCodes.concat(readShareCodeRes.data || []);
             newShareCodes = [...new Set([...newShareCodes, ...(readShareCodeRes.data || [])])];
         }
         console.log(`第${$.index}个京东账号将要助力的好友${JSON.stringify(newShareCodes)}`)
         resolve();
-    })
+    });
 }
 function requireConfig() {
     return new Promise(resolve => {
