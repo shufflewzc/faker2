@@ -61,7 +61,39 @@ if ($.isNode()) {
   .finally(() => {
     $.done();
   })
-
+function getJdFactory() {
+  return new Promise(resolve => {
+    $.post(
+      taskPostUrl("jdfactory_getTaskDetail", {}, "jdfactory_getTaskDetail"),
+      async (err, resp, data) => {
+        try {
+          if (err) {
+            console.log(`${JSON.stringify(err)}`);
+            console.log(`$东东工厂 API请求失败，请检查网路重试`);
+          } else {
+            if (safeGet(data)) {
+              data = JSON.parse(data);
+              if (data.data.bizCode === 0) {
+                $.taskVos = data.data.result.taskVos; //任务列表
+                $.taskVos.map((item) => {
+                  if (item.taskType === 14) {
+                    console.log(
+                      `【京东账号${$.index}（${$.UserName}）东东工厂】${item.assistTaskDetailVo.taskToken}`
+                    );
+                  }
+                });
+              }
+            }
+          }
+        } catch (e) {
+          $.logErr(e, resp);
+        } finally {
+          resolve();
+        }
+      }
+    );
+  })
+}
 function getJxFactory(){
   const JX_API_HOST = "https://m.jingxi.com";
 
@@ -138,7 +170,75 @@ function getJxFactory(){
   })
 }
 
+function getJdPet(){
+  const JDPet_API_HOST = "https://api.m.jd.com/client.action";
 
+  function jdPet_Url(function_id, body = {}) {
+    body["version"] = 2;
+    body["channel"] = "app";
+    return {
+      url: `${JDPet_API_HOST}?functionId=${function_id}`,
+      body: `body=${escape(
+        JSON.stringify(body)
+      )}&appid=wh5&loginWQBiz=pet-town&clientVersion=9.0.4`,
+      headers: {
+        Cookie: cookie,
+        "User-Agent": $.isNode()
+          ? process.env.JD_USER_AGENT
+            ? process.env.JD_USER_AGENT
+            : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1"
+          : $.getdata("JDUA")
+            ? $.getdata("JDUA")
+            : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1",
+        Host: "api.m.jd.com",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    };
+  }
+  return new Promise(resolve => {
+    $.post(jdPet_Url("initPetTown"), async (err, resp, data) => {
+      try {
+        if (err) {
+          console.log("东东萌宠: API查询请求失败 ‼️‼️");
+          console.log(JSON.stringify(err));
+          $.logErr(err);
+        } else {
+          data = JSON.parse(data);
+
+          const initPetTownRes = data;
+
+          message = `【京东账号${$.index}】${$.nickName}`;
+          if (
+            initPetTownRes.code === "0" &&
+            initPetTownRes.resultCode === "0" &&
+            initPetTownRes.message === "success"
+          ) {
+            $.petInfo = initPetTownRes.result;
+            if ($.petInfo.userStatus === 0) {
+              /*console.log(
+                `【提示】京东账号${$.index}${$.nickName}萌宠活动未开启请手动去京东APP开启活动入口：我的->游戏与互动->查看更多开启`
+              );*/
+              return;
+            }
+
+            console.log(
+              `【京东账号${$.index}（${$.UserName}）京东萌宠】${$.petInfo.shareCode}`
+            );
+
+          } else if (initPetTownRes.code === "0") {
+            console.log(`初始化萌宠失败:  ${initPetTownRes.message}`);
+          } else {
+            console.log("shit");
+          }
+        }
+      } catch (e) {
+        $.logErr(e, resp);
+      } finally {
+        resolve(data);
+      }
+    });
+  })
+}
 async function getJdZZ() {
   const JDZZ_API_HOST = "https://api.m.jd.com/client.action";
   function getTaskList() {
@@ -491,9 +591,9 @@ async function getShareCode() {
   console.log(`======账号${$.index}开始======`)
   try {
     await getJDFruit()
-    //await getJdPet()
+    await getJdPet()
     await getPlantBean()
-    //await getJdFactory()
+    await getJdFactory()
     await getJxFactory()
     await getJdZZ()
     await getJoy()
