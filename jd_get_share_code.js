@@ -591,9 +591,9 @@ async function getShareCode() {
   console.log(`======账号${$.index}开始======`)
   try {
     await getJDFruit()
-   // await getJdPet()
+    await getJdPet()
     await getPlantBean()
-    //await getJdFactory()
+    await getJdFactory()
     await getJxFactory()
     await getJdZZ()
     await getJoy()
