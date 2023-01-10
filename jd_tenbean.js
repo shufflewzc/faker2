@@ -1,7 +1,7 @@
 
 /*
 10豆抽奖，看脸
-16 16 11 11 11 jd_tenbean.js
+16 16 11 11 * jd_tenbean.js
  */
 
 const $ = new Env('抽10豆');
