@@ -10,7 +10,7 @@ cron:11 11 11 11 *
 ============Quantumultx===============
 [task_local]
 #京东超市任务
-11 11 11 11 * jd_supermarket.js, tag=京东超市任务, enabled=true
+11 11 11 11 * jd_supermarket_task.js, tag=京东超市任务, enabled=true
 
  */
 
