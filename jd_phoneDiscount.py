@@ -62,6 +62,8 @@ else:
         baseInfo = "PIZ1W0ap%2Cbrand_nine"
     elif baseInfo == "10":
         baseInfo = "8AHIKfsi%2Cbrand_ten"
+    elif baseInfo == "11":
+        baseInfo = "zvNssjdW%2Cbrand_eleven"
     else:
         print('export baseInfo="品牌编号"设置有误,默认运行第九个任务brand_ten')
         baseInfo = "8AHIKfsi%2Cbrand_ten"
