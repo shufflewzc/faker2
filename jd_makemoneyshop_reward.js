@@ -133,10 +133,10 @@ async function getExchangequery(){
               if (data.data.cashExchangeRuleList) {
                 for (const vo of data.data.cashExchangeRuleList) {
                   // console.log(vo)
-                  if (vo.exchangeStatus === 1 && vo.cashoutAmount <= data.data.canUseCoinAmount) {
-                    console.log('可提现 -> ', vo.name)
+                  //if (vo.exchangeStatus === 1 && vo.cashoutAmount <= data.data.canUseCoinAmount) {
+                    //console.log('可提现 -> ', vo.name)
                     cashout.push(vo)
-                  }
+                  //}
                 }
               }
             }
