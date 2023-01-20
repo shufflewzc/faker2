@@ -10,9 +10,8 @@ TgChat: https://t.me/HarbourChat
 cron: 1 1 1 1 1 1
 new Env('jd_lzkjInteract邀请有礼');
 ActivityEntry: https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/index?activityType=10006&activityId=1595256546199793665&templateId=20201228083300yqrhyl011&nodeId=101001005&prd=cjwx
-Description: 邀请xx人xx豆,自动助力,自动领奖,‼️该活动部分类型 有且仅能领取一次奖励,默认领最高档豆🎁,或者手动领取
-            变量：export jd_lzkjInteractId="活动🆔" #活动链接中的activityId参数
-                 export jd_lzkjInteractUserId="你的shareUserId邀请码"
+
+Description: 邀请xx人xx豆,自动助力,自动领奖
 """
 
 import time, requests, sys, re, os, json, random
@@ -39,16 +38,19 @@ except:
 redis_url = os.environ.get("redis_url") if os.environ.get("redis_url") else "172.17.0.1"
 redis_port = os.environ.get("redis_port") if os.environ.get("redis_port") else "6379"
 redis_pwd = os.environ.get("redis_pwd") if os.environ.get("redis_pwd") else ""
-activityId = os.environ.get("jd_lzkjInteractId") if os.environ.get("jd_lzkjInteractId") else ""
+jd_lzkjInteractUrl = os.environ.get("jd_lzkjInteractUrl") if os.environ.get("jd_lzkjInteractUrl") else ""
 share_userId = os.environ.get("jd_lzkjInteractUserId") if os.environ.get("jd_lzkjInteractUserId") else ""
 
-if not activityId:
-    print("⚠️未发现有效活动变量jd_lzkjInteractId,退出程序!")
+if "lzkj-isv.isvjcloud.com/prod/cc/interactsaas" not in jd_lzkjInteractUrl:
+    print("⛈暂不支持变量设置的活动类型,请检查后重试！仅支持interactsaas类型活动")
     sys.exit()
+templateId = re.findall(r"templateId=(.*?)&", jd_lzkjInteractUrl+"&")[0]
+activityId = re.findall(r"activityId=(.*?)&", jd_lzkjInteractUrl+"&")[0]
+activityType = re.findall(r"activityType=(.*?)&", jd_lzkjInteractUrl+"&")[0]
 
-templateId = "20201228083300yqrhyl011"
-activity_url = f"https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/index?activityType=10006&activityId={activityId}&shareUserId={share_userId}&templateId={templateId}&nodeId=101001005&prd=null&sid=c77e8b335974724742827d7c42f951cw&un_area=12_1212_11111_22222"
-print(f"【🛳活动入口】{activity_url}")
+activity_url = f"https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/index?activityType={activityType}&activityId={activityId}&shareUserId={share_userId}&templateId={templateId}&prd=null&sid=c77e8b335974724742827d7c42f951cw&un_area=12_1212_11111_22222"
+
+print(f"【🛳活动入口】https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/index?activityType={activityType}&templateId={templateId}&activityId={activityId}")
 
 def redis_conn():
     try:
@@ -68,47 +70,17 @@ def redis_conn():
 def getToken(ck, r=None):
     host = f'{activityUrl.split("com/")[0]}com'
     try:
-        # redis缓存Token 活动域名+pt_pin
         pt_pin = unquote_plus(re.compile(r'pt_pin=(.*?);').findall(ck)[0])
     except:
-        # redis缓存Token 活动域名+ck前7位(获取pin失败)
         pt_pin = ck[:15]
     try:
-        if r is not None:
+        try:
             Token = r.get(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}')
-            # print("Token过期时间", r.ttl(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}'))
-            if Token is not None:
-                print(f"♻️获取缓存Token")
-                return Token
-            else:
-                # print("🈳去设置Token缓存")
-                s.headers = {
-                    'Connection': 'keep-alive',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'User-Agent': '',
-                    'Cookie': ck,
-                    'Host': 'api.m.jd.com',
-                    'Referer': '',
-                    'Accept-Language': 'zh-Hans-CN;q=1 en-CN;q=0.9',
-                    'Accept': '*/*'
-                }
-                sign_txt = sign({"url": f"{host}", "id": ""}, 'isvObfuscator')
-                # print(sign_txt)
-                f = s.post('https://api.m.jd.com/client.action', verify=False, timeout=30)
-                if f.status_code != 200:
-                    print(f.status_code)
-                    return
-                else:
-                    if "参数异常" in f.text:
-                        return
-                Token_new = f.json()['token']
-                # print(f"Token->: {Token_new}")
-                if r.set(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}', Token_new, ex=1800):
-                    print("✅Token缓存成功")
-                else:
-                    print("❌Token缓存失败")
-                return Token_new
+        except Exception as e:
+            Token = None
+        if Token is not None:
+            print(f"♻️获取缓存Token")
+            return Token
         else:
             s.headers = {
                 'Connection': 'keep-alive',
@@ -121,19 +93,26 @@ def getToken(ck, r=None):
                 'Accept-Language': 'zh-Hans-CN;q=1 en-CN;q=0.9',
                 'Accept': '*/*'
             }
-            sign_txt = sign({"url": f"{host}", "id": ""}, 'isvObfuscator')
-            # print(sign_txt)
+            sign({"url": f"{host}", "id": ""}, 'isvObfuscator')
             f = s.post('https://api.m.jd.com/client.action', verify=False, timeout=30)
             if f.status_code != 200:
                 print(f.status_code)
                 return
             else:
                 if "参数异常" in f.text:
+                    print(f.text)
                     return
-            Token = f.json()['token']
-            print(f"✅获取实时Token")
-            return Token
-    except:
+            Token_new = f.json()['token']
+            try:
+                if r.set(f'{activityUrl.split("https://")[1].split("-")[0]}_{pt_pin}', Token_new, ex=1800):
+                    print("✅Token缓存成功")
+                else:
+                    print("❌Token缓存失败")
+            except Exception as e:
+                print(f"✅获取实时Token")
+            return Token_new
+    except Exception as e:
+        print(f"Token error: {str(e)}")
         return
 
 def getJdTime():
@@ -184,6 +163,27 @@ def getActivity():
     if response.status_code != 200:
         print(response.status_code, "⚠️ip疑似黑了,休息一会再来撸~")
         sys.exit()
+
+def followShop(Token):
+    url = "https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/api/task/followShop/follow"
+    body = {}
+    headers = {
+        'Host': 'lzkj-isv.isvjcloud.com',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'token': Token,
+        'Content-Type': 'application/json;charset=UTF-8',
+        'Origin': 'https://lzkj-isv.isvjcloud.com',
+        'User-Agent': ua,
+        'Connection': 'keep-alive',
+        'Referer': activityUrl
+    }
+    response = requests.post(url, headers=headers, data=json.dumps(body))
+    try:
+        return response.json()
+    except:
+        return False
 
 def getUserInfo(shareUserId):
     url = "https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/api/user-info/login"
@@ -353,7 +353,7 @@ def receiveAcquire(Token, id):
         print(response.text)
         return False
 
-def bindWithVender(cookie, venderId):
+def bindWithVender(cookie, shopId, venderId):
     try:
         s.headers = {
             'Connection': 'keep-alive',
@@ -371,7 +371,7 @@ def bindWithVender(cookie, venderId):
             'functionId': 'bindWithVender',
             'body': json.dumps({
                 'venderId': venderId,
-                'shopId': venderId,
+                'shopId': shopId,
                 'bindByVerifyCodeFlag': 1
             }, separators=(',', ':'))
         }
@@ -417,7 +417,7 @@ if __name__ == '__main__':
     except:
         print("未获取到有效COOKIE,退出程序！")
         sys.exit()
-    global shareUuid, inviteSuccNum, activityUrl, firstCk, MSG
+    global shareUserId, inviteSuccNum, activityUrl, firstCk, MSG
     inviteSuccNum = 0
     MSG = ''
     title = "🗣消息提醒：lzkjInteract邀请有礼"
@@ -427,10 +427,10 @@ if __name__ == '__main__':
     else:
         try:
             shareUserId = remote_redis(f"lzkj_{activityId}", 2)
-            activityUrl = f"https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/index?activityType=10006&activityId={activityId}&shareUserId={shareUserId}&templateId={templateId}&nodeId=101001005&prd=null&sid=c77e8b335974724742827d7c42f951cw&un_area=12_1212_11111_22222"
+            shareUserId = shareUserId if shareUserId else ""
         except:
-            shareUserId = share_userId
-            activityUrl = activity_url
+            shareUserId = ""
+        activityUrl = f"https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/index?activityType={activityType}&templateId={templateId}&activityId={activityId}&shareUserId={shareUserId}&prd=null&sid=c77e8b335974724742827d7c42f951cw&un_area=12_1212_11111_22222"
     num = 0
     for cookie in cks[:]:
         num += 1
@@ -451,6 +451,9 @@ if __name__ == '__main__':
 
         result = check(cookie)
         if result['code'] != 200:
+            if num == 1:
+                print("⚠️车头CK失效,退出程序！")
+                sys.exit()
             print(f"⚠️当前CK失效！跳过")
             continue
         token = getToken(cookie, r)
@@ -472,11 +475,16 @@ if __name__ == '__main__':
             time.sleep(2)
             continue
         shopId = userInfo['shopId']
+        openCardUrl = userInfo['joinInfo']['openCardUrl']
+        venderId = re.findall(r"venderId=(\w+)", openCardUrl)
+        venderId = venderId[0] if venderId else ""
         Token = userInfo['token']
         shopName = userInfo['shopName']
         actName = userInfo['actName']
         joinCodeInfo = userInfo['joinInfo']['joinCodeInfo']
         customerId = userInfo['customerId']
+        time.sleep(0.3)
+        followShop(Token)
         time.sleep(0.3)
         guestMyself(Token, shareUserId)
         time.sleep(0.3)
@@ -484,12 +492,12 @@ if __name__ == '__main__':
         if num == 1:
             print(f"✅ 开启【{actName}】活动")
             print(f"店铺名称：{shopName} {shopId}")
-            MSG += f'✅账号[{pt_pin}] 开启{actName}活动\n📝活动地址 {activityUrl.split("&sid=")[0]}\n'
+            MSG += f'✅账号[{pt_pin}] 开启{actName}活动\n📝活动地址 {activityUrl.split("&shareUserId=")[0]}\n'
             if shareUserId:
                 print(f"CK1准备助力【{shareUserId}】")
             else:
                 print(f"未填写助力码,CK1准备助力💨")
-            if joinCodeInfo['joinDes'] != '不是会员无法参加':
+            if "不是会员无法参加" not in joinCodeInfo['joinDes']:
                 print("已经是会员,助力失败！")
                 joinCheck(Token)
                 time.sleep(0.2)
@@ -501,7 +509,6 @@ if __name__ == '__main__':
                 prizeListResponse = prizeList(Token)
                 prizeListRecord = []
                 prizeNameList = []
-                receiveIndex = 0
                 index = 0
                 try:
                     for prizeitem in prizeListResponse['data']['prizeInfo']:
@@ -510,21 +517,16 @@ if __name__ == '__main__':
                         prizeNameList.append(f"🎁奖品:{prizeitem['prizeName']},助力人数:{prizeitem['days']},总数:{prizeitem['allNum']},剩余:{prizeitem['leftNum']}\n")
                         if prizeitem['leftNum'] > 0:
                             prizeListRecord.append((prizeitem['prizeName'], prizeitem['days'], prizeitem['id']))
-                            if "京豆" in prizeitem['prizeName']:
-                                receiveIndex += 1
                     MSG += f"🎁当前活动奖品如下: \n{str(''.join(prizeNameList))}\n"
-                    print(f"‼️该活动部分有且仅能领取一次奖励,默认自动领最高档豆🎁,或者手动领取\n")
                 except:
                     print('⚠️无法获取奖品列表, 退出本程序！')
                     sys.exit()
                 if prizeListRecord == []:
-                    print('⚠️无奖品可领, 退出本程序！')
+                    print('⚠️无奖品可领,退出本程序！')
                     sys.exit()
-                if receiveIndex < 1:
-                    receiveIndex = index
-                for prizeinfo in prizeListRecord[receiveIndex-1:receiveIndex]:
+                for prizeinfo in prizeListRecord:
                     if inviteSuccNum >= prizeinfo[1]:
-                        print(f'已达到领取条件, 开始领取 {prizeinfo[0]}')
+                        print(f'已达到领取条件,开始领取 {prizeinfo[0]}')
                         receive_result = receiveAcquire(Token, prizeinfo[2])
                         if receive_result == 0:
                             print(f'🎉🎉 领取奖励成功')
@@ -539,7 +541,7 @@ if __name__ == '__main__':
                             print(f'💥💥 领取奖励失败')
                             MSG += f"💥💥 领取奖励失败 {prizeinfo[0]}\n"
                     time.sleep(1.5)
-                if inviteSuccNum >= prizeListRecord[receiveIndex-1][1]:
+                if inviteSuccNum >= prizeListRecord[-1][1]:
                     print("奖励已领完")
                     MSG += f"🤖奖励已领完\n"
                     if len(cks) > 1:
@@ -553,14 +555,14 @@ if __name__ == '__main__':
                         sys.exit()
                 print(f"\n后面账号全部助力 {actorUuid}")
                 shareUserId = actorUuid
-                activityUrl = f"https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/index?activityType=10006&activityId={activityId}&shareUserId={shareUserId}&templateId={templateId}&nodeId=101001005&prd=null&sid=c77e8b335974724742827d7c42f951cw&un_area=12_1212_11111_22222"
+                activityUrl = f"https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/index?activityType={activityType}&templateId={templateId}&activityId={activityId}&shareUserId={shareUserId}&prd=null&sid=c77e8b335974724742827d7c42f951cw&un_area=12_1212_11111_22222"
                 continue
             else:
                 inviteSuccNum = 0
 
-        if joinCodeInfo['joinDes'] == '不是会员无法参加':
+        if "不是会员无法参加" in joinCodeInfo['joinDes']:
             print(f"未开卡 现在去开卡")
-            open_result = bindWithVender(cookie, shopId)
+            open_result = bindWithVender(cookie, shopId, venderId)
             if open_result is not None:
                 if "火爆" in open_result or "失败" in open_result or "解绑" in open_result:
                     print(f"\t💥💥 {open_result}\n‼️助力失败")
@@ -578,7 +580,6 @@ if __name__ == '__main__':
                     prizeListResponse = prizeList(Token)
                     prizeListRecord = []
                     prizeNameList = []
-                    receiveIndex = 0
                     index = 0
                     try:
                         for prizeitem in prizeListResponse['data']['prizeInfo']:
@@ -588,8 +589,6 @@ if __name__ == '__main__':
                                 prizeNameList.append(f"🎁奖品:{prizeitem['prizeName']},助力人数:{prizeitem['days']},总数:{prizeitem['allNum']},剩余:{prizeitem['leftNum']}\n")
                             if prizeitem['leftNum'] > 0:
                                 prizeListRecord.append((prizeitem['prizeName'], prizeitem['days'], prizeitem['id']))
-                                if "京豆" in prizeitem['prizeName']:
-                                    receiveIndex += 1
                         if prizeNameList:
                             MSG += f"🎁当前活动奖品如下: \n{str(''.join(prizeNameList))}\n"
                             print(f"‼️该活动部分有且仅能领取一次奖励,默认自动领最高档豆🎁,或者手动领取\n")
@@ -599,8 +598,8 @@ if __name__ == '__main__':
                     if prizeListRecord == []:
                         print('⚠️无奖品可领, 退出本程序！')
                         sys.exit()
-                    for prizeinfo in prizeListRecord[receiveIndex - 1:receiveIndex]:
-                        if inviteSuccNum >= prizeinfo[1]:
+                    for prizeinfo in prizeListRecord[:]:
+                        if inviteSuccNum == prizeinfo[1]:
                             print(f'CK1已达到领取条件, 开始领取 {prizeinfo[0]}')
                             time.sleep(0.2)
                             token = getToken(firstCk, r)
@@ -622,7 +621,7 @@ if __name__ == '__main__':
                                 print(f'💥💥 领取奖励失败')
                                 MSG += f"💥💥 领取奖励失败 {prizeinfo[0]}\n"
                             time.sleep(1.5)
-                    if inviteSuccNum >= prizeListRecord[receiveIndex - 1][1]:
+                    if inviteSuccNum >= prizeListRecord[-1][1]:
                         print("🤖奖励已领完")
                         MSG += f"🤖奖励已领完\n"
                         if len(cks) > 1:
@@ -636,7 +635,7 @@ if __name__ == '__main__':
                             sys.exit()
                         print(f"后面账号全部助力 {actorUuid}")
                         shareUserId = actorUuid
-                        activityUrl = f"https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/index?activityType=10006&activityId={activityId}&shareUserId={shareUserId}&templateId={templateId}&nodeId=101001005&prd=null&sid=c77e8b335974724742827d7c42f951cw&un_area=12_1212_11111_22222"
+                        activityUrl = f"https://lzkj-isv.isvjcloud.com/prod/cc/interactsaas/index?activityType={activityType}&templateId={templateId}&activityId={activityId}&shareUserId={shareUserId}&prd=null&sid=c77e8b335974724742827d7c42f951cw&un_area=12_1212_11111_22222"
         else:
             print(f"⛈已开卡,无法完成助力")
 
