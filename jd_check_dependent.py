@@ -18,6 +18,7 @@ Description:1.Faker库jd_sign本地算法依赖一键检测安装脚本;
 """
 import sys
 import requests, os, platform
+import urllib.request
 from functools import partial
 print = partial(print, flush=True)
 
@@ -129,7 +130,7 @@ def check_ld_libc(version):
                 print("❌arm64-libc依赖安装失败,请前往Faker TG群查看安装教程\n")
 
 def download(version, systemFile):
-    raw_url = f"https://ghproxy.com/https://github.com/HarbourJ/HarbourToulu/releases/download/{version}/{systemFile}"
+    raw_url = f"https://proxy.zyun.vip/https://github.com/HarbourJ/HarbourToulu/releases/download/{version}/{systemFile}"
     try:
         fileList = os.listdir()
         if systemFile in fileList:
@@ -144,7 +145,14 @@ def download(version, systemFile):
             if "No module" in str(e):
                 os.system("pip install wget")
             import wget
-        wget.download(raw_url)
+        # wget.download(raw_url,user-agent="Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
+        print("------开始下载%s------\n" % systemFile)
+        print(raw_url)
+        file_name = raw_url.split('/')[-1] 
+        opener = urllib.request.build_opener()
+        opener.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0')]
+        urllib.request.install_opener(opener)
+        urllib.request.urlretrieve(raw_url, file_name)
         print(f"✅{systemFile}下载成功\n")
         return True
     except Exception as e:
@@ -177,11 +185,11 @@ def signReleaseUpdate():
     """
     判断Release内的主要文件是否更新(判断utils内版本更新log文件-signUpdateLog.log)
     """
-    GitAPI = "https://ghproxy.com/https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/utils/signUpdateLog.log"
+    GitAPI = "https://proxy.zyun.vip/https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/utils/signUpdateLog.log"
     # try:
     headers = {
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'accept-encoding': 'gzip, deflate, br',
+        'accept-encoding': 'gzip, deflate',
         'accept-language': 'zh-CN,zh;q=0.9',
         'referer': 'https://github.com/HarbourJ/HarbourToulu/blob/main/jdCookie.py',
         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'
@@ -238,5 +246,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 
