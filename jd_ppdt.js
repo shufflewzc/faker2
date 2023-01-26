@@ -43,10 +43,13 @@ if ($.isNode()) {
             await $.wait(500);
             await xxx2();
 			await $.wait(500);
-            //await xxx4();			
-            //await $.wait(500);
-            await xxx3();     
+            await xxx4();			
+            await $.wait(500);
+            await xxx3();
+            await $.wait(500);
+            await xxx5();			
             await $.wait(2000);
+			
 			
 
         }
@@ -149,7 +152,7 @@ async function xxx2() {
 
 async function xxx4() {
     let opt = {
-        url: `https://api.m.jd.com/api?functionId=superBrandDoTask&appid=ProductZ4Brand&client=wh5&t=1673920844963&body=%7B%22source%22%3A%22hall_1111%22%2C%22activityId%22%3A1012333%2C%22encryptProjectId%22%3A%222aZfauURe2aNSkpWhRgJYi2SgSJc%22%2C%22completionFlag%22%3A1%2C%22encryptAssignmentId%22%3A%2231EmJRrCLjTuCVq9caCNfgKKhomF%22%2C%22assignmentType%22%3A0%2C%22actionType%22%3A0%7D`,
+        url: `https://api.m.jd.com/?client=wh5&appid=ProductZ4Brand&functionId=superBrandDoTask&t=1674697735260&body=%7B%22source%22:%22hall_1111%22,%22activityId%22:1012474,%22completionFlag%22:1,%22encryptProjectId%22:%222vMznPj56gd53UgquzZqE84h3Q8U%22,%22encryptAssignmentId%22:%223b2H8GRYmfj6YuqrBD2D44KGks8c%22,%22assignmentType%22:0,%22actionType%22:0%7D`,
         headers: {
             'Origin': 'https://prodev.m.jd.com',
             'User-Agent': $.UA,
@@ -235,6 +238,49 @@ async function xxx3() {
     })
 }
 
+async function xxx5() {
+    let opt = {
+        url: `https://api.m.jd.com/?client=wh5&appid=ProductZ4Brand&functionId=superBrandDoTask&t=1674700703306&body=%7B%22source%22:%22hall_1111%22,%22activityId%22:1012472,%22completionFlag%22:1,%22encryptProjectId%22:%222pNsbQpP8Jq7byJAMiXcQdWN7gSu%22,%22encryptAssignmentId%22:%22479JiY1PCk3xVrLGA6fvt3VAxgY3%22,%22assignmentType%22:0,%22actionType%22:0%7D`,
+        headers: {
+            'Origin': 'https://prodev.m.jd.com',
+            'User-Agent': $.UA,
+            'Cookie': cookie
+        }
+    }
+    return new Promise(async (resolve) => {
+        $.post(opt, async (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(` API请求失败，请检查网路重试`)
+                } else {
+                    data = JSON.parse(data)
+                    if (data.code == 0) {
+                        if (data.data.bizCode == 0) {
+                            if (data.data?.result?.rewards.length != 0) {
+                                if (data.data?.result?.rewards[0].awardType === 3) {
+                                    console.log(` 恭喜获得 ${data.data?.result?.rewards[0].beanNum} 京豆`);
+                                } else {
+                                    console.log(JSON.stringify(data.data?.result?.rewards));
+                                }
+                            } else {
+                                console.log(JSON.stringify(data.data?.result));
+                            }
+                        } else {
+                            console.log(data.data.bizMsg);
+                        }
+                    } else {
+                        console.log(data.msg)
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(data)
+            }
+        })
+    })
+}
 function TotalBean() {
     return new Promise((resolve) => {
         const options = {
