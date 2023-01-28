@@ -296,7 +296,7 @@ async function getTreasureBoxAwardTask() {
 
 function shareCodesFormat() {
     return new Promise(async (resolve) => {
-        // console.log(`第${$.index}个京东账号的助力码:::${$.shareCodesArr[$.index - 1]}`)
+        console.log(`第${$.index}个京东账号的助力码:::${$.shareCodesArr[$.index - 1]}`)
         newShareCodes = [];
         const readShareCodeRes = await readShareCode(jdFruitShareArr[$.index - 1]);
         if (readShareCodeRes && readShareCodeRes.code === 200) {
