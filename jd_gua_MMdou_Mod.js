@@ -67,7 +67,7 @@ async function run() {
   try{
     $.taskList = [];
     await takePostRequest('beanTaskList')
-    // await takePostRequest('morningGetBean')
+    await takePostRequest('signBeanAct')
     console.log(`做任务\n`);
     if($.viewAppHome && $.viewAppHome.takenTask == false){
       $.IconDoTaskFlag = 0
@@ -146,6 +146,10 @@ async function takePostRequest(type) {
       body = `{"fp":"-1","shshshfp":"-1","shshshfpa":"-1","referUrl":"-1","userAgent":"-1","jda":"-1","rnVersion":"3.9"}`;
       myRequest = await getGetRequest(`morningGetBean`, escape(body));
       break;
+	case 'signBeanAct':
+      body = `{"fp":"-1","shshshfp":"-1","shshshfpa":"-1","referUrl":"-1","userAgent":"-1","jda":"-1","rnVersion":"3.9"}`;
+      myRequest = await getGetRequest(`signBeanAct`, escape(body));
+      break;  
     default:
       console.log(`错误${type}`);
   }
@@ -215,6 +219,21 @@ async function dealReturn(type, res) {
       } else if (data.data && data.data.bizMsg) {
         console.log(data.data.bizMsg);
       } else {
+        console.log(res);
+      }
+      break;
+	case 'signBeanAct':
+      if (data.code == 0 && data.data) {
+		if (data.data.status==1){
+			console.log(`获得:${data.data.dailyAward.beanAward.beanCount || 0}京豆`)
+			$.bean += Number(data.data.dailyAward.beanAward.beanCount) || 0
+		} else {
+			if (data.data.dailyAward)
+				console.log(data.data.dailyAward.title+`获得:${data.data.dailyAward.beanAward.beanCount || 0}京豆`)
+			else
+				console.log(data)
+		}
+      }else {
         console.log(res);
       }
       break;

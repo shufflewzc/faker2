@@ -123,7 +123,7 @@ let strGuoqi="";
 let RemainMessage = '\n';
 RemainMessage += "⭕活动攻略:⭕" + '\n';
 RemainMessage += '【点点券】京东->首页领券->中间位置瓜分点点券的签到->再领价值XXX的红包\n';
-RemainMessage += '【极速金币】京东极速版->我的->金币(极速版使用)\n';
+RemainMessage += '【特价金币】京东特价版->我的->金币(特价版使用)\n';
 RemainMessage += '【京东赚赚】微信->京东赚赚小程序->底部赚好礼->提现无门槛红包(京东使用)\n';
 RemainMessage += '【领现金】京东->搜索领现金(微信提现+京东红包)\n';
 RemainMessage += '【东东农场】京东->我的->东东农场,完成是京东红包,可以用于京东app的任意商品\n';
@@ -257,11 +257,11 @@ if(DisableIndex!=-1){
 	EnableJdFruit=false;	
 }
 
-//极速金币
+//特价金币
 let EnableJdSpeed=true;
 DisableIndex = strDisableList.findIndex((item) => item === "极速金币");
 if(DisableIndex!=-1){
-	console.log("检测到设定关闭极速金币查询");
+	console.log("检测到设定关闭特价金币查询");
 	EnableJdSpeed=false;	
 }
 
@@ -485,7 +485,7 @@ if(DisableIndex!=-1){
 			await Promise.all([
 			        getJoyBaseInfo(), //汪汪乐园
 			        getJdZZ(), //京东赚赚		        
-			        cash(), //极速金币
+			        cash(), //特价金币
 			        jdJxMCinfo(), //京喜牧场
 			        bean(), //京豆查询
 			        getDdFactoryInfo(), // 京东工厂
@@ -848,7 +848,7 @@ async function showMsg() {
 		ReturnMessage += `【京喜牧场】${$.JDEggcnt}枚鸡蛋\n`;
 	}
 	if ($.JDtotalcash) {
-		ReturnMessage += `【极速金币】${$.JDtotalcash}币(≈${($.JDtotalcash / 10000).toFixed(2)}元)\n`;
+		ReturnMessage += `【特价金币】${$.JDtotalcash}币(≈${($.JDtotalcash / 10000).toFixed(2)}元)\n`;
 	}
 	if ($.JdzzNum) {
 		ReturnMessage += `【京东赚赚】${$.JdzzNum}币(≈${($.JdzzNum / 10000).toFixed(2)}元)\n`;
@@ -1721,7 +1721,7 @@ function redPacket() {
 						if ($.jxRed > 0)
 							$.message += `【京喜红包】${$.jxRed}(将过期${$.jxRedExpire.toFixed(2)})元 \n`;
 						if ($.jsRed > 0)
-							$.message += `【极速红包】${$.jsRed}(将过期${$.jsRedExpire.toFixed(2)})元 \n`;
+							$.message += `【特价红包】${$.jsRed}(将过期${$.jsRedExpire.toFixed(2)})元 \n`;
 						if ($.jdRed > 0)
 							$.message += `【京东红包】${$.jdRed}(将过期${$.jdRedExpire.toFixed(2)})元 \n`;
 						if ($.jdhRed > 0)
