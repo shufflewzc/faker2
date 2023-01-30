@@ -67,6 +67,8 @@ logger.info(f"黑名单关键字-->{monitor_black_keywords}")
 monitor_scripts = properties.get("monitor_scripts")
 monitor_auto_stops = properties.get("monitor_auto_stops")
 logger.info(f"监控的自动停车-->{monitor_auto_stops}")
+rules = properties.get("rules")
+logger.info(f"监控的自动解析-->{monitor_auto_stops}")
 
 if properties.get("proxy"):
     if properties.get("proxy_type") == "MTProxy":
@@ -159,6 +161,68 @@ async def handler(event):
 @client.on(events.NewMessage(chats=[bot_id], pattern='^在吗$'))
 async def handler(event):
     await client.send_message(bot_id, f'老板啥事？')
+
+
+# 提取多行转换
+async def converter_lines(text):
+    before_eps = text.split("\n")
+    after_eps = [elem for elem in before_eps if elem.startswith("export")]
+    return await converter_handler("\n".join(after_eps))
+
+
+# 设置变量
+@client.on(events.NewMessage(from_users=[user_id], pattern='^(run|Run)$'))
+async def handler(event):
+    try:
+        reply = await event.get_reply_message()
+        if event.is_reply is False:
+            return
+        if "export" in reply.text:
+            # 提取变量
+            text = await converter_lines(reply.text)
+            text = re.findall(r'(export.*)', text)[0]
+            await export(text)
+            kv = text.replace("export ", "")
+            logger.info(kv)
+            key = kv.split("=")[0]
+            action = monitor_scripts.get(key)
+            command = action.get("task", "")
+            await cmd(command)
+        else:
+            # 提取变量
+            activity_id, url = await get_activity_info(reply.text)
+            if activity_id is None:
+                logger.info(f"未找到id [%s],退出", url)
+                return
+            is_break = False
+            for rule_key in rules:
+                if is_break:
+                    break
+                result = re.search(rule_key, url)
+                if result is None:
+                    logger.info(f"不匹配%s,下一个", rule_key)
+                    continue
+                value = rules.get(rule_key)
+                env = value.get("env")
+                argv_len = len(re.findall("%s", env))
+                env_key = re.findall("export (.*)=", env)[0]
+                if argv_len == 1:
+                    env = env % url
+                elif argv_len == 2:
+                    env = env % (activity_id, url)
+                elif argv_len == 3:
+                    domain = re.search('(https?://[^/]+)', url)[0]
+                    env = env % (activity_id, domain, "None")
+                else:
+                    logger.info("还不支持")
+                    break
+                await export(env)
+                action = monitor_scripts.get(env_key)
+                command = action.get("task", "")
+                await cmd(command)
+                break
+    except Exception as e:
+        logger.error(e)
 
 
 # 设置变量
