@@ -2,13 +2,17 @@
 赚钱大赢家兑换50
 
 58 59 23 * * * jd_makemoneyshop_getred.js
-
+默认换50，可改id
+"id": "8609ec76a8a70db9a5443376d34fa26a" 50元
+"id": "b141ddd915d20f078d69f6910b02a60a" 8元
+"id": "66d9058514891de12e96588697cc3bb3" 3元
+"id": "d71b23a381ada0934039d890ad22ab8d" 0.5元
 默认不执行
 默认只执行1个ck,多账号请单独指定ck
 全部ck并发 task jd_makemoneyshop_reward.js conc JD_COOKIE
 指定某个ck或者某些ck task jd_fruit.js desi JD_COOKIE 1 或者 task jd_fruit.js desi JD_COOKIE 1-5
-
 */
+let redid="8609ec76a8a70db9a5443376d34fa26a";//兑换50元
 const $ = new Env("大赢家兑50红包");
 const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
@@ -55,7 +59,7 @@ if ($.isNode()) {
       $.ADID = getUUID("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", 1);
       $.UUID = getUUID("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 	  for (let i of Array(3)){
-	    getred();
+	    getred(redid);
 		await $.wait(200);
       }
     }
@@ -146,10 +150,10 @@ async function getExchangequery(){
 
 
 
-async function getred(){
+async function getred(id){
   return new Promise(async resolve => {
     const options = {
-      url: `https://wq.jd.com/prmt_exchange/client/exchange?g_ty=h5&g_tk=&appCode=ms2362fc9e&bizCode=makemoneyshop&ruleId=b0795152caef79b07ba0e1d7482be60e&sceneval=2`,
+      url: `https://api.m.jd.com/api?functionId=jxPrmtExchange_exchange&appid=cs_h5&body=%7B%22bizCode%22%3A%22makemoneyshop%22%2C%22ruleId%22%3A%22${id}%22%2C%22sceneval%22%3A2%2C%22buid%22%3A325%2C%22appCode%22%3A%22%22%2C%22time%22%3A${Date.now()}%2C%22signStr%22%3A%22%22%7D`,
       headers: {
         'Accept':'*/*',
         'Accept-Encoding': 'gzip, deflate, br',

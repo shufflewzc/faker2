@@ -54,10 +54,10 @@ if ($.isNode()) {
       }
       $.ADID = getUUID("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", 1);
       $.UUID = getUUID("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-      await getHome()
-      if ($.isNormal) {
+      //await getHome()
+      //if ($.isNormal) {
         await getExchangequery()
-        await getExchange()
+        //await getExchange()
         if (cashout) {
           cashout = cashout.reverse()
           // console.log(cashout)
@@ -66,7 +66,7 @@ if ($.isNode()) {
             await getExchangeOut(cash.id)
           }
         }
-      }
+      //}
     }
   }
 })().catch((e) => { $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '') }).finally(() => { $.done(); })
@@ -110,7 +110,7 @@ async function getHome(){
 async function getExchangequery(){
   return new Promise(async resolve => {
     const options = {
-      url: `https://api.m.jd.com/api?functionId=makemoneyshop_exchangequery&appid=jdlt_h5&channel=jxh5&cv=1.2.5&clientVersion=1.2.5&client=jxh5&uuid=7296248594457&cthr=1&body=%7B%22activeId%22%3A%2263526d8f5fe613a6adb48f03%22%2C%22sceneval%22%3A2%2C%22buid%22%3A325%2C%22appCode%22%3A%22msc588d6d5%22%2C%22time%22%3A1671265664838%2C%22signStr%22%3A%22%22%7D&t=1671265664839&loginType=2`,
+      url: `https://api.m.jd.com/api?functionId=makemoneyshop_exchangequery&appid=jdlt_h5&t=1675779008647&channel=jxh5&cv=1.2.5&clientVersion=1.2.5&client=jxh5&uuid=7296248594457&cthr=1&loginType=2&body=%7B%22activeId%22%3A%2263526d8f5fe613a6adb48f03%22%2C%22sceneval%22%3A2%2C%22buid%22%3A325%2C%22appCode%22%3A%22ms2362fc9e%22%2C%22time%22%3A1675779008647%2C%22signStr%22%3A%2274a7040ca4225c03a11c792c44f98082%22%7D`,
       headers: {
         'Accept':'*/*',
         'Accept-Encoding': 'gzip, deflate, br',
@@ -156,7 +156,7 @@ async function getExchangequery(){
 async function getExchange(){
   return new Promise(async resolve => {
     const options = {
-      url: `https://wq.jd.com/prmt_exchange/client/exchange/list-record?g_ty=h5&g_tk=&appCode=msc588d6d5&bizCode=makemoneyshop&exchangeType=2&current=1&size=20&sceneval=2`,
+      url: `https://api.m.jd.com/api?functionId=makemoneyshop_exchangequery&appid=jdlt_h5&t=1675779008647&channel=jxh5&cv=1.2.5&clientVersion=1.2.5&client=jxh5&uuid=7296248594457&cthr=1&loginType=2&body=%7B%22activeId%22%3A%2263526d8f5fe613a6adb48f03%22%2C%22sceneval%22%3A2%2C%22buid%22%3A325%2C%22appCode%22%3A%22ms2362fc9e%22%2C%22time%22%3A1675779008647%2C%22signStr%22%3A%2274a7040ca4225c03a11c792c44f98082%22%7D`,
       headers: {
         'Accept':'*/*',
         'Accept-Encoding': 'gzip, deflate, br',
@@ -173,7 +173,7 @@ async function getExchange(){
         } else {
           if (data) {
             data = JSON.parse(data);
-            if (data.data && data.ret === 0) {
+            if (data.data && data.code === 0) {
               // console.log(data.data.records)
             }
           } else {
@@ -192,7 +192,7 @@ async function getExchange(){
 async function getExchangeOut(id){
   return new Promise(async resolve => {
     const options = {
-      url: `https://wq.jd.com/prmt_exchange/client/exchange?g_ty=h5&g_tk=&appCode=msc588d6d5&bizCode=makemoneyshop&ruleId=${id}&sceneval=2`,
+      url: `https://api.m.jd.com/api?functionId=jxPrmtExchange_exchange&appid=cs_h5&body=%7B%22bizCode%22%3A%22makemoneyshop%22%2C%22ruleId%22%3A%22${id}%22%2C%22sceneval%22%3A2%2C%22buid%22%3A325%2C%22appCode%22%3A%22%22%2C%22time%22%3A${Date.now()}%2C%22signStr%22%3A%22%22%7D`,
       headers: {
         'Accept':'*/*',
         'Accept-Encoding': 'gzip, deflate, br',
@@ -207,14 +207,7 @@ async function getExchangeOut(id){
         if (err) {
           console.log(`${JSON.stringify(err)}`)
         } else {
-          if (data) {
-            data = JSON.parse(data);
-            if (data.data) {
-              console.log(data)
-            }
-          } else {
-            console.log(`京东服务器返回空数据`)
-          }
+          console.log(JSON.parse(data));
         }
       } catch (e) {
         $.logErr(e, resp)
