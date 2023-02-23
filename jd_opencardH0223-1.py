@@ -6,7 +6,7 @@ File: jd_opencardH0223.py(2.23-3.3 春日焕新 礼遇美好)
 Author: HarbourJ
 Date: 2023/2/23 00:00
 TG: https://t.me/HarbourToulu
-cron: 0 0 */3 23-28,1-3 2-3 *
+cron: 7 7 7 7 7
 new Env('2.23-3.3 春日焕新 礼遇美好(金币)');
 ActivityEntry: https://lzdz1-isv.isvjcloud.com/dingzhi/joinCommon/activity/activity?activityId=037c3a27cc0b4ef79b19f5038158ff96
 """
