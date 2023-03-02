@@ -21,7 +21,7 @@ const querystring = require('querystring');
 const exec = require('child_process').exec;
 const $ = new Env();
 const timeout = 15000; //超时时间(单位毫秒)
-console.log("加载sendNotify，当前版本: 20221118");
+console.log("加载sendNotify，当前版本: 20230224");
 // =======================================go-cqhttp通知设置区域===========================================
 //gobot_url 填写请求地址http://127.0.0.1/send_private_msg
 //gobot_token 填写在go-cqhttp文件设置的访问密钥
@@ -91,8 +91,6 @@ let IGOT_PUSH_KEY = '';
 //PUSH_PLUS_USER： 一对多推送的“群组编码”（一对多推送下面->您的群组(如无则新建)->群组编码，如果您是创建群组人。也需点击“查看二维码”扫描绑定，否则不能接受群组消息推送）
 let PUSH_PLUS_TOKEN = '';
 let PUSH_PLUS_USER = '';
-let PUSH_PLUS_TOKEN_hxtrip = '';
-let PUSH_PLUS_USER_hxtrip = '';
 
 // ======================================= WxPusher 通知设置区域 ===========================================
 // 此处填你申请的 appToken. 官方文档：https://wxpusher.zjiecode.com/docs
@@ -225,8 +223,6 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         IGOT_PUSH_KEY = '';
         PUSH_PLUS_TOKEN = '';
         PUSH_PLUS_USER = '';
-        PUSH_PLUS_TOKEN_hxtrip = '';
-        PUSH_PLUS_USER_hxtrip = '';
         Notify_CKTask = "";
         Notify_SkipText = [];
 
@@ -240,7 +236,6 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         var Use_qywxamNotify = true;
         var Use_iGotNotify = true;
         var Use_gobotNotify = true;
-        var Use_pushPlushxtripNotify = true;
         var Use_WxPusher = true;
         var strtext = text;
         var strdesp = desp;
@@ -502,7 +497,6 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
 		                    console.log("关闭所有通知变量...");
 		                    Use_serverNotify = false;
 		                    Use_pushPlusNotify = false;
-		                    Use_pushPlushxtripNotify = false;
 		                    Use_BarkNotify = false;
 		                    Use_tgBotNotify = false;
 		                    Use_ddBotNotify = false;
@@ -521,11 +515,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
 		                        case "pushplus":
 		                            Use_pushPlusNotify = true;
 		                            console.log("自定义设定启用pushplus(推送加)进行通知...");
-		                            break;
-		                        case "pushplushxtrip":
-		                            Use_pushPlushxtripNotify = true;
-		                            console.log("自定义设定启用pushplus_hxtrip(推送加)进行通知...");
-		                            break;
+		                            break;		                        
 		                        case "Bark":
 		                            Use_BarkNotify = true;
 		                            console.log("自定义设定启用Bark进行通知...");
@@ -669,14 +659,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
 		}
 		if (process.env["PUSH_PLUS_USER" + UseGroupNotify] && Use_pushPlusNotify) {
 		    PUSH_PLUS_USER = process.env["PUSH_PLUS_USER" + UseGroupNotify];
-		}
-
-		if (process.env["PUSH_PLUS_TOKEN_hxtrip" + UseGroupNotify] && Use_pushPlushxtripNotify) {
-		    PUSH_PLUS_TOKEN_hxtrip = process.env["PUSH_PLUS_TOKEN_hxtrip" + UseGroupNotify];
-		}
-		if (process.env["PUSH_PLUS_USER_hxtrip" + UseGroupNotify] && Use_pushPlushxtripNotify) {
-		    PUSH_PLUS_USER_hxtrip = process.env["PUSH_PLUS_USER_hxtrip" + UseGroupNotify];
-		}
+		}		
 		if (process.env["GOTIFY_URL" + UseGroupNotify]) {
 		    GOTIFY_URL = process.env["GOTIFY_URL" + UseGroupNotify];
 		}
@@ -689,25 +672,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         //检查是否在不使用Remark进行名称替换的名单
         const notifySkipRemarkList = process.env.NOTIFY_SKIP_NAMETYPELIST ? process.env.NOTIFY_SKIP_NAMETYPELIST.split('&') : [];
         const titleIndex3 = notifySkipRemarkList.findIndex((item) => item === strTitle);
-
-        if (text == "京东到家果园互助码:") {
-            ShowRemarkType = "1";
-            if (desp) {
-                var arrTemp = desp.split(",");
-                var allCode = "";
-                for (let k = 0; k < arrTemp.length; k++) {
-                    if (arrTemp[k]) {
-                        if (arrTemp[k].substring(0, 1) != "@")
-                            allCode += arrTemp[k] + ",";
-                    }
-                }
-
-                if (allCode) {
-                    desp += '\n' + '\n' + "ccwav格式化后的互助码:" + '\n' + allCode;
-                }
-            }
-        }
-
+		
         if (ShowRemarkType != "1" && titleIndex3 == -1) {
             console.log("sendNotify正在处理账号Remark.....");
             //开始读取青龙变量列表
@@ -842,23 +807,8 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
     }
 
     //提供6种通知
-    desp = buildLastDesp(desp, author)
-
-        await serverNotify(text, desp); //微信server酱
-
-    if (PUSH_PLUS_TOKEN_hxtrip) {
-        console.log("hxtrip TOKEN :" + PUSH_PLUS_TOKEN_hxtrip);
-    }
-    if (PUSH_PLUS_USER_hxtrip) {
-        console.log("hxtrip USER :" + PUSH_PLUS_USER_hxtrip);
-    }
-    PushErrorTime = 0;
-    await pushPlusNotifyhxtrip(text, desp); //pushplushxtrip(推送加)
-    if (PushErrorTime > 0) {
-        console.log("等待1分钟后重试.....");
-        await $.wait(60000);
-        await pushPlusNotifyhxtrip(text, desp);
-    }
+    desp = buildLastDesp(desp, author);
+	await serverNotify(text, desp); //微信server酱
 
     if (PUSH_PLUS_TOKEN) {
         console.log("PUSH_PLUS TOKEN :" + PUSH_PLUS_TOKEN);
@@ -1334,6 +1284,7 @@ function tgBotNotify(text, desp) {
             chat_id: `${TG_USER_ID}`,
             text: `${text}\n\n${desp}`,
             disable_web_page_preview:true,
+			parse_mode:"html",
           },
         headers: {
           'Content-Type': 'application/json',
@@ -1664,53 +1615,6 @@ function iGotNotify(text, desp, params = {}) {
                             console.log('iGot发送通知消息成功🎉\n');
                         } else {
                             console.log(`iGot发送通知消息失败：${data.errMsg}\n`);
-                        }
-                    }
-                } catch (e) {
-                    $.logErr(e, resp);
-                }
-                finally {
-                    resolve(data);
-                }
-            });
-        } else {
-            resolve();
-        }
-    });
-}
-function pushPlusNotifyhxtrip(text, desp) {
-    return new Promise((resolve) => {
-        if (PUSH_PLUS_TOKEN_hxtrip) {
-            //desp = `<font size="3">${desp}</font>`;
-
-            desp = desp.replace(/[\n\r]/g, '<br>'); // 默认为html, 不支持plaintext
-            const body = {
-                token: `${PUSH_PLUS_TOKEN_hxtrip}`,
-                title: `${text}`,
-                content: `${desp}`,
-                topic: `${PUSH_PLUS_USER_hxtrip}`,
-            };
-            const options = {
-                url: `http://pushplus.hxtrip.com/send`,
-                body: JSON.stringify(body),
-                headers: {
-                    'Content-Type': ' application/json',
-                },
-                timeout,
-            };
-            $.post(options, (err, resp, data) => {
-                try {
-                    if (err) {
-                        console.log(`hxtrip push+发送${PUSH_PLUS_USER_hxtrip ? '一对多' : '一对一'}通知消息失败！！\n`);
-                        PushErrorTime += 1;
-                        console.log(err);
-                    } else {
-                        if (data.indexOf("200") > -1) {
-                            console.log(`hxtrip push+发送${PUSH_PLUS_USER_hxtrip ? '一对多' : '一对一'}通知消息完成。\n`);
-                            PushErrorTime = 0;
-                        } else {
-                            console.log(`hxtrip push+发送${PUSH_PLUS_USER_hxtrip ? '一对多' : '一对一'}通知消息失败：${data}\n`);
-                            PushErrorTime += 1;
                         }
                     }
                 } catch (e) {
