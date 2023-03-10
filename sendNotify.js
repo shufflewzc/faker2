@@ -21,7 +21,7 @@ const querystring = require('querystring');
 const exec = require('child_process').exec;
 const $ = new Env();
 const timeout = 15000; //超时时间(单位毫秒)
-console.log("加载sendNotify，当前版本: 20230224");
+console.log("加载sendNotify，当前版本: 20230309");
 // =======================================go-cqhttp通知设置区域===========================================
 //gobot_url 填写请求地址http://127.0.0.1/send_private_msg
 //gobot_token 填写在go-cqhttp文件设置的访问密钥
@@ -1283,8 +1283,7 @@ function tgBotNotify(text, desp) {
         json: {
             chat_id: `${TG_USER_ID}`,
             text: `${text}\n\n${desp}`,
-            disable_web_page_preview:true,
-			parse_mode:"html",
+            disable_web_page_preview:true
           },
         headers: {
           'Content-Type': 'application/json',
