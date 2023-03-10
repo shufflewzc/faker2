@@ -241,7 +241,7 @@ async function predictionFruit() {
     console.log('开始预测水果成熟时间\n');
     await initForFarm();
     await taskInitForFarm();
-    let waterEveryDayT = $.farmTask.totalWaterTaskInit.totalWaterTaskTimes;//今天到到目前为止，浇了多少次水
+    let waterEveryDayT = $.farmTask.firstWaterInit.totalWaterTimes;//今天到到目前为止，浇了多少次水
     message += `【今日共浇水】${waterEveryDayT}次\n`;
     message += `【剩余 水滴】${$.farmInfo.farmUserPro.totalEnergy}g💧\n`;
     message += `【水果进度】${(($.farmInfo.farmUserPro.treeEnergy / $.farmInfo.farmUserPro.treeTotalEnergy) * 100).toFixed(2)}%，已浇水${$.farmInfo.farmUserPro.treeEnergy / 10}次,还需${($.farmInfo.farmUserPro.treeTotalEnergy - $.farmInfo.farmUserPro.treeEnergy) / 10}次\n`
@@ -269,11 +269,11 @@ async function doTenWater() {
         console.log(`您设置的是使用水滴换豆卡，且背包有水滴换豆卡${beanCard}张, 跳过10次浇水任务`)
         return
     }
-    if ($.farmTask.totalWaterTaskInit.totalWaterTaskTimes < $.farmTask.totalWaterTaskInit.totalWaterTaskLimit) {
+    if ($.farmTask.firstWaterInit.totalWaterTimes < $.farmTask.totalWaterTaskInit.totalWaterTaskLimit) {
         console.log(`\n准备浇水十次`);
         let waterCount = 0;
         isFruitFinished = false;
-        for (; waterCount < $.farmTask.totalWaterTaskInit.totalWaterTaskLimit - $.farmTask.totalWaterTaskInit.totalWaterTaskTimes; waterCount++) {
+        for (; waterCount < $.farmTask.totalWaterTaskInit.totalWaterTaskLimit - $.farmTask.firstWaterInit.totalWaterTimes; waterCount++) {
             console.log(`第${waterCount + 1}次浇水`);
             await waterGoodForFarm();
             console.log(`本次浇水结果:   ${JSON.stringify($.waterResult)}`);
@@ -327,7 +327,7 @@ async function getFirstWaterAward() {
 //领取十次浇水奖励
 async function getTenWaterAward() {
     //领取10次浇水奖励
-    if (!$.farmTask.totalWaterTaskInit.f && $.farmTask.totalWaterTaskInit.totalWaterTaskTimes >= $.farmTask.totalWaterTaskInit.totalWaterTaskLimit) {
+    if (!$.farmTask.totalWaterTaskInit.f && $.farmTask.firstWaterInit.totalWaterTimes >= $.farmTask.totalWaterTaskInit.totalWaterTaskLimit) {
         await totalWaterTaskForFarm();
         if ($.totalWaterReward.code === '0') {
             console.log(`【十次浇水奖励】获得${$.totalWaterReward.totalWaterTaskEnergy}g💧\n`);
@@ -336,9 +336,9 @@ async function getTenWaterAward() {
             // message += '【十次浇水奖励】领取奖励失败,详询日志\n';
             console.log(`领取10次浇水奖励结果:  ${JSON.stringify($.totalWaterReward)}`);
         }
-    } else if ($.farmTask.totalWaterTaskInit.totalWaterTaskTimes < $.farmTask.totalWaterTaskInit.totalWaterTaskLimit) {
-        // message += `【十次浇水奖励】任务未完成，今日浇水${$.farmTask.totalWaterTaskInit.totalWaterTaskTimes}次\n`;
-        console.log(`【十次浇水奖励】任务未完成，今日浇水${$.farmTask.totalWaterTaskInit.totalWaterTaskTimes}次\n`);
+    } else if ($.farmTask.firstWaterInit.totalWaterTimes < $.farmTask.totalWaterTaskInit.totalWaterTaskLimit) {
+        // message += `【十次浇水奖励】任务未完成，今日浇水${$.farmTask.firstWaterInit.totalWaterTimes}次\n`;
+        console.log(`【十次浇水奖励】任务未完成，今日浇水${$.farmTask.firstWaterInit.totalWaterTimes}次\n`);
     }
     console.log('finished 水果任务完成!');
 }
