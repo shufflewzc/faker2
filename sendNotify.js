@@ -21,7 +21,7 @@ const querystring = require('querystring');
 const exec = require('child_process').exec;
 const $ = new Env();
 const timeout = 15000; //超时时间(单位毫秒)
-console.log("加载sendNotify，当前版本: 20230309");
+console.log("加载sendNotify，当前版本: 20230314");
 // =======================================go-cqhttp通知设置区域===========================================
 //gobot_url 填写请求地址http://127.0.0.1/send_private_msg
 //gobot_token 填写在go-cqhttp文件设置的访问密钥
@@ -1237,7 +1237,7 @@ function serverNotify(text, desp, time = 2100) {
     });
 }
 
-function BarkNotify(text, desp, params = {}) {
+/* function BarkNotify(text, desp, params = {}) {
     return new Promise((resolve) => {
         if (BARK_PUSH) {
             const options = {
@@ -1273,6 +1273,50 @@ function BarkNotify(text, desp, params = {}) {
             resolve();
         }
     });
+} */
+
+
+/* code from JoveYu */
+function BarkNotify(text, desp, params = {}) {
+  return new Promise((resolve) => {
+    if (BARK_PUSH) {
+      const options = {
+        url: `${BARK_PUSH}`,
+        json: {
+            title: text,
+            body: desp,
+            group: `${BARK_GROUP}`,
+            icon: `${BARK_ICON}`,
+            sound: `${BARK_SOUND}`,
+        },
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        timeout,
+      };
+      $.post(options, (err, resp, data) => {
+        try {
+          if (err) {
+            console.log('Bark APP发送通知调用API失败！！\n');
+            console.log(err);
+          } else {
+            data = JSON.parse(data);
+            if (data.code === 200) {
+              console.log('Bark APP发送通知消息成功🎉\n');
+            } else {
+              console.log(`${data.message}\n`);
+            }
+          }
+        } catch (e) {
+          $.logErr(e, resp);
+        } finally {
+          resolve();
+        }
+      });
+    } else {
+      resolve();
+    }
+  });
 }
 
 function tgBotNotify(text, desp) {
