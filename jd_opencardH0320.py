@@ -6,7 +6,7 @@ File: jd_opencardH0320.py(3.20-3.30 春季乐购 共享美好)
 Author: HarbourJ
 Date: 2023/3/4 00:00
 TG: https://t.me/HarbourToulu
-cron: 0 0 */3 20-30 3 *
+cron: 7 7 7 7 7
 new Env('3.20-3.30 春季乐购 共享美好(金币)');
 ActivityEntry: https://lzdz1-isv.isvjcloud.com/dingzhi/joinCommon/activity/activity?activityId=ca5653a449b04804a633afff1ebbb546
 """
