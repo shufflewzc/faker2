@@ -1,7 +1,10 @@
 /*
 APP首页-领京豆
+金融双签领取
 21 3 * * * jd_signbeanact.js
 */
+
+const { cookie } = require('request');
 
 const $ = new Env('领京豆签到');
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
@@ -55,7 +58,8 @@ async function run() {
         await takePostRequest('beanTaskList')
         await $.wait(200);
         await takePostRequest('signBeanAct')
-
+        await $.wait(200);
+        await getdouble();
     } catch (e) {
         console.log(e);
     }
@@ -146,6 +150,38 @@ async function getGetRequest(type, body) {
         "User-Agent": UA,
     };
     return { url: url, method: method, headers: headers };
+}
+
+async function getdouble() {
+    let opt = {
+        url: "https://nu.jr.jd.com/gw/generic/jrm/h5/m/process",
+        headers: {
+            Cookie: $.cookie,
+        },
+        body: `reqData=${encodeURIComponent('{"actCode":"F68B2C3E71","type":"3","frontParam":{"belong":"jingdou"}}')}`
+    }
+    return new Promise(async (resolve) => {
+        $.post(opt, async (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`${JSON.stringify(err)}`)
+                    console.log(` API请求失败，请检查网路重试`)
+                } else {
+                    if (data.match(/"京豆.*"/)) {
+                        const count = data.match(/\"count\":\"?(\d.*?)\"?,/)[1];
+                        console.log(`双签成功：${count}京豆`)
+                    } else {
+                        const msg = data.match(/},\"businessMsg\":\"(\S.*)\",\"c/)[1]
+                        console.log("金融双签:" + msg)
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve()
+            }
+        })
+    })
 }
 function jsonformat(str) {
     if (typeof str == "string") {
