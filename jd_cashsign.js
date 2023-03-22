@@ -71,7 +71,7 @@ async function sign() {
                 } else {
                     const cc = JSON.parse(data);
                     if (cc.data.bizCode == 0) {
-                        console.log(`签到成功：${data.data.result.signCash}`);
+                        console.log(`签到成功：${cc.data.result.signCash}`);
                     } else if (data.match(/已经签过/)) {
                         $.log('今日已签过！！！')
                     } else {
