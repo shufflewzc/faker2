@@ -16,15 +16,16 @@ const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 let cookiesArr = [], cookie = '';
 let cashout = []
 let isCashOut = process.env.isCashOut ?? false;
-if ($.isNode()) {
-  Object.keys(jdCookieNode).forEach((item) => {
-    cookiesArr.push(jdCookieNode[item])
-  })
-  if (process.env.JD_DEBUG && process.env.JD_DEBUG === 'false') console.log = () => {
-  };
-} else {
-  cookiesArr = [$.getdata('CookieJD'), $.getdata('CookieJD2'), ...jsonParse($.getdata('CookiesJD') || "[]").map(item => item.cookie)].filter(item => !!item);
-}
+cookiesArr = process.env.JD_COOKIE.split('&');
+const run_order = [
+    '100元',
+    '20元',
+    '8元',
+    '3元',
+    '1元',
+    '0.3元'
+];
+let run_flag = true;
 !(async () => {
   if (!cookiesArr[0]) {
     $.msg($.name, '【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取', 'https://bean.m.jd.com/bean/signIndex.action', { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
@@ -34,7 +35,7 @@ if ($.isNode()) {
     console.log('[赚钱大赢家提现]默认不执行,需要执行 isCashOut 设置为 true,更多说明看注释')
     return
   }
-  for (let i = 0; i < 1; i++) {
+for (let i = 0; i < cookiesArr.length; i++) {
     if (cookiesArr[i]) {
       cookie = cookiesArr[i];
       $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
@@ -56,14 +57,18 @@ if ($.isNode()) {
       $.UUID = getUUID("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
       //await getHome()
       //if ($.isNormal) {
+          cashout = [];
         await getExchangequery()
         //await getExchange()
         if (cashout) {
-          cashout = cashout.reverse()
+          cashout = cashout.sort(function(a,b) {return Number(b.cashoutAmount)-Number(a.cashoutAmount)});
           // console.log(cashout)
+          run_flag = true;
           for (const cash of cashout) {
             console.log('去提现 -> '+cash.name)
-            await getExchangeOut(cash.id)
+            await getExchangeOut(cash.id);
+            await $.wait(5000);
+            if(!run_flag) break;
           }
         }
       //}
@@ -207,7 +212,13 @@ async function getExchangeOut(id){
         if (err) {
           console.log(`${JSON.stringify(err)}`)
         } else {
-          console.log(JSON.parse(data));
+          data = data ? JSON.parse(data) : {};
+            if (data?.data && data?.code === 0) {
+              run_flag = false;
+              console.log('--> 叼毛提现成功')
+            } else {
+              console.log(`--> 叼毛提现失败: ${data?.msg||'估计403了吧'}`)
+            }
         }
       } catch (e) {
         $.logErr(e, resp)
