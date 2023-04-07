@@ -265,13 +265,7 @@ if(DisableIndex!=-1){
 	EnableJdSpeed=false;	
 }
 
-// 京东工厂
-let EnableJDGC=true;
-DisableIndex=strDisableList.findIndex((item) => item === "京东工厂");
-if(DisableIndex!=-1){
-	console.log("检测到设定关闭京东工厂查询");
-	EnableJDGC=false;	
-}
+
 //领现金
 let EnableCash=true;
 DisableIndex=strDisableList.findIndex((item) => item === "领现金");
@@ -488,7 +482,6 @@ if(DisableIndex!=-1){
 			        getJdZZ(), //京东赚赚		        
 			        cash(), //特价金币
 			        bean(), //京豆查询
-			        getDdFactoryInfo(), // 京东工厂
 			        jdCash(), //领现金
 			        GetJxBeaninfo(), //喜豆查询
 			        GetPigPetInfo(), //金融养猪
@@ -1725,38 +1718,42 @@ function redPacket() {
 						t = parseInt((t - 1) / 1000);
 						//console.log(JSON.stringify(data.useRedInfo.redList))
 						for (let vo of data.useRedInfo.redList || []) {
-						    if (vo.limitStr) {
+						    if (vo.limitStr) {								
 						        if (vo.limitStr.includes("京喜") && !vo.limitStr.includes("特价")) {
 						            $.jxRed += parseFloat(vo.balance)
 						            if (vo['endTime'] === t) {
-						                $.jxRedExpire += parseFloat(vo.balance)
+						                $.jxRedExpire += parseFloat(vo.balance)									
 						            }
+									continue;	
 						        } else if (vo.limitStr.includes("购物小程序")) {
 						            $.jdwxRed += parseFloat(vo.balance)
 						            if (vo['endTime'] === t) {
 						                $.jdwxRedExpire += parseFloat(vo.balance)
 						            }
+									continue;	
 						        } else if (vo.limitStr.includes("京东商城")) {
 						            $.jdRed += parseFloat(vo.balance)
 						            if (vo['endTime'] === t) {
 						                $.jdRedExpire += parseFloat(vo.balance)
 						            }
+									continue;	
 						        } else if (vo.limitStr.includes("极速") || vo.limitStr.includes("京东特价") || vo.limitStr.includes("京喜特价")) {
 						            $.jsRed += parseFloat(vo.balance)
 						            if (vo['endTime'] === t) {
 						                $.jsRedExpire += parseFloat(vo.balance)
 						            }
+									continue;	
 						        } else if (vo.limitStr && vo.limitStr.includes("京东健康")) {
 						            $.jdhRed += parseFloat(vo.balance)
 						            if (vo['endTime'] === t) {
 						                $.jdhRedExpire += parseFloat(vo.balance)
 						            }
-						        } else {
-						            $.jdGeneralRed += parseFloat(vo.balance)
-						            if (vo['endTime'] === t) {
-						                $.jdGeneralRedExpire += parseFloat(vo.balance)
-						            }
+									continue;	
 						        }
+						    }
+						    $.jdGeneralRed += parseFloat(vo.balance)
+						    if (vo['endTime'] === t) {
+						        $.jdGeneralRedExpire += parseFloat(vo.balance)
 						    }
 						}
 				
@@ -2202,89 +2199,6 @@ function taskcashUrl(_0x7683x2, _0x7683x3 = {}) {
 		_0x7683xc(_0x7683xd)
 	}
 })({})
-
-// 东东工厂信息查询
-async function getDdFactoryInfo() {
-	if (!EnableJDGC)
-		return;
-	// 当心仪的商品存在，并且收集起来的电量满足当前商品所需，就投入
-	let infoMsg = "";
-	return new Promise(resolve => {
-		$.post(ddFactoryTaskUrl('jdfactory_getHomeData'), async(err, resp, data) => {
-			try {
-				if (err) {
-					$.ddFactoryInfo = "获取失败!"
-						/*console.log(`${JSON.stringify(err)}`)
-						console.log(`${$.name} API请求失败，请检查网路重试`)*/
-				} else {
-					if (safeGet(data)) {
-						data = JSON.parse(data);
-						if (data.data.bizCode === 0) {
-							// $.newUser = data.data.result.newUser;
-							//let wantProduct = $.isNode() ? (process.env.FACTORAY_WANTPRODUCT_NAME ? process.env.FACTORAY_WANTPRODUCT_NAME : wantProduct) : ($.getdata('FACTORAY_WANTPRODUCT_NAME') ? $.getdata('FACTORAY_WANTPRODUCT_NAME') : wantProduct);
-							if (data.data.result.factoryInfo) {
-								let {
-									totalScore,
-									useScore,
-									produceScore,
-									remainScore,
-									couponCount,
-									name
-								} = data.data.result.factoryInfo;
-								if (couponCount == 0) {
-									infoMsg = `${name} 没货了,死了这条心吧!`
-								} else {
-									infoMsg = `${name}(${((remainScore * 1 + useScore * 1) / (totalScore * 1)* 100).toFixed(0)}%,剩${couponCount})`
-								}
-								if (((remainScore * 1 + useScore * 1) >= totalScore * 1 + 100000) && (couponCount * 1 > 0)) {
-									// await jdfactory_addEnergy();
-									infoMsg = `${name} 可以兑换了!`
-										$.DdFactoryReceive = `${name}`;
-
-								}
-
-							} else {
-								infoMsg = ``
-							}
-						} else {
-							$.ddFactoryInfo = ""
-						}
-					}
-				}
-				$.ddFactoryInfo = infoMsg;
-			} catch (e) {
-				$.logErr(e, resp)
-			}
-			finally {
-				resolve();
-			}
-		})
-	})
-}
-
-function ddFactoryTaskUrl(function_id, body = {}, function_id2) {
-	let url = `${JD_API_HOST}`;
-	if (function_id2) {
-		url += `?functionId=${function_id2}`;
-	}
-	return {
-		url,
-		body: `functionId=${function_id}&body=${escape(JSON.stringify(body))}&client=wh5&clientVersion=1.1.0`,
-		headers: {
-			"Accept": "application/json, text/plain, */*",
-			"Accept-Encoding": "gzip, deflate, br",
-			"Accept-Language": "zh-cn",
-			"Connection": "keep-alive",
-			"Content-Type": "application/x-www-form-urlencoded",
-			"Cookie": cookie,
-			"Host": "api.m.jd.com",
-			"Origin": "https://h5.m.jd.com",
-			"Referer": "https://h5.m.jd.com/babelDiy/Zeus/2uSsV2wHEkySvompfjB43nuKkcHp/index.html",
-			"User-Agent": "jdapp;iPhone;9.3.4;14.3;88732f840b77821b345bf07fd71f609e6ff12f43;network/4g;ADID/1C141FDD-C62F-425B-8033-9AAB7E4AE6A3;supportApplePay/0;hasUPPay/0;hasOCPay/0;model/iPhone11,8;addressid/2005183373;supportBestPay/0;appBuild/167502;jdSupportDarkMode/0;pv/414.19;apprpd/Babel_Native;ref/TTTChannelViewContoller;psq/5;ads/;psn/88732f840b77821b345bf07fd71f609e6ff12f43|1701;jdv/0|iosapp|t_335139774|appshare|CopyURL|1610885480412|1610885486;adk/;app_device/IOS;pap/JA2015_311210|9.3.4|IOS 14.3;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1",
-		},
-		timeout: 10000
-	}
-}
 
 async function getJoyBaseInfo(taskId = '', inviteType = '', inviterPin = '') {
 	if (!EnableJoyPark)
