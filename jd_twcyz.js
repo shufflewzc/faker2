@@ -113,7 +113,7 @@ async function main() {
     //}
     console.log(`\n可抽奖${$.drawtimes}次，开始...`);
     for (let i = 0; i < $.drawtimes; i++) {
-        //console.log(`进行第${i + 1}抽奖：`);;
+        console.log(`进行${i + 1}次抽奖：`);;
         await takeRequest('superBrandTaskLottery');//抽奖
         await $.wait(1000);
         if (!$.runFlag) break;
@@ -242,16 +242,23 @@ function dealReturn(type, data) {
             } else {
                 console.log(JSON.stringify(data));
             }
+
             break;
         case 'superBrandTaskLottery':
             if (data.code === '0' && data.data.bizCode !== 'TK000') {
                 $.runFlag = false;
-                console.log(`抽奖次数已用完`);
+                console.log(`抽奖打到上限！`);
             } else if (data.code === '0' && data.data.bizCode == 'TK000') {
-                if (data.data && data.data.result && data.data.result.rewardComponent && data.data.result.rewardComponent.beanList) {
+                if (data?.data?.result?.rewardComponent?.beanList) {
                     if (data.data.result.rewardComponent.beanList.length > 0) {
                         console.log(`获得豆子：${data.data.result.rewardComponent.beanList[0].quantity}`)
                     }
+                } else if (data?.data?.result?.rewardComponent?.couponList) {
+                    $.log('获得优惠券');
+                } else if (data?.data?.result?.rewardComponent?.realList) {
+                    $.log('可能抽中实物，到APP查看！');
+                } else {
+                    $.log('空气');
                 }
             } else {
                 $.runFlag = false;

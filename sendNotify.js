@@ -21,7 +21,7 @@ const querystring = require('querystring');
 const exec = require('child_process').exec;
 const $ = new Env();
 const timeout = 15000; //超时时间(单位毫秒)
-console.log("加载sendNotify，当前版本: 20230314");
+console.log("加载sendNotify，当前版本: 20230415");
 // =======================================go-cqhttp通知设置区域===========================================
 //gobot_url 填写请求地址http://127.0.0.1/send_private_msg
 //gobot_token 填写在go-cqhttp文件设置的访问密钥
@@ -116,6 +116,13 @@ let WP_UIDS_ONE = "";
 let GOTIFY_URL = '';
 let GOTIFY_TOKEN = '';
 let GOTIFY_PRIORITY = 0;
+
+// =======================================BncrBot通知设置区域==============================================
+//BncrHost 填写BncrHost地址,如https://192.168.31.192:9090
+//BncrToken 填写Bncr的消息应用Token
+let BncrHost = '';
+let BncrToken = '';
+
 let PushErrorTime = 0;
 let strTitle = "";
 let ShowRemarkType = "1";
@@ -129,16 +136,16 @@ const {
 } = require('./ql');
 const fs = require('fs');
 let isnewql = fs.existsSync('/ql/data/config/auth.json');
-let strCKFile="";
-let strUidFile ="";
-if(isnewql){
-	strCKFile = '/ql/data/scripts/CKName_cache.json';
-	strUidFile = '/ql/data/scripts/CK_WxPusherUid.json';
-}else{
-	strCKFile = '/ql/scripts/CKName_cache.json';
-	strUidFile = '/ql/scripts/CK_WxPusherUid.json';
+let strCKFile = "";
+let strUidFile = "";
+if (isnewql) {
+    strCKFile = '/ql/data/scripts/CKName_cache.json';
+    strUidFile = '/ql/data/scripts/CK_WxPusherUid.json';
+} else {
+    strCKFile = '/ql/scripts/CKName_cache.json';
+    strUidFile = '/ql/scripts/CK_WxPusherUid.json';
 }
-	
+
 
 let Fileexists = fs.existsSync(strCKFile);
 let TempCK = [];
@@ -180,9 +187,9 @@ if (process.env.NOTIFY_SHOWNAMETYPE) {
         console.log("检测到显示备注名称，格式为: 备注");
 }
 async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By ccwav Mod', strsummary = "") {
-    console.log(`开始发送通知...`); 
-	
-	//NOTIFY_FILTERBYFILE代码来自Ca11back.
+    console.log(`开始发送通知...`);
+
+    //NOTIFY_FILTERBYFILE代码来自Ca11back.
     if (process.env.NOTIFY_FILTERBYFILE) {
         var no_notify = process.env.NOTIFY_FILTERBYFILE.split('&');
         if (module.parent.filename) {
@@ -198,7 +205,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
             }
         }
     }
-	
+
     try {
         //Reset 变量
         UseGroupNotify = 1;
@@ -239,7 +246,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         var Use_WxPusher = true;
         var strtext = text;
         var strdesp = desp;
-		var titleIndex =-1;
+        var titleIndex = -1;
         if (process.env.NOTIFY_NOCKFALSE) {
             Notify_NoCKFalse = process.env.NOTIFY_NOCKFALSE;
         }
@@ -286,13 +293,13 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
                             isLogin = true;
                             await isLoginByX1a0He(temptest.value);
                             if (!isLogin) {
-								var tempid = 0;
-								if (temptest._id) {
-								    tempid = temptest._id;
-								}
-								if (temptest.id) {
-								    tempid =temptest.id;
-								}
+                                var tempid = 0;
+                                if (temptest._id) {
+                                    tempid = temptest._id;
+                                }
+                                if (temptest.id) {
+                                    tempid = temptest.id;
+                                }
                                 const DisableCkBody = await DisableCk(tempid);
                                 strPtPin = temptest.value;
                                 strPtPin = (strPtPin.match(/pt_pin=([^; ]+)(?=;?)/) && strPtPin.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
@@ -397,14 +404,14 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
                     return;
             }
         }
-		
+
         if (strtext.indexOf("cookie已失效") != -1 || strdesp.indexOf("重新登录获取") != -1 || strtext == "Ninja 运行通知") {
             if (Notify_NoCKFalse == "true" && text != "Ninja 运行通知") {
                 console.log(`检测到NOTIFY_NOCKFALSE变量为true,不发送ck失效通知...`);
                 return;
             }
         }
-		
+
         if (text.indexOf("已可领取") != -1) {
             if (text.indexOf("农场") != -1) {
                 strTitle = "东东农场领取";
@@ -425,7 +432,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         if (text.indexOf("任务") != -1 && (text.indexOf("新增") != -1 || text.indexOf("删除") != -1)) {
             strTitle = "脚本任务更新";
         }
-		
+
         if (strTitle) {
             const notifyRemindList = process.env.NOTIFY_NOREMIND ? process.env.NOTIFY_NOREMIND.split('&') : [];
             titleIndex = notifyRemindList.findIndex((item) => item === strTitle);
@@ -455,8 +462,8 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         }
 
         console.log("通知标题: " + strTitle);
-		
-		//检查黑名单屏蔽通知
+
+        //检查黑名单屏蔽通知
         const notifySkipList = process.env.NOTIFY_SKIP_LIST ? process.env.NOTIFY_SKIP_LIST.split('&') : [];
         titleIndex = notifySkipList.findIndex((item) => item === strTitle);
 
@@ -464,99 +471,99 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
             console.log(`${strTitle} 在推送黑名单中，已跳过推送`);
             return;
         }
-		
+
         //检查脚本名称是否需要通知到Group2,Group2读取原环境配置的变量名后加2的值.例如: QYWX_AM2
-		for (lncount = 2; lncount < 20; lncount++) {
-		    if (process.env["NOTIFY_GROUP" + lncount + "_LIST"]) {
-		        const strtemp = process.env["NOTIFY_GROUP" + lncount + "_LIST"];
-		        const notifyGroupList = strtemp ? strtemp.split('&') : [];
-		        const titleIndex = notifyGroupList.findIndex((item) => item === strTitle);
-		        if (titleIndex !== -1) {
-		            console.log(`${strTitle} 在群组${lncount}推送名单中，初始化群组推送`);
-		            UseGroupNotify = lncount;
-		        }
-		    }
-		}
+        for (lncount = 2; lncount < 20; lncount++) {
+            if (process.env["NOTIFY_GROUP" + lncount + "_LIST"]) {
+                const strtemp = process.env["NOTIFY_GROUP" + lncount + "_LIST"];
+                const notifyGroupList = strtemp ? strtemp.split('&') : [];
+                const titleIndex = notifyGroupList.findIndex((item) => item === strTitle);
+                if (titleIndex !== -1) {
+                    console.log(`${strTitle} 在群组${lncount}推送名单中，初始化群组推送`);
+                    UseGroupNotify = lncount;
+                }
+            }
+        }
 
-		if (process.env.NOTIFY_CUSTOMNOTIFY) {
-		    strCustom = process.env.NOTIFY_CUSTOMNOTIFY;
-		    strCustomArr = strCustom.replace(/^\[|\]$/g, "").split(",");
-		    strCustomTempArr = [];
-		    for (var Tempj in strCustomArr) {
-		        strCustomTempArr = strCustomArr[Tempj].split("&");
-		        if (strCustomTempArr.length > 1) {
-		            if (strTitle == strCustomTempArr[0]) {
-		                console.log("检测到自定义设定,开始执行配置...");
-						if(strCustomTempArr[1].indexOf("组")!=-1){
-							UseGroupNotify = strCustomTempArr[1].replace("组","") * 1;
-							console.log("自定义设定强制使用组"+UseGroupNotify+"配置通知...");
-						} else {
-							UseGroupNotify = 1;
-						}
-		                if (strCustomTempArr.length > 2) {
-		                    console.log("关闭所有通知变量...");
-		                    Use_serverNotify = false;
-		                    Use_pushPlusNotify = false;
-		                    Use_BarkNotify = false;
-		                    Use_tgBotNotify = false;
-		                    Use_ddBotNotify = false;
-		                    Use_qywxBotNotify = false;
-		                    Use_qywxamNotify = false;
-		                    Use_iGotNotify = false;
-		                    Use_gobotNotify = false;
+        if (process.env.NOTIFY_CUSTOMNOTIFY) {
+            strCustom = process.env.NOTIFY_CUSTOMNOTIFY;
+            strCustomArr = strCustom.replace(/^\[|\]$/g, "").split(",");
+            strCustomTempArr = [];
+            for (var Tempj in strCustomArr) {
+                strCustomTempArr = strCustomArr[Tempj].split("&");
+                if (strCustomTempArr.length > 1) {
+                    if (strTitle == strCustomTempArr[0]) {
+                        console.log("检测到自定义设定,开始执行配置...");
+                        if (strCustomTempArr[1].indexOf("组") != -1) {
+                            UseGroupNotify = strCustomTempArr[1].replace("组", "") * 1;
+                            console.log("自定义设定强制使用组" + UseGroupNotify + "配置通知...");
+                        } else {
+                            UseGroupNotify = 1;
+                        }
+                        if (strCustomTempArr.length > 2) {
+                            console.log("关闭所有通知变量...");
+                            Use_serverNotify = false;
+                            Use_pushPlusNotify = false;
+                            Use_BarkNotify = false;
+                            Use_tgBotNotify = false;
+                            Use_ddBotNotify = false;
+                            Use_qywxBotNotify = false;
+                            Use_qywxamNotify = false;
+                            Use_iGotNotify = false;
+                            Use_gobotNotify = false;
 
-		                    for (let Tempk = 2; Tempk < strCustomTempArr.length; Tempk++) {
-		                        var strTrmp = strCustomTempArr[Tempk];
-		                        switch (strTrmp) {
-		                        case "Server酱":
-		                            Use_serverNotify = true;
-		                            console.log("自定义设定启用Server酱进行通知...");
-		                            break;
-		                        case "pushplus":
-		                            Use_pushPlusNotify = true;
-		                            console.log("自定义设定启用pushplus(推送加)进行通知...");
-		                            break;		                        
-		                        case "Bark":
-		                            Use_BarkNotify = true;
-		                            console.log("自定义设定启用Bark进行通知...");
-		                            break;
-		                        case "TG机器人":
-		                            Use_tgBotNotify = true;
-		                            console.log("自定义设定启用telegram机器人进行通知...");
-		                            break;
-		                        case "钉钉":
-		                            Use_ddBotNotify = true;
-		                            console.log("自定义设定启用钉钉机器人进行通知...");
-		                            break;
-		                        case "企业微信机器人":
-		                            Use_qywxBotNotify = true;
-		                            console.log("自定义设定启用企业微信机器人进行通知...");
-		                            break;
-		                        case "企业微信应用消息":
-		                            Use_qywxamNotify = true;
-		                            console.log("自定义设定启用企业微信应用消息进行通知...");
-		                            break;
-		                        case "iGotNotify":
-		                            Use_iGotNotify = true;
-		                            console.log("自定义设定启用iGot进行通知...");
-		                            break;
-		                        case "gobotNotify":
-		                            Use_gobotNotify = true;
-		                            console.log("自定义设定启用go-cqhttp进行通知...");
-		                            break;
-		                        case "WxPusher":
-		                            Use_WxPusher = true;
-		                            console.log("自定义设定启用WxPusher进行通知...");
-		                            break;
+                            for (let Tempk = 2; Tempk < strCustomTempArr.length; Tempk++) {
+                                var strTrmp = strCustomTempArr[Tempk];
+                                switch (strTrmp) {
+                                    case "Server酱":
+                                        Use_serverNotify = true;
+                                        console.log("自定义设定启用Server酱进行通知...");
+                                        break;
+                                    case "pushplus":
+                                        Use_pushPlusNotify = true;
+                                        console.log("自定义设定启用pushplus(推送加)进行通知...");
+                                        break;
+                                    case "Bark":
+                                        Use_BarkNotify = true;
+                                        console.log("自定义设定启用Bark进行通知...");
+                                        break;
+                                    case "TG机器人":
+                                        Use_tgBotNotify = true;
+                                        console.log("自定义设定启用telegram机器人进行通知...");
+                                        break;
+                                    case "钉钉":
+                                        Use_ddBotNotify = true;
+                                        console.log("自定义设定启用钉钉机器人进行通知...");
+                                        break;
+                                    case "企业微信机器人":
+                                        Use_qywxBotNotify = true;
+                                        console.log("自定义设定启用企业微信机器人进行通知...");
+                                        break;
+                                    case "企业微信应用消息":
+                                        Use_qywxamNotify = true;
+                                        console.log("自定义设定启用企业微信应用消息进行通知...");
+                                        break;
+                                    case "iGotNotify":
+                                        Use_iGotNotify = true;
+                                        console.log("自定义设定启用iGot进行通知...");
+                                        break;
+                                    case "gobotNotify":
+                                        Use_gobotNotify = true;
+                                        console.log("自定义设定启用go-cqhttp进行通知...");
+                                        break;
+                                    case "WxPusher":
+                                        Use_WxPusher = true;
+                                        console.log("自定义设定启用WxPusher进行通知...");
+                                        break;
 
-		                        }
-		                    }
+                                }
+                            }
 
-		                }
-		            }
-		        }
-		    }
-		}
+                        }
+                    }
+                }
+            }
+        }
         if (desp) {
             for (lncount = 2; lncount < 20; lncount++) {
                 if (process.env["NOTIFY_INCLUDE_TEXT" + lncount]) {
@@ -566,113 +573,119 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
                             if (desp.indexOf(Notify_IncludeText[Templ]) != -1) {
                                 console.log("检测内容到内容存在组别推送的关键字(" + Notify_IncludeText[Templ] + ")，将推送到组" + lncount + "...");
                                 UseGroupNotify = lncount;
-								break;
+                                break;
                             }
                         }
                     }
                 }
             }
         }
-		if (UseGroupNotify == 1)
-		    UseGroupNotify = "";
+        if (UseGroupNotify == 1)
+            UseGroupNotify = "";
 
-		if (process.env["GOBOT_URL" + UseGroupNotify] && Use_gobotNotify) {
-		    GOBOT_URL = process.env["GOBOT_URL" + UseGroupNotify];
-		}
-		if (process.env["GOBOT_TOKEN" + UseGroupNotify] && Use_gobotNotify) {
-		    GOBOT_TOKEN = process.env["GOBOT_TOKEN" + UseGroupNotify];
-		}
-		if (process.env["GOBOT_QQ" + UseGroupNotify] && Use_gobotNotify) {
-		    GOBOT_QQ = process.env["GOBOT_QQ" + UseGroupNotify];
-		}
+        if (process.env["GOBOT_URL" + UseGroupNotify] && Use_gobotNotify) {
+            GOBOT_URL = process.env["GOBOT_URL" + UseGroupNotify];
+        }
+        if (process.env["GOBOT_TOKEN" + UseGroupNotify] && Use_gobotNotify) {
+            GOBOT_TOKEN = process.env["GOBOT_TOKEN" + UseGroupNotify];
+        }
+        if (process.env["GOBOT_QQ" + UseGroupNotify] && Use_gobotNotify) {
+            GOBOT_QQ = process.env["GOBOT_QQ" + UseGroupNotify];
+        }
 
-		if (process.env["PUSH_KEY" + UseGroupNotify] && Use_serverNotify) {
-		    SCKEY = process.env["PUSH_KEY" + UseGroupNotify];
-		}
+        if (process.env["PUSH_KEY" + UseGroupNotify] && Use_serverNotify) {
+            SCKEY = process.env["PUSH_KEY" + UseGroupNotify];
+        }
 
-		if (process.env["WP_APP_TOKEN" + UseGroupNotify] && Use_WxPusher) {
-		    WP_APP_TOKEN = process.env["WP_APP_TOKEN" + UseGroupNotify];
-		}
+        if (process.env["WP_APP_TOKEN" + UseGroupNotify] && Use_WxPusher) {
+            WP_APP_TOKEN = process.env["WP_APP_TOKEN" + UseGroupNotify];
+        }
 
-		if (process.env["WP_TOPICIDS" + UseGroupNotify] && Use_WxPusher) {
-		    WP_TOPICIDS = process.env["WP_TOPICIDS" + UseGroupNotify];
-		}
+        if (process.env["WP_TOPICIDS" + UseGroupNotify] && Use_WxPusher) {
+            WP_TOPICIDS = process.env["WP_TOPICIDS" + UseGroupNotify];
+        }
 
-		if (process.env["WP_UIDS" + UseGroupNotify] && Use_WxPusher) {
-		    WP_UIDS = process.env["WP_UIDS" + UseGroupNotify];
-		}
+        if (process.env["WP_UIDS" + UseGroupNotify] && Use_WxPusher) {
+            WP_UIDS = process.env["WP_UIDS" + UseGroupNotify];
+        }
 
-		if (process.env["WP_URL" + UseGroupNotify] && Use_WxPusher) {
-		    WP_URL = process.env["WP_URL" + UseGroupNotify];
-		}
-		if (process.env["BARK_PUSH" + UseGroupNotify] && Use_BarkNotify) {
-		    if (process.env["BARK_PUSH" + UseGroupNotify].indexOf('https') > -1 || process.env["BARK_PUSH" + UseGroupNotify].indexOf('http') > -1) {
-		        //兼容BARK自建用户
-		        BARK_PUSH = process.env["BARK_PUSH" + UseGroupNotify];
-		    } else {
-				//兼容BARK本地用户只填写设备码的情况
-		        BARK_PUSH = `https://api.day.app/${process.env["BARK_PUSH" + UseGroupNotify]}`;
-		    }
-		    if (process.env["BARK_SOUND" + UseGroupNotify]) {
-		        BARK_SOUND = process.env["BARK_SOUND" + UseGroupNotify];
-		    }
-		    if (process.env["BARK_GROUP" + UseGroupNotify]) {
-		        BARK_GROUP = process.env;
-		    }
-		} 
-		if (process.env["TG_BOT_TOKEN" + UseGroupNotify] && Use_tgBotNotify) {
-		    TG_BOT_TOKEN = process.env["TG_BOT_TOKEN" + UseGroupNotify];
-		}
-		if (process.env["TG_USER_ID" + UseGroupNotify] && Use_tgBotNotify) {
-		    TG_USER_ID = process.env["TG_USER_ID" + UseGroupNotify];
-		}
-		if (process.env["TG_PROXY_AUTH" + UseGroupNotify] && Use_tgBotNotify)
-		    TG_PROXY_AUTH = process.env["TG_PROXY_AUTH" + UseGroupNotify];
-		if (process.env["TG_PROXY_HOST" + UseGroupNotify] && Use_tgBotNotify)
-		    TG_PROXY_HOST = process.env["TG_PROXY_HOST" + UseGroupNotify];
-		if (process.env["TG_PROXY_PORT" + UseGroupNotify] && Use_tgBotNotify)
-		    TG_PROXY_PORT = process.env["TG_PROXY_PORT" + UseGroupNotify];
-		if (process.env["TG_API_HOST" + UseGroupNotify] && Use_tgBotNotify)
-		    TG_API_HOST = process.env["TG_API_HOST" + UseGroupNotify];
+        if (process.env["WP_URL" + UseGroupNotify] && Use_WxPusher) {
+            WP_URL = process.env["WP_URL" + UseGroupNotify];
+        }
+        if (process.env["BARK_PUSH" + UseGroupNotify] && Use_BarkNotify) {
+            if (process.env["BARK_PUSH" + UseGroupNotify].indexOf('https') > -1 || process.env["BARK_PUSH" + UseGroupNotify].indexOf('http') > -1) {
+                //兼容BARK自建用户
+                BARK_PUSH = process.env["BARK_PUSH" + UseGroupNotify];
+            } else {
+                //兼容BARK本地用户只填写设备码的情况
+                BARK_PUSH = `https://api.day.app/${process.env["BARK_PUSH" + UseGroupNotify]}`;
+            }
+            if (process.env["BARK_SOUND" + UseGroupNotify]) {
+                BARK_SOUND = process.env["BARK_SOUND" + UseGroupNotify];
+            }
+            if (process.env["BARK_GROUP" + UseGroupNotify]) {
+                BARK_GROUP = process.env;
+            }
+        }
+        if (process.env["TG_BOT_TOKEN" + UseGroupNotify] && Use_tgBotNotify) {
+            TG_BOT_TOKEN = process.env["TG_BOT_TOKEN" + UseGroupNotify];
+        }
+        if (process.env["TG_USER_ID" + UseGroupNotify] && Use_tgBotNotify) {
+            TG_USER_ID = process.env["TG_USER_ID" + UseGroupNotify];
+        }
+        if (process.env["TG_PROXY_AUTH" + UseGroupNotify] && Use_tgBotNotify)
+            TG_PROXY_AUTH = process.env["TG_PROXY_AUTH" + UseGroupNotify];
+        if (process.env["TG_PROXY_HOST" + UseGroupNotify] && Use_tgBotNotify)
+            TG_PROXY_HOST = process.env["TG_PROXY_HOST" + UseGroupNotify];
+        if (process.env["TG_PROXY_PORT" + UseGroupNotify] && Use_tgBotNotify)
+            TG_PROXY_PORT = process.env["TG_PROXY_PORT" + UseGroupNotify];
+        if (process.env["TG_API_HOST" + UseGroupNotify] && Use_tgBotNotify)
+            TG_API_HOST = process.env["TG_API_HOST" + UseGroupNotify];
 
-		if (process.env["DD_BOT_TOKEN" + UseGroupNotify] && Use_ddBotNotify) {
-		    DD_BOT_TOKEN = process.env["DD_BOT_TOKEN" + UseGroupNotify];
-		    if (process.env["DD_BOT_SECRET" + UseGroupNotify]) {
-		        DD_BOT_SECRET = process.env["DD_BOT_SECRET" + UseGroupNotify];
-		    }
-		}
+        if (process.env["DD_BOT_TOKEN" + UseGroupNotify] && Use_ddBotNotify) {
+            DD_BOT_TOKEN = process.env["DD_BOT_TOKEN" + UseGroupNotify];
+            if (process.env["DD_BOT_SECRET" + UseGroupNotify]) {
+                DD_BOT_SECRET = process.env["DD_BOT_SECRET" + UseGroupNotify];
+            }
+        }
 
-		if (process.env["QYWX_KEY" + UseGroupNotify] && Use_qywxBotNotify) {
-		    QYWX_KEY = process.env["QYWX_KEY" + UseGroupNotify];
-		}
+        if (process.env["QYWX_KEY" + UseGroupNotify] && Use_qywxBotNotify) {
+            QYWX_KEY = process.env["QYWX_KEY" + UseGroupNotify];
+        }
 
-		if (process.env["QYWX_AM" + UseGroupNotify] && Use_qywxamNotify) {
-		    QYWX_AM = process.env["QYWX_AM" + UseGroupNotify];
-		}
+        if (process.env["QYWX_AM" + UseGroupNotify] && Use_qywxamNotify) {
+            QYWX_AM = process.env["QYWX_AM" + UseGroupNotify];
+        }
 
-		if (process.env["IGOT_PUSH_KEY" + UseGroupNotify] && Use_iGotNotify) {
-		    IGOT_PUSH_KEY = process.env["IGOT_PUSH_KEY" + UseGroupNotify];
-		}
+        if (process.env["IGOT_PUSH_KEY" + UseGroupNotify] && Use_iGotNotify) {
+            IGOT_PUSH_KEY = process.env["IGOT_PUSH_KEY" + UseGroupNotify];
+        }
 
-		if (process.env["PUSH_PLUS_TOKEN" + UseGroupNotify] && Use_pushPlusNotify) {
-		    PUSH_PLUS_TOKEN = process.env["PUSH_PLUS_TOKEN" + UseGroupNotify];
-		}
-		if (process.env["PUSH_PLUS_USER" + UseGroupNotify] && Use_pushPlusNotify) {
-		    PUSH_PLUS_USER = process.env["PUSH_PLUS_USER" + UseGroupNotify];
-		}		
-		if (process.env["GOTIFY_URL" + UseGroupNotify]) {
-		    GOTIFY_URL = process.env["GOTIFY_URL" + UseGroupNotify];
-		}
-		if (process.env["GOTIFY_TOKEN" + UseGroupNotify]) {
-		    GOTIFY_TOKEN = process.env["GOTIFY_TOKEN" + UseGroupNotify];
-		}
-		if (process.env["GOTIFY_PRIORITY" + UseGroupNotify]) {
-		    GOTIFY_PRIORITY = process.env["GOTIFY_PRIORITY" + UseGroupNotify];
-		}
+        if (process.env["PUSH_PLUS_TOKEN" + UseGroupNotify] && Use_pushPlusNotify) {
+            PUSH_PLUS_TOKEN = process.env["PUSH_PLUS_TOKEN" + UseGroupNotify];
+        }
+        if (process.env["PUSH_PLUS_USER" + UseGroupNotify] && Use_pushPlusNotify) {
+            PUSH_PLUS_USER = process.env["PUSH_PLUS_USER" + UseGroupNotify];
+        }
+        if (process.env["GOTIFY_URL" + UseGroupNotify]) {
+            GOTIFY_URL = process.env["GOTIFY_URL" + UseGroupNotify];
+        }
+        if (process.env["GOTIFY_TOKEN" + UseGroupNotify]) {
+            GOTIFY_TOKEN = process.env["GOTIFY_TOKEN" + UseGroupNotify];
+        }
+        if (process.env["GOTIFY_PRIORITY" + UseGroupNotify]) {
+            GOTIFY_PRIORITY = process.env["GOTIFY_PRIORITY" + UseGroupNotify];
+        }
+        if (process.env["BncrHost" + UseGroupNotify]) {
+            BncrHost = process.env["BncrHost" + UseGroupNotify];
+        }
+        if (process.env["BncrToken" + UseGroupNotify]) {
+            BncrToken = process.env["BncrToken" + UseGroupNotify];
+        }
         //检查是否在不使用Remark进行名称替换的名单
         const notifySkipRemarkList = process.env.NOTIFY_SKIP_NAMETYPELIST ? process.env.NOTIFY_SKIP_NAMETYPELIST.split('&') : [];
         const titleIndex3 = notifySkipRemarkList.findIndex((item) => item === strTitle);
-		
+
         if (ShowRemarkType != "1" && titleIndex3 == -1) {
             console.log("sendNotify正在处理账号Remark.....");
             //开始读取青龙变量列表
@@ -747,13 +760,13 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
                             text = text.replace(new RegExp(`${$.UserName}|${$.nickName}`, 'gm'), $.Remark);
                             if (text == "京东资产变动" || text == "京东资产变动#2" || text == "京东资产变动#3" || text == "京东资产变动#4") {
                                 var Tempinfo = "";
-								if(envs[i].created)
-									Tempinfo=getQLinfo(cookie, envs[i].created, envs[i].timestamp, envs[i].remarks);
-								else
-									if(envs[i].updatedAt)
-										Tempinfo=getQLinfo(cookie, envs[i].createdAt, envs[i].updatedAt, envs[i].remarks);
-									else
-										Tempinfo=getQLinfo(cookie, envs[i].createdAt, envs[i].timestamp, envs[i].remarks);
+                                if (envs[i].created)
+                                    Tempinfo = getQLinfo(cookie, envs[i].created, envs[i].timestamp, envs[i].remarks);
+                                else
+                                    if (envs[i].updatedAt)
+                                        Tempinfo = getQLinfo(cookie, envs[i].createdAt, envs[i].updatedAt, envs[i].remarks);
+                                    else
+                                        Tempinfo = getQLinfo(cookie, envs[i].createdAt, envs[i].timestamp, envs[i].remarks);
                                 if (Tempinfo) {
                                     $.Remark += Tempinfo;
                                 }
@@ -808,7 +821,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
 
     //提供6种通知
     desp = buildLastDesp(desp, author);
-	await serverNotify(text, desp); //微信server酱
+    await serverNotify(text, desp); //微信server酱
 
     if (PUSH_PLUS_TOKEN) {
         console.log("PUSH_PLUS TOKEN :" + PUSH_PLUS_TOKEN);
@@ -833,16 +846,17 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
     //由于上述两种微信通知需点击进去才能查看到详情，故text(标题内容)携带了账号序号以及昵称信息，方便不点击也可知道是哪个京东哪个活动
     text = text.match(/.*?(?=\s?-)/g) ? text.match(/.*?(?=\s?-)/g)[0] : text;
     await Promise.all([
-            BarkNotify(text, desp, params), //iOS Bark APP
-            tgBotNotify(text, desp), //telegram 机器人
-            ddBotNotify(text, desp), //钉钉机器人
-            qywxBotNotify(text, desp), //企业微信机器人
-            qywxamNotify(text, desp, strsummary), //企业微信应用消息推送
-            iGotNotify(text, desp, params), //iGot
-            gobotNotify(text, desp), //go-cqhttp
-            gotifyNotify(text, desp), //gotify
-            wxpusherNotify(text, desp) // wxpusher
-        ]);
+        BarkNotify(text, desp, params), //iOS Bark APP
+        tgBotNotify(text, desp), //telegram 机器人
+        ddBotNotify(text, desp), //钉钉机器人
+        qywxBotNotify(text, desp), //企业微信机器人
+        qywxamNotify(text, desp, strsummary), //企业微信应用消息推送
+        iGotNotify(text, desp, params), //iGot
+        gobotNotify(text, desp), //go-cqhttp
+        gotifyNotify(text, desp), //gotify
+        bncrNotify(text, desp), //bncr
+        wxpusherNotify(text, desp) // wxpusher
+    ]);
 }
 
 function getuuid(strRemark, PtPin) {
@@ -903,8 +917,8 @@ function getQLinfo(strCK, intcreated, strTimestamp, strRemark) {
                 }
             }
         }
-		
-		//过期时间
+
+        //过期时间
         var UseDay = Math.ceil((DateToday.getTime() - DateCreated.getTime()) / 86400000);
         var LogoutDay = 30 - Math.ceil((DateToday.getTime() - DateTimestamp.getTime()) / 86400000);
         if (LogoutDay < 1) {
@@ -993,14 +1007,14 @@ async function sendNotifybyWxPucher(text, desp, PtPin, author = '\n\n本通知 B
                             $.nickName = $.nickName.replace(new RegExp(`[*]`, 'gm'), "[*]");
 
                             var Tempinfo = "";
-							if(tempEnv.created)
-								Tempinfo=getQLinfo(cookie, tempEnv.created, tempEnv.timestamp, tempEnv.remarks);
-							else
-								if(tempEnv.updatedAt)
-									Tempinfo=getQLinfo(cookie, tempEnv.createdAt, tempEnv.updatedAt, tempEnv.remarks);
-								else
-									Tempinfo=getQLinfo(cookie, tempEnv.createdAt, tempEnv.timestamp, tempEnv.remarks);
-							
+                            if (tempEnv.created)
+                                Tempinfo = getQLinfo(cookie, tempEnv.created, tempEnv.timestamp, tempEnv.remarks);
+                            else
+                                if (tempEnv.updatedAt)
+                                    Tempinfo = getQLinfo(cookie, tempEnv.createdAt, tempEnv.updatedAt, tempEnv.remarks);
+                                else
+                                    Tempinfo = getQLinfo(cookie, tempEnv.createdAt, tempEnv.timestamp, tempEnv.remarks);
+
                             if (Tempinfo) {
                                 Tempinfo = $.nickName + Tempinfo;
                                 desp = desp.replace(new RegExp(`${$.UserName}|${$.nickName}`, 'gm'), Tempinfo);
@@ -1110,6 +1124,43 @@ async function isLoginByX1a0He(cookie) {
                 resolve();
             }
         });
+    });
+}
+
+function bncrNotify(text, desp) {
+    return new Promise(resolve => {
+        try {
+            if (BncrHost && BncrToken) {
+                const options = {
+                    url: `${BncrHost}/api/qinglongMessage`,
+                    body: `title=${encodeURIComponent(text)}&message=${encodeURIComponent(
+                        desp
+                    )}&token=${BncrToken}`,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                };
+                $.post(options, (err, resp, data) => {
+                    if (err) {
+                        console.log('\nBncr发送通知调用API失败！！\n');
+                        console.log(err);
+                    } else {
+                        data = JSON.parse(data);
+                        if (data.code === 200) {
+                            console.log('\nBncr发送通知消息成功🎉\n');
+                        } else {
+                            console.log(`\nBncr发送通知调用API失败：${data.msg}\n`);
+                        }
+                    }
+                });
+            } else {
+                resolve();
+            }
+        } catch (e) {
+            $.logErr(`\nBncr发送通知调用API失败：`, e);
+        } finally {
+            resolve();
+        }
     });
 }
 
@@ -1278,100 +1329,100 @@ function serverNotify(text, desp, time = 2100) {
 
 /* code from JoveYu */
 function BarkNotify(text, desp, params = {}) {
-  return new Promise((resolve) => {
-    if (BARK_PUSH) {
-      const options = {
-        url: `${BARK_PUSH}`,
-        json: {
-            title: text,
-            body: desp,
-            group: `${BARK_GROUP}`,
-            icon: `${BARK_ICON}`,
-            sound: `${BARK_SOUND}`,
-        },
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-        },
-        timeout,
-      };
-      $.post(options, (err, resp, data) => {
-        try {
-          if (err) {
-            console.log('Bark APP发送通知调用API失败！！\n');
-            console.log(err);
-          } else {
-            data = JSON.parse(data);
-            if (data.code === 200) {
-              console.log('Bark APP发送通知消息成功🎉\n');
-            } else {
-              console.log(`${data.message}\n`);
-            }
-          }
-        } catch (e) {
-          $.logErr(e, resp);
-        } finally {
-          resolve();
+    return new Promise((resolve) => {
+        if (BARK_PUSH) {
+            const options = {
+                url: `${BARK_PUSH}`,
+                json: {
+                    title: text,
+                    body: desp,
+                    group: `${BARK_GROUP}`,
+                    icon: `${BARK_ICON}`,
+                    sound: `${BARK_SOUND}`,
+                },
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                },
+                timeout,
+            };
+            $.post(options, (err, resp, data) => {
+                try {
+                    if (err) {
+                        console.log('Bark APP发送通知调用API失败！！\n');
+                        console.log(err);
+                    } else {
+                        data = JSON.parse(data);
+                        if (data.code === 200) {
+                            console.log('Bark APP发送通知消息成功🎉\n');
+                        } else {
+                            console.log(`${data.message}\n`);
+                        }
+                    }
+                } catch (e) {
+                    $.logErr(e, resp);
+                } finally {
+                    resolve();
+                }
+            });
+        } else {
+            resolve();
         }
-      });
-    } else {
-      resolve();
-    }
-  });
+    });
 }
 
 function tgBotNotify(text, desp) {
-  return new Promise(resolve => {
-    if (TG_BOT_TOKEN && TG_USER_ID) {
-      const options = {
-        url: `https://${TG_API_HOST}/bot${TG_BOT_TOKEN}/sendMessage`,
-        json: {
-            chat_id: `${TG_USER_ID}`,
-            text: `${text}\n\n${desp}`,
-            disable_web_page_preview:true
-          },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        timeout
-      }
-      if (TG_PROXY_HOST && TG_PROXY_PORT) {
-        const tunnel = require("tunnel");
-        const agent = {
-          https: tunnel.httpsOverHttp({
-            proxy: {
-              host: TG_PROXY_HOST,
-              port: TG_PROXY_PORT * 1,
-              proxyAuth: TG_PROXY_AUTH
+    return new Promise(resolve => {
+        if (TG_BOT_TOKEN && TG_USER_ID) {
+            const options = {
+                url: `https://${TG_API_HOST}/bot${TG_BOT_TOKEN}/sendMessage`,
+                json: {
+                    chat_id: `${TG_USER_ID}`,
+                    text: `${text}\n\n${desp}`,
+                    disable_web_page_preview: true
+                },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                timeout
             }
-          })
-        }
-        Object.assign(options, {agent})
-      }
-      $.post(options, (err, resp, data) => {
-        try {
-          if (err) {
-            console.log('telegram发送通知消息失败！！\n')
-            console.log(err);
-          } else {
-            data = JSON.parse(data);
-            if (data.ok) {
-              console.log('Telegram发送通知消息成功🎉\n')
-            } else if (data.error_code === 400) {
-              console.log('请主动给bot发送一条消息并检查接收用户ID是否正确。\n')
-            } else if (data.error_code === 401) {
-              console.log('Telegram bot token 填写错误。\n')
+            if (TG_PROXY_HOST && TG_PROXY_PORT) {
+                const tunnel = require("tunnel");
+                const agent = {
+                    https: tunnel.httpsOverHttp({
+                        proxy: {
+                            host: TG_PROXY_HOST,
+                            port: TG_PROXY_PORT * 1,
+                            proxyAuth: TG_PROXY_AUTH
+                        }
+                    })
+                }
+                Object.assign(options, { agent })
             }
-          }
-        } catch (e) {
-          $.logErr(e, resp);
-        } finally {
-          resolve(data);
+            $.post(options, (err, resp, data) => {
+                try {
+                    if (err) {
+                        console.log('telegram发送通知消息失败！！\n')
+                        console.log(err);
+                    } else {
+                        data = JSON.parse(data);
+                        if (data.ok) {
+                            console.log('Telegram发送通知消息成功🎉\n')
+                        } else if (data.error_code === 400) {
+                            console.log('请主动给bot发送一条消息并检查接收用户ID是否正确。\n')
+                        } else if (data.error_code === 401) {
+                            console.log('Telegram bot token 填写错误。\n')
+                        }
+                    }
+                } catch (e) {
+                    $.logErr(e, resp);
+                } finally {
+                    resolve(data);
+                }
+            })
+        } else {
+            resolve()
         }
-      })
-    } else {     
-      resolve()
-    }
-  })
+    })
 }
 
 function ddBotNotify(text, desp) {
@@ -1543,41 +1594,41 @@ function qywxamNotify(text, desp, strsummary = "") {
                 let options;
 
                 switch (QYWX_AM_AY[4]) {
-                case '0':
-                    options = {
-                        msgtype: 'textcard',
-                        textcard: {
-                            title: `${text}`,
-                            description: `${strsummary}`,
-                            url: 'https://github.com/whyour/qinglong',
-                            btntxt: '更多',
-                        },
-                    };
-                    break;
+                    case '0':
+                        options = {
+                            msgtype: 'textcard',
+                            textcard: {
+                                title: `${text}`,
+                                description: `${strsummary}`,
+                                url: 'https://github.com/whyour/qinglong',
+                                btntxt: '更多',
+                            },
+                        };
+                        break;
 
-                case '1':
-                    options = {
-                        msgtype: 'text',
-                        text: {
-                            content: `${text}\n\n${desp}`,
-                        },
-                    };
-                    break;
+                    case '1':
+                        options = {
+                            msgtype: 'text',
+                            text: {
+                                content: `${text}\n\n${desp}`,
+                            },
+                        };
+                        break;
 
-                default:
-                    options = {
-                        msgtype: 'mpnews',
-                        mpnews: {
-                            articles: [{
+                    default:
+                        options = {
+                            msgtype: 'mpnews',
+                            mpnews: {
+                                articles: [{
                                     title: `${text}`,
                                     thumb_media_id: `${QYWX_AM_AY[4]}`,
                                     author: `智能助手`,
                                     content_source_url: ``,
                                     content: `${html}`,
                                     digest: `${strsummary}`,
-                                }, ],
-                        },
-                    };
+                                },],
+                            },
+                        };
                 }
                 if (!QYWX_AM_AY[4]) {
                     //如不提供第四个参数,则默认进行文本消息类型推送
@@ -1950,7 +2001,7 @@ function GetnickName() {
 }
 
 function GetnickName2() {
-    return new Promise(async(resolve) => {
+    return new Promise(async (resolve) => {
         const options = {
             "url": `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`,
             "headers": {
@@ -1971,11 +2022,11 @@ function GetnickName2() {
                 } else {
                     if (data) {
                         data = JSON.parse(data);
-						if (data['retcode'] === 13) {
+                        if (data['retcode'] === 13) {
                             $.isLogin = false; //cookie过期
                             return
-                        }                        
-						if (data['retcode'] === 0) {
+                        }
+                        if (data['retcode'] === 0) {
                             $.nickName = (data['base'] && data['base'].nickname) || "";
                         }
                     } else {
@@ -2000,16 +2051,16 @@ module.exports = {
 
 // prettier-ignore
 function Env(t, s) {
-    return new(class {
+    return new (class {
         constructor(t, s) {
             (this.name = t),
-            (this.data = null),
-            (this.dataFile = 'box.dat'),
-            (this.logs = []),
-            (this.logSeparator = '\n'),
-            (this.startTime = new Date().getTime()),
-            Object.assign(this, s),
-            this.log('', `\ud83d\udd14${this.name}, \u5f00\u59cb!`);
+                (this.data = null),
+                (this.dataFile = 'box.dat'),
+                (this.logs = []),
+                (this.logSeparator = '\n'),
+                (this.startTime = new Date().getTime()),
+                Object.assign(this, s),
+                this.log('', `\ud83d\udd14${this.name}, \u5f00\u59cb!`);
         }
         isNode() {
             return 'undefined' != typeof module && !!module.exports;
@@ -2036,20 +2087,20 @@ function Env(t, s) {
                 i = i ? i.replace(/\n/g, '').trim() : i;
                 let o = this.getdata('@chavy_boxjs_userCfgs.httpapi_timeout');
                 (o = o ? 1 * o : 20),
-                (o = s && s.timeout ? s.timeout : o);
-                const[h, a] = i.split('@'),
-                r = {
-                    url: `http://${a}/v1/scripting/evaluate`,
-                    body: {
-                        script_text: t,
-                        mock_type: 'cron',
-                        timeout: o
-                    },
-                    headers: {
-                        'X-Key': h,
-                        Accept: '*/*'
-                    },
-                };
+                    (o = s && s.timeout ? s.timeout : o);
+                const [h, a] = i.split('@'),
+                    r = {
+                        url: `http://${a}/v1/scripting/evaluate`,
+                        body: {
+                            script_text: t,
+                            mock_type: 'cron',
+                            timeout: o
+                        },
+                        headers: {
+                            'X-Key': h,
+                            Accept: '*/*'
+                        },
+                    };
                 $.post(r, (t, s, i) => e(i));
             }).catch((t) => this.logErr(t));
         }
@@ -2057,11 +2108,11 @@ function Env(t, s) {
             if (!this.isNode())
                 return {}; {
                 (this.fs = this.fs ? this.fs : require('fs')),
-                (this.path = this.path ? this.path : require('path'));
+                    (this.path = this.path ? this.path : require('path'));
                 const t = this.path.resolve(this.dataFile),
-                s = this.path.resolve(process.cwd(), this.dataFile),
-                e = this.fs.existsSync(t),
-                i = !e && this.fs.existsSync(s);
+                    s = this.path.resolve(process.cwd(), this.dataFile),
+                    e = this.fs.existsSync(t),
+                    i = !e && this.fs.existsSync(s);
                 if (!e && !i)
                     return {}; {
                     const i = e ? t : s;
@@ -2076,12 +2127,12 @@ function Env(t, s) {
         writedata() {
             if (this.isNode()) {
                 (this.fs = this.fs ? this.fs : require('fs')),
-                (this.path = this.path ? this.path : require('path'));
+                    (this.path = this.path ? this.path : require('path'));
                 const t = this.path.resolve(this.dataFile),
-                s = this.path.resolve(process.cwd(), this.dataFile),
-                e = this.fs.existsSync(t),
-                i = !e && this.fs.existsSync(s),
-                o = JSON.stringify(this.data);
+                    s = this.path.resolve(process.cwd(), this.dataFile),
+                    e = this.fs.existsSync(t),
+                    i = !e && this.fs.existsSync(s),
+                    o = JSON.stringify(this.data);
                 e ? this.fs.writeFileSync(t, o) : i ? this.fs.writeFileSync(s, o) : this.fs.writeFileSync(t, o);
             }
         }
@@ -2099,8 +2150,8 @@ function Env(t, s) {
         getdata(t) {
             let s = this.getval(t);
             if (/^@/.test(t)) {
-                const[, e, i] = /^@(.*?)\.(.*?)$/.exec(t),
-                o = e ? this.getval(e) : '';
+                const [, e, i] = /^@(.*?)\.(.*?)$/.exec(t),
+                    o = e ? this.getval(e) : '';
                 if (o)
                     try {
                         const t = JSON.parse(o);
@@ -2114,17 +2165,17 @@ function Env(t, s) {
         setdata(t, s) {
             let e = !1;
             if (/^@/.test(s)) {
-                const[, i, o] = /^@(.*?)\.(.*?)$/.exec(s),
-                h = this.getval(i),
-                a = i ? ('null' === h ? null : h || '{}') : '{}';
+                const [, i, o] = /^@(.*?)\.(.*?)$/.exec(s),
+                    h = this.getval(i),
+                    a = i ? ('null' === h ? null : h || '{}') : '{}';
                 try {
                     const s = JSON.parse(a);
                     this.lodash_set(s, o, t),
-                    (e = this.setval(JSON.stringify(s), i));
+                        (e = this.setval(JSON.stringify(s), i));
                 } catch (s) {
                     const h = {};
                     this.lodash_set(h, o, t),
-                    (e = this.setval(JSON.stringify(h), i));
+                        (e = this.setval(JSON.stringify(h), i));
                 }
             } else
                 e = $.setval(t, s);
@@ -2138,33 +2189,33 @@ function Env(t, s) {
         }
         initGotEnv(t) {
             (this.got = this.got ? this.got : require('got')),
-            (this.cktough = this.cktough ? this.cktough : require('tough-cookie')),
-            (this.ckjar = this.ckjar ? this.ckjar : new this.cktough.CookieJar()),
-            t && ((t.headers = t.headers ? t.headers : {}), void 0 === t.headers.Cookie && void 0 === t.cookieJar && (t.cookieJar = this.ckjar));
+                (this.cktough = this.cktough ? this.cktough : require('tough-cookie')),
+                (this.ckjar = this.ckjar ? this.ckjar : new this.cktough.CookieJar()),
+                t && ((t.headers = t.headers ? t.headers : {}), void 0 === t.headers.Cookie && void 0 === t.cookieJar && (t.cookieJar = this.ckjar));
         }
-        get(t, s = () => {}) {
+        get(t, s = () => { }) {
             t.headers && (delete t.headers['Content-Type'], delete t.headers['Content-Length']),
-            this.isSurge() || this.isLoon() ? $httpClient.get(t, (t, e, i) => {
-                !t && e && ((e.body = i), (e.statusCode = e.status)),
-                s(t, e, i);
-            }) : this.isQuanX() ? $task.fetch(t).then((t) => {
-                const {
-                    statusCode: e,
-                    statusCode: i,
-                    headers: o,
-                    body: h
-                } = t;
-                s(null, {
-                    status: e,
-                    statusCode: i,
-                    headers: o,
-                    body: h
-                }, h);
-            }, (t) => s(t)) : this.isNode() && (this.initGotEnv(t), this.got(t).on('redirect', (t, s) => {
+                this.isSurge() || this.isLoon() ? $httpClient.get(t, (t, e, i) => {
+                    !t && e && ((e.body = i), (e.statusCode = e.status)),
+                        s(t, e, i);
+                }) : this.isQuanX() ? $task.fetch(t).then((t) => {
+                    const {
+                        statusCode: e,
+                        statusCode: i,
+                        headers: o,
+                        body: h
+                    } = t;
+                    s(null, {
+                        status: e,
+                        statusCode: i,
+                        headers: o,
+                        body: h
+                    }, h);
+                }, (t) => s(t)) : this.isNode() && (this.initGotEnv(t), this.got(t).on('redirect', (t, s) => {
                     try {
                         const e = t.headers['set-cookie'].map(this.cktough.Cookie.parse).toString();
                         this.ckjar.setCookieSync(e, null),
-                        (s.cookieJar = this.ckjar);
+                            (s.cookieJar = this.ckjar);
                     } catch (t) {
                         this.logErr(t);
                     }
@@ -2183,11 +2234,11 @@ function Env(t, s) {
                     }, h);
                 }, (t) => s(t)));
         }
-        post(t, s = () => {}) {
+        post(t, s = () => { }) {
             if ((t.body && t.headers && !t.headers['Content-Type'] && (t.headers['Content-Type'] = 'application/x-www-form-urlencoded'), delete t.headers['Content-Length'], this.isSurge() || this.isLoon()))
                 $httpClient.post(t, (t, e, i) => {
                     !t && e && ((e.body = i), (e.statusCode = e.status)),
-                    s(t, e, i);
+                        s(t, e, i);
                 });
             else if (this.isQuanX())
                 (t.method = 'POST'), $task.fetch(t).then((t) => {
@@ -2245,12 +2296,12 @@ function Env(t, s) {
             const h = (t) => !t || (!this.isLoon() && this.isSurge()) ? t : 'string' == typeof t ? this.isLoon() ? t : this.isQuanX() ? {
                 'open-url': t
             }
-             : void 0 : 'object' == typeof t && (t['open-url'] || t['media-url']) ? this.isLoon() ? t['open-url'] : this.isQuanX() ? t : void 0 : void 0;
+                : void 0 : 'object' == typeof t && (t['open-url'] || t['media-url']) ? this.isLoon() ? t['open-url'] : this.isQuanX() ? t : void 0 : void 0;
             $.isMute || (this.isSurge() || this.isLoon() ? $notification.post(s, e, i, h(o)) : this.isQuanX() && $notify(s, e, i, h(o))),
-            this.logs.push('', '==============\ud83d\udce3\u7cfb\u7edf\u901a\u77e5\ud83d\udce3=============='),
-            this.logs.push(s),
-            e && this.logs.push(e),
-            i && this.logs.push(i);
+                this.logs.push('', '==============\ud83d\udce3\u7cfb\u7edf\u901a\u77e5\ud83d\udce3=============='),
+                this.logs.push(s),
+                e && this.logs.push(e),
+                i && this.logs.push(i);
         }
         log(...t) {
             t.length > 0 ? (this.logs = [...this.logs, ...t]) : console.log(this.logs.join(this.logSeparator));
@@ -2264,10 +2315,10 @@ function Env(t, s) {
         }
         done(t = {}) {
             const s = new Date().getTime(),
-            e = (s - this.startTime) / 1e3;
+                e = (s - this.startTime) / 1e3;
             this.log('', `\ud83d\udd14${this.name}, \u7ed3\u675f! \ud83d\udd5b ${e} \u79d2`),
-            this.log(),
-            (this.isSurge() || this.isQuanX() || this.isLoon()) && $done(t);
+                this.log(),
+                (this.isSurge() || this.isQuanX() || this.isLoon()) && $done(t);
         }
     })(t, s);
 }
