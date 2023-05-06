@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*
 '''
 定时自定义
-1 1 1 1 1 jd_wskey.py
+2 10 20 5 * jd_wskey.py
 new Env('wskey转换');
 '''
 import socket  # 用于端口检测
@@ -306,6 +306,8 @@ def check_ck(ck):  # 方法 检查 Cookie有效性 使用变量传递 单次调�
 
 # 返回值 bool jd_ck
 def getToken(wskey):  # 方法 获取 Wskey转换使用的 Token 由 JD_API 返回 这里传递 wskey
+    if flag == 'bak':
+        return getToken_bak(wskey) 
     try:  # 异常捕捉
         url = str(base64.b64decode(url_t).decode()) + 'api/genToken'  # 设置云端服务器地址 路由为 genToken
         header = {"User-Agent": ua}  # 设置 HTTP头
@@ -335,6 +337,38 @@ def getToken(wskey):  # 方法 获取 Wskey转换使用的 Token 由 JD_API 返�
     else:  # 判断分支
         return appjmp(wskey, tokenKey)  # 传递 wskey, Tokenkey 执行方法 [appjmp]
 
+# 备用
+def getToken_bak(wskey):  # 方法 获取 Wskey转换使用的 Token 由 JD_API 返回 这里传递 wskey
+    try:  # 异常捕捉
+        url = str(base64.b64decode('aHR0cHM6Ly9hcGkubm9sYW5zdG9yZS50b3Av').decode()) + 'sign'  # 设置云端服务器地址 路由为 genToken
+        header = {"Content-Type": "application/json"}  # 设置 HTTP头
+        data = {'body':{"to":"https%3a%2f%2fplogin.m.jd.com%2fjd-mlogin%2fstatic%2fhtml%2fappjmp_blank.html"},'fn':'genToken'}
+        params = requests.post(url=url, headers=header, json=data, verify=False, timeout=20).json()  # 设置 HTTP请求参数 超时 20秒 Json解析
+        params = 'functionId=genToken&'+params['body']
+    except Exception as err:  # 异常捕捉
+        logger.info("Params参数获取失败")  # 标准日志输出
+        logger.debug(str(err))  # 调试日志输出
+        return False, wskey  # 返回 -> False[Bool], Wskey
+    headers = {
+        'cookie': wskey,
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'charset': 'UTF-8',
+        'accept-encoding': 'br,gzip,deflate',
+        'user-agent': ua
+    }  # 设置 HTTP头
+    url = 'https://api.m.jd.com/client.action'  # 设置 URL地址
+    data = 'body=%7B%22to%22%3A%22https%253a%252f%252fplogin.m.jd.com%252fjd-mlogin%252fstatic%252fhtml%252fappjmp_blank.html%22%7D&'  # 设置 POST 载荷
+    try:  # 异常捕捉
+        res = requests.post(url=url, params=params, headers=headers, data=data, verify=False,
+                            timeout=10)  # HTTP请求 [POST] 超时 10秒
+        res_json = json.loads(res.text)  # Json模块 取值
+        tokenKey = res_json['tokenKey']  # 取出TokenKey
+    except Exception as err:  # 异常捕捉
+        logger.info("JD_WSKEY接口抛出错误 尝试重试 更换IP")  # 标准日志输出
+        logger.info(str(err))  # 标注日志输出
+        return False, wskey  # 返回 -> False[Bool], Wskey
+    else:  # 判断分支
+        return appjmp(wskey, tokenKey)  # 传递 wskey, Tokenkey 执行方法 [appjmp]
 
 # 返回值 bool jd_ck
 def appjmp(wskey, tokenKey):  # 方法 传递 wskey & tokenKey
@@ -541,8 +575,9 @@ def check_cloud():  # 方法 云端地址检查
             logger.info(str(info[url_list.index(i)]) + " Server Check OK\n--------------------\n")  # 标准日志输出
             return i  # 返回 ->i
     logger.info("\n云端地址全部失效, 请检查网络!")  # 标准日志输出
-    ql_send('云端地址失效. 请联系作者或者检查网络.')  # 推送消息
-    sys.exit(1)  # 脚本退出
+    #ql_send('云端地址失效. 请联系作者或者检查网络.')  # 推送消息
+    return 403
+    #sys.exit(1)  # 脚本退出
 
 
 def check_port():  # 方法 检查变量传递端口
@@ -575,9 +610,15 @@ if __name__ == '__main__':  # Python主函数执行入口
     s.headers.update({"Content-Type": "application/json;charset=UTF-8"})  # 增加 HTTP头 json 类型
     ql_id = check_id()  # 调用方法 [check_id] 并赋值 [ql_id]
     url_t = check_cloud()  # 调用方法 [check_cloud] 并赋值 [url_t]
-    cloud_arg = cloud_info()  # 调用方法 [cloud_info] 并赋值 [cloud_arg]
-    update()  # 调用方法 [update]
-    ua = cloud_arg['User-Agent']  # 设置全局变量 UA
+    flag = ''
+    if url_t == 403:
+        logger.info("\n尝试使用nolan接口请求\n")
+        ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
+        flag = 'bak'
+    else:
+        cloud_arg = cloud_info()  # 调用方法 [cloud_info] 并赋值 [cloud_arg]
+        update()  # 调用方法 [update]    
+        ua = cloud_arg['User-Agent']  # 设置全局变量 UA
     wslist = get_wskey()  # 调用方法 [get_wskey] 并赋值 [wslist]
     envlist = get_env()  # 调用方法 [get_env] 并赋值 [envlist]
     if "WSKEY_SLEEP" in os.environ and str(os.environ["WSKEY_SLEEP"]).isdigit():  # 判断变量[WSKEY_SLEEP]是否为数字类型
