@@ -714,13 +714,11 @@ async function showMsg() {
 	if (EnableCheckBean) {
 	    if (checkbeanDetailMode == 0) {
 	        ReturnMessage += `【今日京豆】收${$.todayIncomeBean}豆`;
-	        strsummary += `【今日京豆】收${$.todayIncomeBean}豆`;
+	        strsummary += `收${$.todayIncomeBean}豆,`;
 	        if ($.todayOutcomeBean != 0) {
 	            ReturnMessage += `,支${$.todayOutcomeBean}豆`;
-	            strsummary += `,支${$.todayOutcomeBean}豆`;
 	        }
 	        ReturnMessage += `\n`;
-	        strsummary += `\n`;
 	        ReturnMessage += `【昨日京豆】收${$.incomeBean}豆`;
 
 	        if ($.expenseBean != 0) {
@@ -730,15 +728,12 @@ async function showMsg() {
 	    } else {	
 			if (TempBeanCache){
 				ReturnMessage += `【京豆变动】${$.beanCount-$.beanCache}豆(与${matchtitle}${$.CheckTime}比较)`;			
-				strsummary += `【京豆变动】${$.beanCount-$.beanCache}豆(与${matchtitle}${$.CheckTime}比较)`;
-				ReturnMessage += `\n`;
-				strsummary += `\n`;
+				strsummary += `变动${$.beanCount-$.beanCache}豆,`;
+				ReturnMessage += `\n`;				
 			}	
 			else{
-				ReturnMessage += `【京豆变动】未找到缓存,下次出结果统计`;			
-				strsummary += `【京豆变动】未找到缓存,下次出结果统计`;	
+				ReturnMessage += `【京豆变动】未找到缓存,下次出结果统计`;
 				ReturnMessage += `\n`;
-				strsummary += `\n`;
 			}		
 		}
 	}
@@ -746,13 +741,11 @@ async function showMsg() {
 	
 	if ($.beanCount){		
 		ReturnMessage += `【当前京豆】${$.beanCount-$.beanChangeXi}豆(≈${(($.beanCount-$.beanChangeXi)/ 100).toFixed(2)}元)\n`;
-		strsummary+= `【当前京豆】${$.beanCount-$.beanChangeXi}豆(≈${(($.beanCount-$.beanChangeXi)/ 100).toFixed(2)}元)\n`;	
 	} else {
 		if($.levelName || $.JingXiang)
 			ReturnMessage += `【当前京豆】获取失败,接口返回空数据\n`;
 		else{
 			ReturnMessage += `【当前京豆】${$.beanCount-$.beanChangeXi}豆(≈${(($.beanCount-$.beanChangeXi)/ 100).toFixed(2)}元)\n`;
-			strsummary += `【当前京豆】${$.beanCount-$.beanChangeXi}豆(≈${(($.beanCount-$.beanChangeXi)/ 100).toFixed(2)}元)\n`;
 		}			
 	}
 
@@ -772,7 +765,6 @@ async function showMsg() {
 			ReturnMessage += `\n`;
 	    }	    
 	    ReturnMessage += `【当前喜豆】${$.xibeanCount}喜豆(≈${($.xibeanCount/ 100).toFixed(2)}元)\n`;
-	    strsummary += `【当前喜豆】${$.xibeanCount}豆(≈${($.xibeanCount/ 100).toFixed(2)}元)\n`;
 	}
 	
 	if ($.JDtotalcash) {
@@ -864,15 +856,13 @@ async function showMsg() {
 	}
 	ReturnMessage += `🧧🧧🧧红包明细🧧🧧🧧\n`;
 	ReturnMessage += `${$.message}`;
-	strsummary +=`${$.message}`;
-	
+	strsummary+=`红包${$.balance}元`
 	if($.YunFeiQuan){
 		var strTempYF="【免运费券】"+$.YunFeiQuan+"张";
 		if($.YunFeiQuanEndTime)
 			strTempYF+="(有效期至"+$.YunFeiQuanEndTime+")";
 		strTempYF+="\n";
 		ReturnMessage +=strTempYF
-		strsummary +=strTempYF;
 	}
 	if($.YunFeiQuan2){
 		var strTempYF2="【免运费券】"+$.YunFeiQuan2+"张";
@@ -880,7 +870,6 @@ async function showMsg() {
 			strTempYF+="(有效期至"+$.YunFeiQuanEndTime2+")";
 		strTempYF2+="\n";
 		ReturnMessage +=strTempYF2
-		strsummary +=strTempYF2;
 	}
 	
 	if (userIndex2 != -1) {
@@ -915,13 +904,10 @@ async function showMsg() {
 		}else{
 			ReturnMessage=`【账号名称】${$.nickName || $.UserName}\n`+ReturnMessage;
 		}
-		if (TempBaipiao) {
-			strsummary=strSubNotify+TempBaipiao +strsummary;			
+		if (TempBaipiao) {			
 			TempBaipiao = `【⏰商品白嫖活动提醒⏰】\n` + TempBaipiao;
 			ReturnMessage = TempBaipiao + `\n` + ReturnMessage;			
-		} else {
-			strsummary = strSubNotify + strsummary;				
-		}
+		} 
 		
 		ReturnMessage += RemainMessage;
 		
