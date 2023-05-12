@@ -43,14 +43,14 @@ if (new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate() == date.getDa
   for (let i = 0; i < cookiesArr.length; i++) {
     if (cookiesArr[i]) {
       var cookie = cookiesArr[i];
-	    var url_uuid = randomString(16);
+	  var url_uuid = randomString(16);
 
       message = '';
       TaskList.push(jdGlobal(cookie,url_uuid));
       if (i == (cookiesArr.length - 1) || TaskList.length == maxThread) {
         await Promise.all(TaskList);
 		if (!llAPIError){
-			if (TaskList.length == maxThread){
+			if (i != (cookiesArr.length - 1)){
 				console.log(`当前批量完成，等待30秒`);
 				await $.wait(30 * 1000);
 			}			
@@ -595,7 +595,7 @@ function apDoTask(taskType, taskId, channel, itemId, cookie) {
   })
 }
 
-function taskUrl(functionId, cookie,url_uuid, body = {}) {
+function taskUrl(functionId, cookie,url_uuid, body = {}) {	
 	const struuid = url_uuid;
 	let nowTime = Date.now();
 	let _0x7683x5 = `${"lite-android&"}${JSON["stringify"](body)}${"&android&3.1.0&"}${functionId}&${nowTime}&${struuid}`;
