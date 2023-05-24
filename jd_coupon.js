@@ -32,7 +32,7 @@ if ($.isNode()) {
     console.log("优惠劵失败...")
     return;
   }
-  $.randomCode = random(10, 13);
+  $.randomCode = random(10, 14);
   // console.log($.randomCode)
   // console.log(codeList.length)
   if (codeList[0] === "") {
