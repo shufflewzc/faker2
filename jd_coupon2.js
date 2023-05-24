@@ -1,8 +1,8 @@
 /**
-优惠劵领卷
-cron 2 6-22 * * * jd_coupon.js
+优惠劵领卷类型2
+cron 30 6-22 * * * jd_coupon2.js
 */
-const $ = new Env('优惠劵领卷');
+const $ = new Env('优惠劵领卷2');
 const notify = $.isNode() ? require('./sendNotify') : '';
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 let cookiesArr = [], cookie = '';
@@ -27,13 +27,13 @@ if ($.isNode()) {
 
   $.getCodeListerr = false
   console.log("获取优惠劵...")
-  codeList = await getCodeList('https://raw.githubusercontent.com/shufflewzc/updatecode/main/coupon.json')
+  codeList = await getCodeList('https://raw.githubusercontent.com/shufflewzc/updatecode/main/coupon_add.json')
   if($.getCodeListerr === false){
     console.log("优惠劵失败...")
     return;
   }
   $.randomCode = random(10, 13);
-  // console.log($.randomCode)
+  // console.log(codeList)
   // console.log(codeList.length)
   if (codeList[0] === "") {
     console.log("暂无优惠劵...")
@@ -100,7 +100,7 @@ async function mainTask(){
     console.log("\n---- getUnionGiftCouponSKU ----\n")
     await getUnionGiftCouponSKUNew($.sku_, $.q_, $.d_)
     await $.wait(1000);
-    // await mshopcart()
+    await mshopcart()
   } else if($.sku_ == ''){
     console.log("\n---- getUnionGiftCoupon ----\n")
     await getUnionGiftCouponNew($.q_)
@@ -450,7 +450,7 @@ async function mshopcart(){
   };
   return new Promise(async resolve => {
     const options = {
-      url: `https://api.m.jd.com/deal/mshopcart/addcmdy?loginType=2&appid=m_core&uuid=${random(70000000000000000, 8000000000000000)}&functionId=deal_mshopcart_addcmdy_m&jsonp=addCartCB&body=${encodeURIComponent(JSON.stringify(body))}&h5st=`,
+      url: `https://api.m.jd.com/deal/mshopcart/addcmdy?loginType=2&appid=m_core&uuid=${random(70000000000000000, 8000000000000000)}&functionId=deal_mshopcart_addcmdy_m&x-api-eid-token=&jsonp=addCartCB&body=${encodeURIComponent(JSON.stringify(body))}&h5st=`,
       headers: {
         'Accept':'*/*',
         'Origin':'https://jingfen.jd.com',
