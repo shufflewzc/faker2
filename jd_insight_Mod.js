@@ -76,7 +76,7 @@ if ($.isNode()) {
 
 async function main() {
     console.log(`开始获取京洞察调研列表...\n`)
-    let data= await GetSurveyList();
+    let data= await GetSurveyList();	
     if(data.result){
         let list=data.messages.list
         if(list.length>0){
@@ -94,7 +94,7 @@ async function main() {
                 }
             }
 			if ($.isNode() && WP_APP_TOKEN_ONE) {
-				await notify.sendNotifybyWxPucher("京洞察问卷通知", msg, `${$.UserName}`);
+				await notify.sendNotifybyWxPucher("京洞察问卷通知", msg, `${$.UserName}`,'\n\n本通知 By ccwav Mod',"您有可以做的调查问卷");
 			}
 			allnotify+=msg
         }
