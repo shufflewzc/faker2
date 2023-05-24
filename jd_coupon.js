@@ -32,57 +32,57 @@ if ($.isNode()) {
     console.log("优惠劵失败...")
     return;
   }
-  if (codeList.length === 0) {
+  $.randomCode = random(10, 13);
+  // console.log($.randomCode)
+  // console.log(codeList.length)
+  if (codeList.length <= 1) {
     console.log("暂无优惠劵...")
     return;
   }
-  // console.log(codeList)
+  if ($.randomCode === 10){
+    console.log("优惠券地址: https://u.jd.com/"+codeList[0])
 
+    $.jfurl = "https://u.jd.com/"+codeList[0]
+    $.hrl = ''
+    $.long = ''
+    $.d_ = ''
+    $.sku_ = ''
+    $.q_ = ''
+    console.log("---- 初始化 ----")
+    await getShorttoLong()
+    console.log("\n---- 执行 ----")
   
-  console.log("优惠券地址: https://u.jd.com/"+codeList[0])
-
-  $.jfurl = "https://u.jd.com/"+codeList[0]
-  $.hrl = ''
-  $.long = ''
-  $.d_ = ''
-  $.sku_ = ''
-  $.q_ = ''
-  console.log("---- 初始化 ----")
-  await getShorttoLong()
-  console.log("\n---- 执行 ----")
-
-  // cookiesArr = cookiesArr.sort(function() {
-  //   return .5 - Math.random();
-  // });
-  let ckNum = cookiesArr.length > 5 ?  5 : cookiesArr.length;
-  // console.log(ckNum)
-  for (let i = 0; i < ckNum; i++) {
-    if (cookiesArr[i]) {
-      cookie = cookiesArr[i];
-      $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
-      $.index = i + 1;
-      $.isLogin = true;
-      $.nickName = '';
-      message = '';
-      await TotalBean();
-      console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
-      if (!$.isLogin) {
-        $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
-        if ($.isNode()) {
-          // await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
+    cookiesArr = cookiesArr.sort(function() {
+      return .5 - Math.random();
+    });
+    // let ckNum = cookiesArr.length > 1 ?  1 : cookiesArr.length;
+    for (let i = 0; i < 1; i++) {
+      if (cookiesArr[i]) {
+        cookie = cookiesArr[i];
+        $.UserName = decodeURIComponent(cookie.match(/pt_pin=([^; ]+)(?=;?)/) && cookie.match(/pt_pin=([^; ]+)(?=;?)/)[1])
+        $.index = i + 1;
+        $.isLogin = true;
+        $.nickName = '';
+        message = '';
+        await TotalBean();
+        console.log(`\n******开始【京东账号${$.index}】${$.nickName || $.UserName}*********\n`);
+        if (!$.isLogin) {
+          $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, { "open-url": "https://bean.m.jd.com/bean/signIndex.action" });
+          if ($.isNode()) {
+            // await notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
+          }
+          continue
         }
-        continue
+        $.UUID = getUUID("xxxxxxxxxxx");
+  
+        if ($.index == 1) {
+          await main();
+        }
+        await mainTask();
+        await $.wait(4000);
       }
-      $.UUID = getUUID("xxxxxxxxxxx");
-
-      if ($.index == 1) {
-        await main();
-      }
-      await mainTask();
-      await $.wait(4000);
     }
   }
-
 
 })().catch((e) => { $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '') }).finally(() => { $.done(); })
 
