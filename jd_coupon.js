@@ -54,7 +54,7 @@ if ($.isNode()) {
   // cookiesArr = cookiesArr.sort(function() {
   //   return .5 - Math.random();
   // });
-  let ckNum = cookiesArr.length > 10 ?  10 : cookiesArr.length;
+  let ckNum = cookiesArr.length > 5 ?  5 : cookiesArr.length;
   // console.log(ckNum)
   for (let i = 0; i < ckNum; i++) {
     if (cookiesArr[i]) {
