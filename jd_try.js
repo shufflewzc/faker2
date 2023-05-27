@@ -21,7 +21,7 @@ export JD_TRY_SENDNUM="10" #每隔多少账号发送一次通知，默认为4
 export JD_TRY_UNIFIED="false" 默认采用不同试用组
 export JD_TRY_NUM="7" 最多跑多少个CK，默认10
 
-cron "1 1 1 1 1" jd_try.js
+cron "2 2 29 2 *" jd_try.js
  */
 const $ = new Env('京东试用')
 const URL = 'https://api.m.jd.com/client.action'
@@ -716,7 +716,7 @@ function totalBean() {
 }
 function geth5st(body) {
     let opt = {
-        url: `https://api.nolanstore.top/h5st`,
+        url: `https://api.nolanstore.cc/h5st`,
         body: JSON.stringify({
             "appId": "a8ade",
             "functionId": "try_apply",
