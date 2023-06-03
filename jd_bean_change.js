@@ -1560,7 +1560,8 @@ function getCoupon() {
 							
 							var decquota=parseFloat(useable[i].quota).toFixed(2);
 							var decdisc= parseFloat(useable[i].discount).toFixed(2);
-							
+							if (useable[i].quota>useable[i].discount+5 && useable[i].discount<2)
+								continue
 							$.message += `【全品类券】满${decquota}减${decdisc}元`;
 							
 							if (useable[i].endTime < $.todayEndTime) {
