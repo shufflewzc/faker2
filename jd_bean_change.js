@@ -671,12 +671,13 @@ async function showMsg() {
 			
 	    ReturnMessage += `【账号信息】`;
 	    if ($.isPlusVip) {
-	        ReturnMessage += `Plus会员`;
-	        if ($.PlustotalScore)
-	            ReturnMessage += `(${$.PlustotalScore}分)`
+	        ReturnMessage += `Plus会员`;	        
 	    } else {
 	        ReturnMessage += `普通会员`;
-	    }  
+	    } 
+		if ($.PlustotalScore)
+	        ReturnMessage += `(${$.PlustotalScore}分)` 
+			
 	    ReturnMessage += `,京享值${$.JingXiang}\n`;	    
 	}else{
 		ReturnMessageTitle+= `\n`;
@@ -1311,7 +1312,7 @@ function jingBeanDetail() {
 	})
 } 
   
-function getepsign(n, o, t = "sign") {
+function getepsign(n, o, t = "sign") {	
   let e = {
     url: epsignurl, 
     form: {
@@ -2006,8 +2007,6 @@ function GetDateTime(date) {
 }
 
 async function queryScores() {
-	if (!$.isPlusVip)
-		return
     let res = ''
     let url = {
       url: `https://rsp.jd.com/windControl/queryScore/v1?lt=m&an=plus.mobile&stamp=${Date.now()}`,
