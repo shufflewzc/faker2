@@ -2,23 +2,21 @@
 # -*- coding: utf-8 -*-
 
 """
-File: jd_check_dependent.py(Harbour库依赖一键检测安装(不可禁用)每2小时检测一次)
+File: jd_check_sign.py(Harbour库依赖一键检测安装)
 Author: HarbourJ
 Date: 2022/8/12 20:37
 TG: https://t.me/HarbourToulu
-TgChat: https://t.me/HarbourSailing
-cron: 7 7 7 7 7
+cron: 1 1 1 1 1 *
 new Env('Faker库依赖一键安装');
-Description:1.Faker库jd_sign本地算法依赖一键检测安装脚本;
+Description:1.HarbourToulu库jd_sign本地算法依赖一键检测安装脚本;
             2.自动识别机器系统/架构,拉取最新依赖文件;
             3.本地sign算法已编译支持Windows(amd64)、Linux(amd64/arm64/arm)、Macos(x86_64)系统/架构;
             4.默认支持python3版本为3.8-3.10,过低可能会报错;
             5.若本一键配置脚本无法安装所需jd_sign依赖文件,请前往https://github.com/HarbourJ/HarbourToulu/releases自行下载系统对应的jd_sign依赖压缩文件,解压并放置/scripts/HarbourJ_HarbourToulu_main文件夹内即可。
             6.‼️‼️‼️初次拉库必须先运行本脚本‼️‼️‼️
 """
-import sys
+import sys, time
 import requests, os, platform
-import urllib.request
 from functools import partial
 print = partial(print, flush=True)
 
@@ -129,8 +127,8 @@ def check_ld_libc(version):
             else:
                 print("❌arm64-libc依赖安装失败,请前往Faker TG群查看安装教程\n")
 
-def download(version, systemFile):
-    raw_url = f"https://proxy.zyun.vip/https://github.com/HarbourJ/HarbourToulu/releases/download/{version}/{systemFile}"
+def download(version, systemFile, gitproxy="", again=1):
+    raw_url = f"{gitproxy}https://github.com/HarbourJ/HarbourToulu/releases/download/{version}/{systemFile}"
     try:
         fileList = os.listdir()
         if systemFile in fileList:
@@ -145,20 +143,25 @@ def download(version, systemFile):
             if "No module" in str(e):
                 os.system("pip install wget")
             import wget
-        # wget.download(raw_url,user-agent="Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36")
-        print("------开始下载%s------\n" % systemFile)
-        print(raw_url)
-        file_name = raw_url.split('/')[-1] 
-        opener = urllib.request.build_opener()
-        opener.addheaders = [('User-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0')]
-        urllib.request.install_opener(opener)
-        urllib.request.urlretrieve(raw_url, file_name)
+        wget.download(raw_url)
         print(f"✅{systemFile}下载成功\n")
         return True
     except Exception as e:
-        print(e)
-        print(f"❌{systemFile}下载失败\n")
-        return False
+        print(f"‼️download Error: {str(e)}")
+        if again > 5:
+            print(f"❌{systemFile}下载失败\n")
+            return False
+        else:
+            print(f"开始第{again}次重试获取{systemFile}")
+            again = again + 1
+            if again == 2:
+                gitproxy = "https://ghproxy.com/"
+            elif again == 3:
+                gitproxy = "https://kgithub.com/"
+            elif again == 4:
+                gitproxy = "https://hub.gitmirror.com/"
+            time.sleep(1)
+            return download(version, systemFile, gitproxy=gitproxy, again=again)
 
 def removeOldSign():
     fileList = os.listdir()
@@ -181,20 +184,35 @@ def removeOldSign():
         except:
             pass
 
-def signReleaseUpdate():
+def signReleaseUpdate(rawproxy="https://raw.githubusercontent.com/", again=1):
     """
     判断Release内的主要文件是否更新(判断utils内版本更新log文件-signUpdateLog.log)
     """
-    GitAPI = "https://proxy.zyun.vip/https://raw.githubusercontent.com/HarbourJ/HarbourToulu/main/utils/signUpdateLog.log"
-    # try:
-    headers = {
-        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'accept-encoding': 'gzip, deflate',
-        'accept-language': 'zh-CN,zh;q=0.9',
-        'referer': 'https://github.com/HarbourJ/HarbourToulu/blob/main/jdCookie.py',
-        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'
-    }
-    response = requests.request("GET", url=GitAPI, headers=headers, timeout=20)
+    GitAPI = f"{rawproxy}HarbourJ/HarbourToulu/main/utils/signUpdateLog.log"
+    try:
+        headers = {
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+            'accept-encoding': 'gzip, deflate, br',
+            'accept-language': 'zh-CN,zh;q=0.9',
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'
+        }
+        response = requests.request("GET", url=GitAPI, headers=headers, timeout=20)
+    except Exception as e:
+        print(f"‼️signReleaseUpdate Error: {str(e)}")
+        if again > 5:
+            print(f"❌{GitAPI}请求失败\n")
+            return False
+        else:
+            print(f"开始第{again}次重试获取signUpdateLog.log")
+            again = again + 1
+            if again == 2:
+                rawproxy = "https://raw.iqiq.io/"
+            elif again == 3:
+                rawproxy = "https://raw.kgithub.com/"
+            elif again == 4:
+                rawproxy = "https://github.moeyy.xyz/https://raw.githubusercontent.com/"
+            time.sleep(1)
+            return signReleaseUpdate(rawproxy=rawproxy, again=again)
     if response.status_code == 200:
         res = response.text.split('\n')
         print(f'📝最新sign为 {res[-1]}版本\n')
@@ -229,11 +247,9 @@ def signReleaseUpdate():
         print(f'❌请求失败：{GitAPI}\n')
         print(f'❌错误信息：{response.txt}\n')
         return False
-    # except:
-    #     print(f'❌请求URL失败：{GitAPI}\n')
-    #     return False
 
 def main():
+    print("🤖开始运行Harbour库依赖一键检测安装脚本\n")
     updateDependent()
     try:
         from jd_sign import remote_redis
@@ -246,4 +262,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
