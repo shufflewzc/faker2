@@ -249,7 +249,7 @@ def signReleaseUpdate(rawproxy="https://raw.githubusercontent.com/", again=1):
         return False
 
 def main():
-    print("🤖开始运行Harbour库依赖一键检测安装脚本\n")
+    print("🤖开始运行Faker库依赖一键检测安装脚本\n")
     updateDependent()
     try:
         from jd_sign import remote_redis
