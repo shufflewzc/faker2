@@ -42,7 +42,7 @@ if ($.isNode()) {
             }
             $.UUID = getUUID('xxxxxxxxxxxxxxxx');
             await main();
-            await $.wait(3000);
+            await $.wait(5000);
         }
     }
 })().catch((e) => { $.log('', `❌ ${$.name}, 失败! 原因: ${e}!`, '') }).finally(() => { $.done(); })
@@ -197,7 +197,7 @@ async function tasklist() {
                     console.log(`${$.name} API请求失败，请检查网路重试`)
                 } else {
                     data = JSON.parse(data)
-                    if (data) {
+                    if (JSON.stringify(data.data) !='{}') {
                         $.tasklist = data.data
                     }
                 }
