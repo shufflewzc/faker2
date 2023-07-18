@@ -2,7 +2,6 @@
 cron "0 9 * * *" jd_aliyunautoSignin.js, tag=阿里云盘签到
 */
 
-const $ = Env('阿里云盘每日签到');
 const axios = require('axios')
 const { initInstance, getEnv, updateCkEnv } = require('./function/qlApi.js')
 const notify = require('./sendNotify')
