@@ -7,6 +7,12 @@ Faker自用仓库。本地秘钥计算方法，保证账户信息安全。已适
 * 自有拉库代理
 * 每日保持更新
 
+### 注意
+由于现在青龙版本更新迭代快，但青龙插件适配速度慢，为了可以完美使用本库，请使用一键安装脚本安装青龙。
+
+【一键脚本】
+https://thin-hill-428.notion.site/Faker-QL-pannel-Faker-Repository-environment-Setup-45edcbfe90d74d8abb2d71896eab3be7
+
 ##  助力池版
 
 日常任务带有助力池，助力池助力量充足，相互助力。
