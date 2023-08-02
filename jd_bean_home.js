@@ -1,7 +1,7 @@
 /*
 领京豆额外奖励
 活动入口：京东APP首页-领京豆
-cron "25 2,14 * * *" script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_bean_home.js, tag=领京豆额外奖励
+cron "45 2,14 * * *" script-path=https://raw.githubusercontent.com/Aaron-lv/sync/jd_scripts/jd_bean_home.js, tag=领京豆额外奖励
 
  */
 const $ = new Env('领京豆-升级赚豆');
@@ -131,7 +131,7 @@ function morningGetBean() {
 // 升级领京豆任务
 async function beanTaskList(type) {
     return new Promise(resolve => {
-        $.post(taskBeanUrl('beanTaskList', { "viewChannel": "myjd" }), async (err, resp, data) => {
+        $.post(taskBeanUrl('beanTaskList', { "viewChannel": "AppHome", "beanVersion": 1 }), async (err, resp, data) => {
             try {
                 if (err) {
                     console.log(`${JSON.stringify(err)}`)
