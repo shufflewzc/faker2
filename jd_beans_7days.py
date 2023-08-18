@@ -208,20 +208,22 @@ def get_beans_7days(ck):
 def get_total_beans(ck):
     try:
         headers = {
-            "Host": "wxapp.m.jd.com",
+            "Host": "me-api.jd.com",
             "Connection": "keep-alive",
             "charset": "utf-8",
             "User-Agent": "Mozilla/5.0 (Linux; Android 10; MI 9 Build/QKQ1.190825.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/78.0.3904.62 XWEB/2797 MMWEBSDK/201201 Mobile Safari/537.36 MMWEBID/7986 MicroMessenger/8.0.1840(0x2800003B) Process/appbrand4 WeChat/arm64 Weixin NetType/4G Language/zh_CN ABI/arm64 MiniProgramEnv/android",
             "Content-Type": "application/x-www-form-urlencoded;",
+            "Referer": "https://home.m.jd.com/myJd/newhome.action?sceneval=2&ufc=&",
             "Accept-Encoding": "gzip, compress, deflate, br",
             "Cookie": ck,
         }
-        jurl = "https://wxapp.m.jd.com/kwxhome/myJd/home.json"
-        resp = session.get(jurl, headers=headers, timeout=100).text
-        res = json.loads(resp)
-        return res['user']['jingBean']
+        jurl = "https://me-api.jd.com/user_new/info/GetJDUserInfoUnion"
+        resp = session.get(jurl, headers=headers, timeout=100)
+        data = json.loads(resp.content)
+        return data['data']['assetInfo']['beanNum']
     except Exception as e:
         printf(str(e))
+        return 0
 
 
 def get_bean_data(i,ck):
