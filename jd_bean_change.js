@@ -248,27 +248,12 @@ if(DisableIndex!=-1){
 	EnableOverBean=false
 }
 
-//查优惠券
-let EnableChaQuan=true;
-DisableIndex=strDisableList.findIndex((item) => item === "查优惠券");
-if(DisableIndex!=-1){
-	console.log("检测到设定关闭优惠券查询");
-	EnableChaQuan=false
-}
-
 DisableIndex=strDisableList.findIndex((item) => item === "活动攻略");
 if(DisableIndex!=-1){
 	console.log("检测到设定关闭活动攻略显示");
 	RemainMessage="";
 }
 
-//汪汪赛跑
-let EnableJoyRun=true;
-DisableIndex=strDisableList.findIndex((item) => item === "汪汪赛跑");
-if(DisableIndex!=-1){
-	console.log("检测到设定关闭汪汪赛跑查询");
-	EnableJoyRun=false
-}
 
 //京豆收益查询
 let EnableCheckBean=true;
@@ -327,7 +312,6 @@ if(DisableIndex!=-1){
 			$.YunFeiTitle2="";
 			$.YunFeiQuan2 = 0;
 			$.YunFeiQuanEndTime2 = "";
-			$.JoyRunningAmount = "";
 			$.ECardinfo = "";
 			$.PlustotalScore=0;
 			$.CheckTime="";
@@ -418,7 +402,6 @@ if(DisableIndex!=-1){
 			        cash(), //特价金币
 			        bean(), //京豆查询
 			        jdCash(), //领现金
-			        GetJoyRuninginfo() //汪汪赛跑
 			    ])
 				
 			await showMsg();
@@ -749,8 +732,6 @@ async function showMsg() {
 	if($.ECardinfo)
 		ReturnMessage += `【礼卡余额】${$.ECardinfo}\n`;
 	
-	if ($.JoyRunningAmount) 
-		ReturnMessage += `【汪汪赛跑】${$.JoyRunningAmount}元\n`;
 
 	if ($.JdFarmProdName != "") {
 		if ($.JdtreeEnergy != 0) {
@@ -967,9 +948,7 @@ async function bean() {
 	if (EnableOverBean) {
 	    await jingBeanDetail(); //过期京豆	    
 	}
-	await redPacket();
-	if (EnableChaQuan)
-	    await getCoupon();
+	await redPacket();	
 }
 
 async function Monthbean() {
@@ -1523,140 +1502,6 @@ function redPacket() {
 		})
 	})
 }
-
-function getCoupon() {
-    return new Promise(resolve => {
-        let options = {
-            url: `https://wq.jd.com/activeapi/queryjdcouponlistwithfinance?state=1&wxadd=1&filterswitch=1&_=${Date.now()}&sceneval=2&g_login_type=1&callback=jsonpCBKB&g_ty=ls`,
-            headers: {
-                'authority': 'wq.jd.com',
-                "User-Agent": "jdapp;iPhone;10.1.2;15.0;network/wifi;Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1",
-                'accept': '*/*',
-                'referer': 'https://wqs.jd.com/',
-                'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
-                'cookie': cookie
-            },
-			timeout: 10000
-        }
-        $.get(options, async(err, resp, data) => {
-            try {				
-                data = JSON.parse(data.match(new RegExp(/jsonpCBK.?\((.*);*/))[1]);
-                let couponTitle = '';
-                let couponId = '';
-                // 删除可使用且非超市、生鲜、京贴;
-                let useable = data.coupon.useable;
-                $.todayEndTime = new Date(new Date(new Date().getTime()).setHours(23, 59, 59, 999)).getTime();
-                $.tomorrowEndTime = new Date(new Date(new Date().getTime() + 24 * 60 * 60 * 1000).setHours(23, 59, 59, 999)).getTime();
-				$.platFormInfo="";
-                for (let i = 0; i < useable.length; i++) {
-					//console.log(useable[i]);
-                    if (useable[i].limitStr.indexOf('全品类') > -1) {
-                        $.beginTime = useable[i].beginTime;
-                        if ($.beginTime < new Date().getTime() && useable[i].quota <= 100 && useable[i].coupontype === 1) {                           
-							//$.couponEndTime = new Date(parseInt(useable[i].endTime)).Format('yyyy-MM-dd');
-                            $.couponName = useable[i].limitStr;
-							if (useable[i].platFormInfo) 
-								$.platFormInfo = useable[i].platFormInfo;
-							
-							var decquota=parseFloat(useable[i].quota).toFixed(2);
-							var decdisc= parseFloat(useable[i].discount).toFixed(2);
-							if (useable[i].quota>useable[i].discount+5 && useable[i].discount<2)
-								continue
-							$.message += `【全品类券】满${decquota}减${decdisc}元`;
-							
-							if (useable[i].endTime < $.todayEndTime) {
-								$.message += `(今日过期,${$.platFormInfo})\n`;
-							} else if (useable[i].endTime < $.tomorrowEndTime) {
-								$.message += `(明日将过期,${$.platFormInfo})\n`;
-							} else {
-								$.message += `(${$.platFormInfo})\n`;
-							}
-							
-                        }
-                    }
-					if (useable[i].couponTitle.indexOf('运费券') > -1 && useable[i].limitStr.indexOf('自营商品运费') > -1) {
-					    if (!$.YunFeiTitle) {
-					        $.YunFeiTitle = useable[i].couponTitle;
-					        $.YunFeiQuanEndTime = new Date(parseInt(useable[i].endTime)).Format('yyyy-MM-dd');
-					        $.YunFeiQuan += 1;
-					    } else {
-					        if ($.YunFeiTitle == useable[i].couponTitle) {
-					            $.YunFeiQuanEndTime = new Date(parseInt(useable[i].endTime)).Format('yyyy-MM-dd');
-					            $.YunFeiQuan += 1;
-					        } else {
-					            if (!$.YunFeiTitle2)
-					                $.YunFeiTitle2 = useable[i].couponTitle;
-								
-					            if ($.YunFeiTitle2 == useable[i].couponTitle) {
-					                $.YunFeiQuanEndTime2 = new Date(parseInt(useable[i].endTime)).Format('yyyy-MM-dd');
-					                $.YunFeiQuan2 += 1;
-					            }
-					        }
-
-					    }
-
-					}
-                    if (useable[i].couponTitle.indexOf('特价版APP活动') > -1 && useable[i].limitStr=='仅可购买活动商品') {						
-                        $.beginTime = useable[i].beginTime;
-                        if ($.beginTime < new Date().getTime() && useable[i].coupontype === 1) {                            
-							if (useable[i].platFormInfo) 
-								$.platFormInfo = useable[i].platFormInfo;
-							var decquota=parseFloat(useable[i].quota).toFixed(2);
-							var decdisc= parseFloat(useable[i].discount).toFixed(2);
-							
-							$.message += `【特价版券】满${decquota}减${decdisc}元`;
-							
-							if (useable[i].endTime < $.todayEndTime) {
-								$.message += `(今日过期,${$.platFormInfo})\n`;
-							} else if (useable[i].endTime < $.tomorrowEndTime) {
-								$.message += `(明日将过期,${$.platFormInfo})\n`;
-							} else {
-								$.message += `(${$.platFormInfo})\n`;
-							}
-							
-                        }
-
-                    }
-                    //8是支付券， 7是白条券
-                    if (useable[i].couponStyle == 7 || useable[i].couponStyle == 8) {
-                        $.beginTime = useable[i].beginTime;
-                        if ($.beginTime > new Date().getTime() || useable[i].quota > 50 || useable[i].coupontype != 1) {
-                            continue;
-                        }
-                        
-                        if (useable[i].couponStyle == 8) {
-                            $.couponType = "支付立减";
-                        }else{
-							$.couponType = "白条优惠";
-						}
-						if(useable[i].discount<useable[i].quota)
-							$.message += `【${$.couponType}】满${useable[i].quota}减${useable[i].discount}元`;
-						else
-							$.message += `【${$.couponType}】立减${useable[i].discount}元`;
-                        if (useable[i].platFormInfo) 
-                            $.platFormInfo = useable[i].platFormInfo;                            
-                        
-                        //$.couponEndTime = new Date(parseInt(useable[i].endTime)).Format('yyyy-MM-dd');
-						
-                        if (useable[i].endTime < $.todayEndTime) {
-                            $.message += `(今日过期,${$.platFormInfo})\n`;
-                        } else if (useable[i].endTime < $.tomorrowEndTime) {
-                            $.message += `(明日将过期,${$.platFormInfo})\n`;
-                        } else {
-                            $.message += `(${$.platFormInfo})\n`;
-                        }
-                    }
-                }
-            } catch (e) {
-                $.logErr(e, resp);
-            }
-            finally {
-                resolve();
-            }
-        })
-    })
-}
-
 function jdfruitRequest(function_id, body = {}, timeout = 1000) {
 	return new Promise(resolve => {
 		setTimeout(() => {
@@ -1859,58 +1704,6 @@ function taskcashUrl(functionId, body = {}) {
 		},
 		timeout: 10000
 	}
-}
-
-function GetJoyRuninginfo() {
-	if (!EnableJoyRun)
-		return;
-	
-    const headers = {
-        "Accept": "application/json, text/plain, */*",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "zh-CN,zh-Hans;q=0.9",
-        "Connection": "keep-alive",
-        "Content-Length": "376",
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Cookie": cookie,
-        "Host": "api.m.jd.com",
-        "Origin": "https://h5platform.jd.com",
-        "Referer": "https://h5platform.jd.com/",
-        "User-Agent": `jdpingou;iPhone;4.13.0;14.4.2;${randomString(40)};network/wifi;model/iPhone10,2;appBuild/100609;ADID/00000000-0000-0000-0000-000000000000;supportApplePay/1;hasUPPay/0;pushNoticeIsOpen/1;hasOCPay/0;supportBestPay/0;session/${Math.random * 98 + 1};pap/JA2019_3111789;brand/apple;supportJDSHWK/1;Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148`
-		}
-	var DateToday = new Date();
-	const body = {
-        'linkId': 'L-sOanK_5RJCz7I314FpnQ',
-		'isFromJoyPark':true,
-		'joyLinkId':'LsQNxL7iWDlXUs6cFl-AAg'
-    };
-    const options = {
-        url: `https://api.m.jd.com/?functionId=runningPageHome&body=${encodeURIComponent(JSON.stringify(body))}&t=${DateToday.getTime()}&appid=activities_platform&client=ios&clientVersion=3.9.2`,
-        headers,
-    }
-	return new Promise(resolve => {
-        $.get(options, (err, resp, data) => {
-            try {
-                if (err) {
-                    console.log(`${JSON.stringify(err)}`)
-                    console.log(`GetJoyRuninginfo API请求失败，请检查网路重试`)
-                } else {
-                    if (data) {
-						//console.log(data);
-                        data = JSON.parse(data);
-                        if (data.data.runningHomeInfo.prizeValue) {
-							$.JoyRunningAmount=data.data.runningHomeInfo.prizeValue * 1;							
-						}
-                    }
-                }
-            } catch (e) {
-                $.logErr(e, resp)
-            }
-            finally {
-                resolve(data)
-            }
-        })
-    })
 }
 	
 function randomString(e) {
