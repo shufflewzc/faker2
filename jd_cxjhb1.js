@@ -9,7 +9,7 @@
 开启提现到上限转红包 JDZHBTORED='true'
 代理变量DY_PROXY='https://api'，仅对助力使用，支持类星空的api 
 不提现变量 NOTX='true' 默认提现
-13 * * * * jd_cxjhb.js
+0 13 * * * jd_cxjhb1.js
 updatetime:20231027
  */
 
