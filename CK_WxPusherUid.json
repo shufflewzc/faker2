@@ -1,0 +1,14 @@
+[
+  {
+    "pt_pin": "ptpin1",
+    "Uid": "UID_AAAAAAAAAAAA"
+  },
+  {
+    "pt_pin": "ptpin2",
+    "Uid": "UID_BBBBBBBBBB"
+  },
+  {
+    "pt_pin": "ptpin3",
+    "Uid": "UID_CCCCCCCCC"
+  }
+]

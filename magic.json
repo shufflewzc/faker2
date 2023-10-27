@@ -1,0 +1,449 @@
+{
+    "api_id": 3741859,
+    "api_hash": "f81a30b542215b3d578",
+    "bot_id": 1657667,
+    "bot_token": "1657544667:AAGO7sit_k_0u_C1w7U",
+    "user_id": 9513088,
+    "proxy": true,
+    "proxy_type": "socks5",
+    "proxy_addr": "127.0.0.1",
+    "proxy_port": 7890,
+    "proxy_username": "",
+    "proxy_password": "",
+    "proxy_secret": "如果proxy_type是MTProxy,则该值必填",
+    "log_path": "/ql/log",
+    "log_send": true,
+    "log_send_id 你日志要发给谁就填谁id": 1,
+    "log_send_id": -1657544,
+    "monitor_cache_size": 100,
+    "monitor_cars 是你要监控的对象，需要填上自己bot的id和线报频道或群组id": 1,
+    "monitor_cars": [
+        -1001718319262,
+        -1001718319261
+    ],
+
+    "monitor_auto_stops": [
+        "jd_AutoOpenCard"
+    ],
+    "monitor_black_keywords 黑名单关键词基于正则表达式实现": 1,
+    "monitor_black_keywords": [
+        "(ShopToken)"
+    ],
+    "monitor_converters_whitelist_keywords 不转换关键词基于正则表达式实现": 1,
+    "monitor_converters_whitelist_keywords": [
+        "(M_WX_)"
+    ],
+    "monitor_converters 转换关键词基于正则表达式实现": 1,
+    "monitor_converters": {
+        "((?=.*jd_task_lzzd_custom)(?=.*https)^.*$)": {
+            "env": "export M_WX_TEAM_URL=\"%s\""
+        },
+        "(jd_lzkj_activityId|jd_task_lzzd_custom)": {
+            "env": "export M_WX_TEAM_URL=\"https://lzkjdz-isv.isvjcloud.com/wxTeam/activity2/875406?activityId=%s\""
+        },
+        "((?=.*jd_task_cjzd_custom)(?=.*https)^.*$)": {
+            "env": "export M_WX_TEAM_URL=\"%s\""
+        },
+        "(jd_task_cjzd_custom|jd_cjhy_activityId)": {
+            "env": "export M_WX_TEAM_URL=\"https://cjhydz-isv.isvjcloud.com/wxTeam/activity?activityId=%s\""
+        },
+        "^(?=(.|\\n)*jd_zdjr_activityId)(?=(.|\\n)*cjhy)(.|\\n)(?=(.|\\n)*积分)(.|\\n)*$": {
+            "env": "export M_WX_TEAM_URL=\"https://cjhydz-isv.isvjcloud.com/wxTeam/activity?activityId=%s\""
+        },
+        "^(?=(.|\\n)*jd_zdjr_activityId)(?=(.|\\n)*lzkj)(.|\\n)(?=(.|\\n)*积分)(.|\\n)*$": {
+            "env": "export M_WX_TEAM_URL=\"https://lzkjdz-isv.isvjcloud.com/wxTeam/activity2/875406?activityId=%s\""
+        },
+        "^(?=(.|\\n)*jd_zdjr_activityId)(?=(.|\\n)*cjhy)(.|\\n)*$": {
+            "env": "export M_WX_TEAM_URL=\"https://cjhydz-isv.isvjcloud.com/wxTeam/activity?activityId=%s\""
+        },
+        "^(?=(.|\\n)*jd_zdjr_activityId)(?=(.|\\n)*lzkj)(.|\\n)*$": {
+            "env": "export M_WX_TEAM_URL=\"https://lzkjdz-isv.isvjcloud.com/wxTeam/activity2/875406?activityId=%s\""
+        },
+        "(jd_zpcj|(?=.*jd_task_zp_custom)(?=.*https)^.*$)": {
+            "env": "export M_WX_LUCK_DRAW_URL=\"%s\""
+        },
+        "((?=.*jd_task_jg_custom)(?=.*https)^.*$)": {
+            "env": "export M_WX_ADD_CART_URL=\"%s\""
+        },
+        "((?=.*jd_task_gz_custom)(?=.*https)^.*$)": {
+            "env": "export M_WX_FOLLOW_DRAW_URL=\"%s\""
+        }
+    },
+    "monitor_scripts": {
+        "M_WX_TEAM_URL": {
+            "name": "M组队瓜分京豆",
+            "task 就是你面板上的那个任务，想怎么写就怎么写 或者 你手动怎么执行就怎么写": 1,
+            "task": "task /ql/scripts/m_jd_wx_team.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_TEAM_URL",
+            "enable": true
+        },
+        "M_WX_TEAM_JF_URL": {
+            "name": "M组队瓜分积分",
+            "task": "task /ql/scripts/m_jd_wx_team.js now",
+            "wait": 0,
+            "queue": true,
+            "queue_name": "M_WX_TEAM_JF_URL",
+            "enable": true
+        },
+        "M_WX_LEVEL_BIRTH_URL": {
+            "name": "M等级生日礼包",
+            "task": "task /ql/scripts/m_jd_wx_levelBirth.js now",
+            "wait": 5,
+            "queue": true,
+            "queue_name": "M_WX_LEVEL_BIRTH_URL",
+            "enable": true
+        },
+        "M_JOY_INVITE_URL": {
+            "name": "M邀请有礼JOY",
+            "task": "task /ql/scripts/m_jd_joy_invite.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_JOY_INVITE_URL",
+            "enable": true
+        },
+        "M_WX_KNOWLEDGE_URL": {
+            "name": "知识超人",
+            "task": "task /ql/scripts/m_jd_wx_knowledge.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_KNOWLEDGE_URL",
+            "enable": true
+        },
+        "M_LOREAL_INVITE_URL": {
+            "name": "M邀请有礼LOREAL",
+            "task": "task /ql/scripts/m_jd_loreal_invite.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_LOREAL_INVITE_URL",
+            "enable": true
+        },
+        "M_WX_ADD_CART_URL": {
+            "name": "M加购有礼",
+            "task": "task /ql/scripts/m_jd_wx_addCart.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_ADD_CART_URL",
+            "enable": true
+        },
+        "M_GYG_SHOP_ARGV": {
+            "name": "M店铺刮奖",
+            "task": "task /ql/scripts/m_jd_shop_gyg.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_GYG_SHOP_ARGV",
+            "enable": true
+        },
+        "M_SHOP_POINT_EXCHANGE_ARGV": {
+            "name": "M店铺积分兑换",
+            "task": "task /ql/scripts/m_jd_shop_pointExchange.js now",
+            "wait": 0,
+            "queue": true,
+            "queue_name": "M_SHOP_POINT_EXCHANGE_ARGV",
+            "enable": true
+        },
+        "M_WX_LUCK_DRAW_URL": {
+            "name": "M幸运抽奖",
+            "task": "task /ql/scripts/m_jd_wx_luckDraw.js now",
+            "wait": 10,
+            "queue": true,
+            "queue_name": "M_WX_LUCK_DRAW_URL",
+            "enable": true
+        },
+        "M_WX_COMPLETE_DRAW_URL": {
+            "name": "M完善有礼",
+            "task": "task /ql/scripts/m_jd_wx_completeDraw.js now",
+            "wait": 30,
+            "queue": true,
+            "queue_name": "M_WX_COMPLETE_DRAW_URL",
+            "enable": true
+        },
+        "M_WX_CENTER_DRAW_URL": {
+            "name": "M老虎机抽奖",
+            "task": "task /ql/scripts/m_jd_wx_centerDraw.js now",
+            "wait": 30,
+            "queue": true,
+            "queue_name": "M_WX_CENTER_DRAW_URL",
+            "enable": true
+        },
+        "M_WX_GAME_URL": {
+            "name": "M无线游戏",
+            "task": "task /ql/scripts/m_jd_wx_game.js now",
+            "wait": 0,
+            "queue": true,
+            "queue_name": "M_WX_GAME_URL",
+            "enable": true
+        },
+        "M_WX_SHOP_GIFT_URL": {
+            "name": "M关注有礼无线",
+            "task": "task /ql/scripts/m_jd_wx_shopGift.js now",
+            "wait": 30,
+            "queue": true,
+            "queue_name": "M_WX_SHOP_GIFT_URL",
+            "enable": true
+        },
+        "M_WX_UNPACK_DRAW_URL": {
+            "name": "M分享福袋",
+            "task": "task /ql/scripts/m_jd_wx_unPackDraw.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_UNPACK_DRAW_URL",
+            "enable": true
+        },
+        "M_WX_DAILY_GIFT_URL": {
+            "name": "M每日领奖",
+            "task": "task /ql/scripts/m_jd_wx_dailyGift.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_DAILY_GIFT_URL",
+            "enable": true
+        },
+        "M_WX_SHOP_SIGN_URL": {
+            "name": "M签到有礼",
+            "task": "task /ql/scripts/m_jd_wx_shopSign.js now",
+            "wait": 10,
+            "queue": true,
+            "queue_name": "M_WX_SHOP_SIGN_URL",
+            "enable": true
+        },
+        "M_WX_POINT_DRAW_URL": {
+            "name": "M积分兑换",
+            "task": "task /ql/scripts/m_jd_wx_pointDraw.js now",
+            "wait": 0,
+            "queue": true,
+            "queue_name": "M_WX_POINT_DRAW_URL",
+            "enable": true
+        },
+        "M_WX_BUILD_DRAW_URL": {
+            "name": "M盖楼领奖",
+            "task": "task /ql/scripts/m_jd_wx_buildDraw.js now",
+            "wait": 30,
+            "queue": true,
+            "queue_name": "DEFAULT_WX_QUEUE",
+            "enable": true
+        },
+        "M_WX_CARTKOI_URL": {
+            "name": "M购物车锦鲤",
+            "task": "task /ql/scripts/m_jd_wx_cartKoi.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_CARTKOI_URL",
+            "enable": true
+        },
+        "M_WX_SECOND_DRAW_URL": {
+            "name": "M读秒手速",
+            "task": "task /ql/scripts/m_jd_wx_secondDraw.js now",
+            "wait": 10,
+            "queue": true,
+            "queue_name": "DEFAULT_WX_QUEUE",
+            "enable": true
+        },
+        "M_WX_FANS_DRAW_URL": {
+            "name": "M粉丝互动",
+            "task": "task /ql/scripts/m_jd_wx_fansDraw.js now",
+            "wait": 30,
+            "queue": true,
+            "queue_name": "DEFAULT_WX_QUEUE",
+            "enable": true
+        },
+        "M_FAV_SHOP_ARGV": {
+            "name": "M收藏有礼",
+            "task": "task /ql/scripts/m_jd_fav_shop_gift.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_FAV_SHOP_ARGV",
+            "enable": true
+        },
+        "M_WX_FOLLOW_DRAW_URL": {
+            "name": "M关注抽奖",
+            "task": "task /ql/scripts/m_jd_wx_followDraw.js now",
+            "wait": 10,
+            "queue": true,
+            "queue_name": "M_WX_FOLLOW_DRAW_URL",
+            "enable": true
+        },
+        "M_FOLLOW_SHOP_ARGV": {
+            "name": "M关注有礼",
+            "task": "task /ql/scripts/m_jd_follow_shop.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_FOLLOW_SHOP_ARGV",
+            "enable": true
+        },
+        "M_OPEN_CARD_ARGV": {
+            "name": "M入会有礼",
+            "task": "task /ql/scripts/m_jd_open_card.js now",
+            "wait": 0,
+            "queue": true,
+            "queue_name": "M_OPEN_CARD_ARGV",
+            "enable": true
+        },
+        "M_OPEN_CARD_FORCE_ARGV": {
+            "name": "M强制入会",
+            "task": "task /ql/scripts/m_jd_open_card_force.js now",
+            "wait": 0,
+            "queue": true,
+            "queue_name": "M_OPEN_CARD_FORCE_ARGV",
+            "enable": true
+        },
+        "M_WX_SHARE_URL": {
+            "name": "M分享有礼",
+            "task": "task /ql/scripts/m_jd_wx_share.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_SHARE_URL",
+            "enable": true
+        },
+        "M_WX_DADOUDOU_URL": {
+            "name": "M打豆豆",
+            "task": "task /ql/scripts/m_jd_wx_dadoudou.js now",
+            "wait": 0,
+            "queue": false,
+            "queue_name": "M_WX_DADOUDOU_URL",
+            "enable": true
+        }
+    },
+    "rules": {
+        "/wxTeam/": {
+            "name": "M组队瓜分",
+            "env": "export jd_zdjr_activityId=\"%s\"\nexport jd_zdjr_activityUrl=\"%s\"\nexport jd_zdjr_type=\"%s\""
+        },
+        "/wxFansInterActionActivity/": {
+            "name": "M粉丝互动",
+            "env": "export M_WX_FANS_DRAW_URL=\"%s\""
+        },
+        "/wxMcLevelAndBirthGifts/": {
+            "name": "M等级生日礼包",
+            "env": "export M_WX_LEVEL_BIRTH_URL=\"%s\""
+        },
+        "(/wxCollectionActivity/|^(?=.*lorealjdcampaign)(?=.*activityType=10024).*$)": {
+            "name": "M加购有礼",
+            "env": "export M_WX_ADD_CART_URL=\"%s\""
+        },
+        "(^(?=.*lorealjdcampaign)(?=.*activityType=10024).*$|^(?=.*prod/cc/interactsaas)(?=.*activityType=10024).*$)": {
+            "name": "M加购有礼",
+            "env": "export M_WX_ADD_CART_URL=\"%s\""
+        },
+        "(^(?=.*dVF7gQUVKyUcuSsVhuya5d2XD4F)(?=.*code).*$)": {
+            "name": "M邀请有礼JOY",
+            "env": "export invite_code=\"%s\""
+        },
+        "(wxCollectCard)": {
+            "name": "M集卡有礼",
+            "env": "export M_WX_COLLECT_CARD_URL=\"%s\""
+        },
+        "(/wxKnowledgeActivity/)": {
+            "name": "知识超人",
+            "env": "export M_WX_KNOWLEDGE_URL=\"%s\""
+        },
+        "/microDz/": {
+            "name": "微定制开卡",
+            "env": "#微定制\nexport WDZactivityId=\"%s\""
+        },
+        "^(?=.*lorealjdcampaign)(?=.*activityType=10006).*$": {
+            "name": "M邀请有礼LOREAL",
+            "env": "export M_LOREAL_INVITE_URL=\"%s\""
+        },
+        "^(?=.*prod/cc/interactsaas)(?=.*activityType=10006).*$": {
+            "name": "M邀请有礼INTERACT",
+            "env": "export M_INTERACT_INVITE_URL=\"%s\""
+        },
+        "^(?=.*prod/cc/interactsaas)(?=.*activityType=10070).*$": {
+            "name": "M邀请有礼INTERACT",
+            "env": "export M_INTERACT_INVITE_URL=\"%s\""
+        },
+        "(/lzclient/|/wxDrawActivity/|^(?=.*gzsl-isv)(?=.*game).*$)": {
+            "name": "M幸运抽奖",
+            "env": "export M_WX_LUCK_DRAW_URL=\"%s\""
+        },
+        "(^(?=.*prod/cc/interactsaas)(?=.*activityType=10020).*$|^(?=.*prod/cc/interactsaas)(?=.*activityType=10021).*$|^(?=.*prod/cc/interactsaas)(?=.*activityType=10026).*$|^(?=.*prod/cc/interactsaas)(?=.*activityType=10031).*$|^(?=.*prod/cc/interactsaas)(?=.*activityType=10063).*$|^(?=.*prod/cc/interactsaas)(?=.*activityType=10080).*$)": {
+            "name": "M幸运抽奖",
+            "env": "export M_WX_LUCK_DRAW_URL=\"%s\""
+        },
+        "/completeInfoActivity/": {
+            "name": "M完善有礼",
+            "env": "export M_WX_COMPLETE_DRAW_URL=\"%s\""
+        },
+        "^(?=.*prod/cc/interactsaas)(?=.*activityType=10049).*$": {
+            "name": "M完善有礼",
+            "env": "export M_WX_COMPLETE_DRAW_URL=\"%s\""
+        },
+        "/drawCenter/": {
+            "name": "M老虎机抽奖",
+            "env": "export M_WX_CENTER_DRAW_URL=\"%s\""
+        },
+        "/wxGameActivity/": {
+            "name": "M无线游戏",
+            "env": "export M_WX_GAME_URL=\"%s\""
+        },
+        "(/wxShopGift/|shopGiftBag.html|newShopGiftBag.html)": {
+            "name": "M关注特效",
+            "env": "export M_WX_SHOP_GIFT_URL=\"%s\""
+        },
+        "^(?=.*prod/cc/interactsaas)(?=.*activityType=10058).*$": {
+            "name": "M无线关注",
+            "env": "export M_WX_SHOP_GIFT_URL=\"%s\""
+        },
+        "(/wxUnPackingActivity/)": {
+            "name": "M分享福袋",
+            "env": "export M_WX_UNPACK_DRAW_URL=\"%s\""
+        },
+        "/daily/": {
+            "name": "M每日领奖",
+            "env": "export M_WX_DAILY_GIFT_URL=\"%s\""
+        },
+        "/signActivity?": {
+            "name": "M签到有礼",
+            "env": "export M_WX_SHOP_SIGN_URL=\"%s\""
+        },
+        "(^(?=.*prod/cc/interactsaas)(?=.*activityType=10023).*$|^(?=.*prod/cc/interactsaas)(?=.*activityType=10040).*$)": {
+            "name": "M签到有礼",
+            "env": "export M_WX_SHOP_SIGN_URL=\"%s\""
+        },
+        "(/wxPointShopView/point)": {
+            "name": "M积分兑换",
+            "env": "export M_WX_POINT_DRAW_URL=\"%s\""
+        },
+        "/wxBuildActivity/": {
+            "name": "M盖楼领奖",
+            "env": "export M_WX_BUILD_DRAW_URL=\"%s\""
+        },
+        "/wxCartKoi/": {
+            "name": "M购物车锦鲤",
+            "env": "export M_WX_CARTKOI_URL=\"%s\""
+        },
+        "^(?=.*prod/cc/interactsaas)(?=.*activityType=10036).*$": {
+            "name": "M购物车锦鲤",
+            "env": "export M_WX_CARTKOI_URL=\"%s\""
+        },
+        "(/fansactiveall/|/videofangrowth/|/fansactivecopy/)": {
+            "name": "M粉丝红包",
+            "env": "export M_FANS_RED_PACKET_URL=\"%s\""
+        },
+        "(/wxSecond/)": {
+            "name": "M读秒手速",
+            "env": "export M_WX_SECOND_DRAW_URL=\"%s\""
+        },
+        "(/wxShopFollowActivity/)": {
+            "name": "M关注抽奖",
+            "env": "export M_WX_FOLLOW_DRAW_URL=\"%s\""
+        },
+        "(^(?=.*prod/cc/interactsaas)(?=.*activityType=10053).*$|^(?=.*prod/cc/interactsaas)(?=.*activityType=10069).*$)": {
+            "name": "M无线关注",
+            "env": "export M_WX_FOLLOW_DRAW_URL=\"%s\""
+        },
+        "/wxCollectCard/": {
+            "name": "M集卡有礼",
+            "env": "export M_WX_COLLECT_CARD_URL=\"%s\""
+        },
+        "/wxShareActivity/": {
+            "name": "M分享有礼",
+            "env": "export M_WX_SHARE_URL=\"%s\""
+        },
+        "/wxgame/activity/": {
+            "name": "M打豆豆",
+            "env": "export M_WX_DADOUDOU_URL=\"%s\""
+        }
+    }
+}
