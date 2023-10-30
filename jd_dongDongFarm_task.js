@@ -16,7 +16,7 @@ cron:1 1 1 1 *
 ============Quantumultx===============
 [task_local]
 #新东东农场任务
-45 2-22/6 * * * jd_dongDongFarm_task, tag=新东东农场任务, enabled=true
+45 2-22/6 * * * jd_dongDongFarm_task.js, tag=新东东农场任务, enabled=true
 
 */
 
