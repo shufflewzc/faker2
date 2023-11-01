@@ -420,7 +420,8 @@ if(DisableIndex!=-1){
 			        bean(), //京豆查询
 			        //jdCash(), //领现金
 			        GetJoyRuninginfo(), //汪汪赛跑
-			        queryScores()
+			        queryScores(),
+					getek()
 			    ])
 				
 			await showMsg();
@@ -749,7 +750,7 @@ async function showMsg() {
 		ReturnMessage += `【特价金币】${$.JDtotalcash}币(≈${($.JDtotalcash / 10000).toFixed(2)}元)\n`;
 	}	
 	if($.ECardinfo)
-		ReturnMessage += `【礼卡余额】${$.ECardinfo}\n`;
+		ReturnMessage += `【E卡 余额】${$.ECardinfo}元\n`;
 	
 	if ($.JoyRunningAmount) 
 		ReturnMessage += `【汪汪赛跑】${$.JoyRunningAmount}元\n`;
@@ -2186,6 +2187,39 @@ function checkplus() {
                 $.logErr(e, resp);
             } finally {
                 resolve();
+            }
+        })
+    })
+}
+function getek() {
+    let opt = {
+        url: `https://mygiftcard.jd.com/giftcard/queryChannelUserCard`,
+        //body: `appid=wh5&clientVersion=1.0.0&functionId=wanrentuan_superise_send&body={"channel":2}&area=2_2813_61130_0`,
+        headers: {
+            //'Host': 'api.m.jd.com',
+            'Origin': 'https://o.jd.com',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': $.UA,
+            'Cookie': cookie
+        }
+    }
+    return new Promise(async (resolve) => {
+        $.get(opt, async (err, resp, data) => {
+            try {
+                if (err) {
+                    console.log(`getek请求失败!!!!`)
+                } else {
+                    data = JSON.parse(data)
+                    if (data.code == 000000) {
+                        $.ECardinfo = Number(data.data.totalAmount);
+                    } else {
+                        console.log(data.msg)
+                    }
+                }
+            } catch (e) {
+                $.logErr(e, resp)
+            } finally {
+                resolve(data)
             }
         })
     })
