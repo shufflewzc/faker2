@@ -53,12 +53,12 @@ def get_proxy_api(proxy_url, max_retries=5, timeout=60, retry_delay=1):
             if response.status_code == 200:
                 return proxy_address
         except Exception as e:
-            print(f"代理检测失败，错误信息：{e}")
+            printf(f"代理检测失败，错误信息：{e}")
 
-        print("代理检测失败，重新获取...")
+        printf("代理检测失败，重新获取...")
         time.sleep(retry_delay)
     
-    print("无法获取可用的代理IP，尝试次数已达上限。")
+    printf("无法获取可用的代理IP，尝试次数已达上限。")
     return None
 
 
@@ -135,7 +135,8 @@ def send_notification(title, content,summary):
 
 
 def randomstr(num):
-    randomstr = ''.join(str(uuid.uuid4()).split('-'))[num:]
+    #randomstr = ''.join(str(uuid.uuid4()).split('-'))[num:]
+    randomstr = ''.join(str(uuid.uuid4()).split('-'))
     return randomstr
 
 def randomstr1(num):
@@ -199,8 +200,45 @@ def get_sign(functionId, body, client : str="android", clientVersion : str='11.2
     all_arg = "functionId=%s&body=%s&uuid=%s&client=%s&clientVersion=%s&st=%s&sv=%s" % (functionId, body, suid, client, clientVersion, st, sv)
     back_bytes = sign_core(str.encode(all_arg))
     sign = hashlib.md5(base64.b64encode(back_bytes)).hexdigest()
-    convertUrl='functionId=%s&body=%s&clientVersion=%s&client=%s&sdkVersion=31&lang=zh_CN&harmonyOs=0&networkType=wifi&oaid=%s&eid=%s&ef=1&ep=%s&st=%s&sign=%s&sv=%s' % (functionId,body, clientVersion, client, suid, eid, urllib.parse.quote(ep), st, sign, sv)
+    #convertUrl='body=%s&clientVersion=%s&client=%s&sdkVersion=31&lang=zh_CN&harmonyOs=0&networkType=wifi&oaid=%s&eid=%s&ef=1&ep=%s&st=%s&sign=%s&sv=%s' % (body, clientVersion, client, suid, eid, urllib.parse.quote(ep), st, sign, sv)
+    convertUrl='body=%s&clientVersion=%s&client=%s&sdkVersion=31&lang=zh_CN&harmonyOs=0&networkType=wifi&oaid=%s&ef=1&ep=%s&st=%s&sign=%s&sv=%s' % (body, clientVersion, client, suid, urllib.parse.quote(ep), st, sign, sv)
     return convertUrl
+    
+def get_sign_diy(pin):
+    url = signapi
+    body_content = {"url": "https://plogin.m.jd.com/jd-mlogin/static/html/appjmp_blank.html"}
+    data_json = {
+        'fn': 'genToken',
+        'body': json.dumps(body_content)
+    }
+    headers_json = {"Content-Type": "application/json"}
+
+    # 尝试发送 JSON 数据
+    try:
+        response = requests.post(url=url, headers=headers_json, json=data_json, verify=False)
+        response.raise_for_status() 
+        sign = response.json()
+        if 'body' not in sign:
+            raise ValueError("JSON 响应中不含 'body' 字段")
+        return sign['body']
+    except (requests.HTTPError, ValueError) as e:
+        #printf(f"尝试发送 JSON 数据失败或响应中没有 'body': {e}")
+        try:
+            headers_form = {"Content-Type": "application/x-www-form-urlencoded"}
+            data_form = {
+                'functionId': 'genToken',
+                'body': json.dumps(body_content)
+            }
+            response = requests.post(url=url, headers=headers_form, data=data_form, verify=False)
+            response.raise_for_status()
+            sign = response.json()['data']
+            # 再次检查响应中是否包含 'body' 字段
+            if 'body' not in sign:
+                raise ValueError("表单响应中不含 'body' 字段")
+            return sign['convertUrl']
+        except Exception as e2:
+            printf(f"尝试获取 {unquote(pin)} 的签名时出错：\n{e2}")
+    return sign
     
 def getcookie_wskey(key):
     proxys = proxy_url
@@ -209,10 +247,12 @@ def getcookie_wskey(key):
 
     body = "body=%7B%22to%22%3A%22https%3A//plogin.m.jd.com/jd-mlogin/static/html/appjmp_blank.html%22%7D"
     pin = findall("pin=([^;]*);", key)[0]
-
-            
+    
     for num in range(0,5):
-        sign = get_sign("genToken",{"url": "https://plogin.m.jd.com/jd-mlogin/static/html/appjmp_blank.html"},"android","11.2.8")       
+        sign = get_sign("genToken",{"url": "https://plogin.m.jd.com/jd-mlogin/static/html/appjmp_blank.html"},"android","11.2.8")
+        #sign = get_sign_diy(pin)
+        if not sign:
+        	continue
         url = f"https://api.m.jd.com/client.action?functionId=genToken&{sign}"
         headers = {
             "cookie": key,
@@ -224,10 +264,10 @@ def getcookie_wskey(key):
             token = post(url=url, headers=headers, data=body, verify=False, proxies={"http": proxys, "https": proxys}).json()
             token=token['tokenKey']
         except Exception as error:
-            print(f"【警告】{unquote(pin)}在获取token时失败，等待5秒后重试")
+            printf(f"【警告】{unquote(pin)}在获取token时失败，等待5秒后重试")
             time.sleep(5)
             if num == 4:
-                print(f"【错误】{unquote(pin)}在获取token时：\n{error}")
+                printf(f"【错误】{unquote(pin)}在获取token时：\n{error}")
                 return pin, "False"
             randomuserAgent()
             if os.environ.get("WSKEY_PROXY_URL") is not None:
@@ -260,11 +300,11 @@ def getcookie_wskey(key):
             res = get(url=url, params=params, verify=False,
                       allow_redirects=False, proxies={"http": proxys, "https": proxys}).cookies.get_dict()        
         except Exception as error:
-            print(f"【警告】{unquote(pin)}在获取cookie时失败，等待5秒后重试")
+            printf(f"【警告】{unquote(pin)}在获取cookie时失败，等待5秒后重试")
             time.sleep(5)
             if num == 4:
                 # 最后一次重试时输出错误消息并返回 "Error"
-                print(f"【错误】{unquote(pin)}在获取cookie时：\n{error}")
+                printf(f"【错误】{unquote(pin)}在获取cookie时：\n{error}")
                 return "Error"
             randomuserAgent()
             if os.environ.get("WSKEY_PROXY_URL") is not None:
@@ -431,10 +471,10 @@ def main():
         iswxpusher=False
                 
     if proxy_url is None:
-        print("没有配置代理，无法使用代理!\n请配置环境变量WSKEY_PROXY_TUNNRL或WSKEY_PROXY_URL\n")
-        print("====================================")
+        printf("没有配置代理，无法使用代理!\n请配置环境变量WSKEY_PROXY_TUNNRL或WSKEY_PROXY_URL\n")
+        printf("====================================")
     else:
-        print(f"已配置代理: {proxy_url}\n")
+        printf(f"已配置代理: {proxy_url}\n")
 
     resurt=""
     resurt1=""
