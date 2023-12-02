@@ -335,7 +335,8 @@ function taskPostUrl(url, body) {
             'Cookie': `${cookie}`,
             "Host": "api.m.jd.com",
             "User-Agent": "JD4iPhone/167853 (iPhone; iOS; Scale/2.00)",
-        }
+        },
+        secureProtocol: 'TLSv1_2_method',
     }
 }
 

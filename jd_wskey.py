@@ -719,7 +719,7 @@ if __name__ == '__main__':  # Python主函数执行入口
     else:  # 判断分支
         sleepTime = 10  # 默认休眠时间 10秒
     for ws in wslist:  # wslist变量 for循环  [wslist -> ws]
-        ua = 'okhttp/3.12.16;jdmall;android;version/12.1.0;build/98891;'
+        ua = getua()
         if os.getenv("WSKEY_PROXY_URL"):
             proxys = get_proxy_api(proxy_url)
         wspin = ws.split(";")[0]  # 变量分割 ;
