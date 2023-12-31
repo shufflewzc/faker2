@@ -826,7 +826,7 @@ async function showMsg() {
         let dwappex = await dwappexpire();
         ReturnMessage += `【话费积分】${dwscore}`;
         if (dwappex) {
-            ReturnMessage += `(最近已过期:${dwappex})`;
+            ReturnMessage += `(近7日将过期${dwappex})`;
         }
         ReturnMessage += `\n`;
     }
@@ -1508,9 +1508,9 @@ function redPacket() {
 
                         if ($.jsRed > 0) {
                             if ($.jsRedExpire > 0)
-                                $.message += `【京喜特价】${$.jsRed}(将过期${$.jsRedExpire.toFixed(2)})元(原极速版) \n`;
+                                $.message += `【京喜特价】${$.jsRed}(将过期${$.jsRedExpire.toFixed(2)})元 \n`;
                             else
-                                $.message += `【京喜特价】${$.jsRed}元(原极速版) \n`;
+                                $.message += `【京喜特价】${$.jsRed}元 \n`;
                         }
 
                         if ($.jdRed > 0) {
@@ -2136,7 +2136,7 @@ function dwappinfo() {
 }
 function dwappexpire() {
     let opt = {
-        url: `https://dwapp.jd.com/user/scoreDetail?pageNo=1&pageSize=10&scoreType=16&t=1637`,
+        url: `https://api.m.jd.com/api?functionId=DATAWALLET_USER_QUERY_EXPIRED_SCORE`,
         headers: {
 
             'User-Agent': $.UA,
@@ -2148,11 +2148,12 @@ function dwappexpire() {
             try {
                 if (err) {
                     console.log(`${JSON.stringify(err)}`)
-                    console.log(` API请求失败，请检查网路重试`)
+                    console.log(`dwappexpire 请求失败，请检查网路重试`)
                 } else {
                     data = JSON.parse(data)
                     if (data.code == 200) {
-                        data = data.data.userOperateList.length !== 0 ? moment(new Date(data.data.userOperateList[0].time)).format('M/D') : '';
+                        data = data.data.expireNum;
+						
                     } else {
                         //console.log(data.msg);
                         data = '';
