@@ -2136,15 +2136,15 @@ function dwappinfo() {
 }
 function dwappexpire() {
     let opt = {
-        url: `https://api.m.jd.com/api?functionId=DATAWALLET_USER_QUERY_EXPIRED_SCORE`,
+        url: `https://api.m.jd.com/api?functionId=DATAWALLET_USER_QUERY_EXPIRED_SCORE&appid=h5-sep&body=%7B%22expireDayNum%22%3A7%7D&client=m&clientVersion=6.0.0`,
         headers: {
-
+			'Origin':'https://prodev.m.jd.com',
             'User-Agent': $.UA,
             'Cookie': cookie
         }
     }
     return new Promise(async (resolve) => {
-        $.get(opt, async (err, resp, data) => {
+        $.post(opt, async (err, resp, data) => {
             try {
                 if (err) {
                     console.log(`${JSON.stringify(err)}`)
