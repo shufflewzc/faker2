@@ -1,5 +1,5 @@
 /*
-1 6 * * * jd_qszd.js
+1 6 * * * jd_qszd_dylan.js
 */
 
 const $ = new Env('轻松赚豆');
