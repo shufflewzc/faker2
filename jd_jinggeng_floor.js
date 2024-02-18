@@ -5,7 +5,7 @@
         jd_jinggeng_floor_opencard // 是否入会（true/false），默认不入会
         jd_jinggeng_floor_Notify // 是否通知（true/false），默认不通知
 
-7 7 7 7 *
+7 7 7 7 * jd_jinggeng_floor.js
 
 */
 

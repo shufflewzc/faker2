@@ -4,7 +4,7 @@
 环境变量：jd_lzkj_loreal_share_url // 活动链接
         jd_lzkj_loreal_share_helpnum // 需要助力的账号数量（默认3）
 
-7 7 7 7 * 
+7 7 7 7 *  jd_lzkj_loreal_share.js
 
 */
 
