@@ -3,7 +3,8 @@
 活动链接：https://cjhy-isv.isvjcloud.com/mc/wxPointShopView/pointExgBeans?venderId=<店铺id>&giftId=<活动id>
 环境变量：jd_pointExgBeans_activityUrl // 活动链接
         jd_pointExgBeans_notify // 是否推送通知，默认不推送
-1 1 1 1 1 jd_pointExgBeans.js
+
+7 7 7 7 * 
 
 */
 

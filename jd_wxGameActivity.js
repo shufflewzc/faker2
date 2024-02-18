@@ -1,11 +1,12 @@
 /*
 活动名称：游戏赢大礼 · 超级无线/超级会员
 活动链接：https://lzkj-isv.isvjd.com/wxGameActivity/activity/activity?activityId=<活动id>
-         https://cjhy-isv.isvjcloud.com/wxGameActivity/activity?activityId=<活动id>
+        https://cjhy-isv.isvjcloud.com/wxGameActivity/activity?activityId=<活动id>
 环境变量：jd_wxGameActivity_activityUrl // 活动链接
-         jd_wxGameActivity_openCard // 是否开卡，默认不开卡
-         jd_wxGameActivity_endScore // 指定游戏分数，默认不指定，填0也为不指定
-7 7 7 7 7 jd_wxGameActivity.js
+        jd_wxGameActivity_openCard // 是否开卡，默认不开卡
+        jd_wxGameActivity_endScore // 指定游戏分数，默认不指定，填0也为不指定
+
+7 7 7 7 * 
 
 */
 
