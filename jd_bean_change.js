@@ -832,7 +832,7 @@ async function showMsg() {
             TempBaipiao += `【新农场】种植完成!\n`;
             allReceiveMessage += `【账号${IndexAll} ${$.nickName || $.UserName}】种植完成，去领取吧 (新农场)\n`;
         } else if ($.fruitnewinfo.skuName && $.fruitnewinfo.treeCurrentState === 0){
-            ReturnMessage += '【新农场】种植进度' + $.fruitnewinfo.treeFullStage +'/5(' + $.fruitnewinfo.currentProcess+'%)';
+            ReturnMessage += '【新农场】种植进度' + $.fruitnewinfo.treeFullStage +'/5(' + $.fruitnewinfo.currentProcess+'%)\n';
         } else if ($.fruitnewinfo.treeFullStage === 0){
             ReturnMessage += `【新农场】未种植!\n`;
             //TempBaipiao += `【新农场】未种植!\n`;
