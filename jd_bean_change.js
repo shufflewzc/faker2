@@ -2291,7 +2291,7 @@ function newfarm_info() {
                     
                     data = JSON.parse(data);
                     if (data.data.success) {
-                        if (data.data.result.plantAwards.length > 0){
+                        if (data.data.result.plantAwards && data.data.result.plantAwards.length > 0){
                             for (let i of  data.data.result.plantAwards ){
                                 if (i.awardStatus == 1){
                                     $.newfarm_info = `${i.skuName} -> ${i.exchangeRemind}`;
