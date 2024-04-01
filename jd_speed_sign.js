@@ -96,7 +96,7 @@ async function jdGlobal(cookie,url_uuid) {
       return;
     }
     if (runorderReward) {
-      await orderReward(cookie)
+      //await orderReward(cookie)
     }
   } catch (e) {
     $.logErr(e)
