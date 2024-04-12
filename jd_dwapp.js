@@ -1,16 +1,14 @@
 /*
 积分换话费
 入口：首页-生活·缴费-积分换话费 
-update：2023/6/23
+update：2024/4/11
 20 2,15 * * * jd_dwapp.js
 */
 
 const $ = new Env('积分换话费');
 const notify = $.isNode() ? require('./sendNotify') : '';
-//Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 CryptoJS = $.isNode() ? require('crypto-js') : CryptoJS;
-//IOS等用户直接用NobyDa的jd cookie
 let cookiesArr = [], cookie = '';
 if ($.isNode()) {
     Object.keys(jdCookieNode).forEach((item) => { cookiesArr.push(jdCookieNode[item]) })
@@ -134,15 +132,15 @@ async function taskreceive(id) {
 
 async function usersign() {
     body = await sign();
-    body.channelSource = 'txzs';
+    //body.channelSource = 'txzs';
     let opt = {
-        url: `https://api.m.jd.com/user/color/task/dwSign`,
-        body: `appid=txsm-m&client=h5&functionId=DATAWALLET_USER_SIGN&body=${encodeURIComponent(JSON.stringify(body))}`,
+        url: `https://api.m.jd.com/api?functionId=DATAWALLET_USER_SIGN`,
+        body: `appid=h5-sep&client=m&&body=${encodeURIComponent(JSON.stringify(body))}`,
         headers: {
-            "Origin": "https://txsm-m.jd.com",
+            "Origin": "https://mypoint.jd.com",
             "Accept": "*/*",
             "User-Agent": `jdapp;iPhone;10.1.0;13.5;${$.UUID};network/wifi;model/iPhone11,6;addressid/4596882376;appBuild/167774;jdSupportDarkMode/0;Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1`,
-            "Referer": "https://txsm-m.jd.com/",
+            "Referer": "https://mypoint.jd.com/",
             "Cookie": cookie,
         }
     }
@@ -158,11 +156,11 @@ async function usersign() {
                         if (data.code === 200) {
                             console.log(`签到成功：获得积分${data.data.signInfo.signNum}`);
                             $.log(`总积分：${data.data.totalNum}\n`);
-                        } else if(data.code === 302){
+                        } else if (data.code === 302) {
                             console.log("已完成签到！！！\n");
                         } else {
-							$.log(JSON.stringify(data));
-						}
+                            $.log(JSON.stringify(data));
+                        }
                     }
                 }
             } catch (e) {
@@ -197,7 +195,7 @@ async function tasklist() {
                     console.log(`${$.name} API请求失败，请检查网路重试`)
                 } else {
                     data = JSON.parse(data)
-                    if (JSON.stringify(data.data) !='{}') {
+                    if (JSON.stringify(data.data) != '{}') {
                         $.tasklist = data.data
                     }
                 }
