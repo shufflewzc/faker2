@@ -10,7 +10,7 @@
 
 实物奖品需要填写地址变量才行，具体请查看 WIki
 
-cron "1 1 1 1 *" jd_dplh0417.js
+cron "1 1 1 1 *" script-path=jd_dplh.js
 
 */
 
