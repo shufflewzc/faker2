@@ -21,7 +21,9 @@ const querystring = require('querystring');
 const exec = require('child_process').exec;
 const $ = new Env();
 const timeout = 15000; //超时时间(单位毫秒)
-console.log("加载sendNotify，当前版本: 20230712");
+console.log("\n====加载sendNotify，频道：https://t.me/scriptalking====\n");
+const common = require('./utils/Rebels_jdCommon');
+$.UA = common.genUA($.UserName);
 // =======================================go-cqhttp通知设置区域===========================================
 //gobot_url 填写请求地址http://127.0.0.1/send_private_msg
 //gobot_token 填写在go-cqhttp文件设置的访问密钥
@@ -35,6 +37,11 @@ let GOBOT_QQ = ''; // 如果GOBOT_URL设置 /send_private_msg 则需要填入 us
 //此处填你申请的SCKEY.
 //(环境变量名 PUSH_KEY)
 let SCKEY = '';
+
+// =======================================PushDeer通知设置区域===========================================
+//此处填你申请的PushDeer KEY.
+//(环境变量名 DEER_KEY)
+let PUSHDEER_KEY = '';
 
 // =======================================Bark App通知设置区域===========================================
 //此处填你BarkAPP的信息(IP/设备码，例如：https://api.day.app/XXXXXXXX)
@@ -80,6 +87,12 @@ let QYWX_KEY = '';
 - 图文消息（mpnews）: 素材库图片id, 可查看此教程(http://note.youdao.com/s/HMiudGkb)或者(https://note.youdao.com/ynoteshare1/index.html?id=1a0c8aff284ad28cbd011b29b3ad0191&type=note)
  */
 let QYWX_AM = '';
+
+// =======================================飞书机器人通知设置区域===========================================
+//此处填你飞书机器人的 webhook(详见文档 https://open.feishu.cn/document/ukTMukTMukTM/ucTM5YjL3ETO24yNxkjN)
+//(环境变量名 FS_KEY)
+let FS_KEY = '';
+
 
 // =======================================iGot聚合推送通知设置区域===========================================
 //此处填您iGot的信息(推送key，例如：https://push.hellyw.com/XXXXXXXX)
@@ -129,11 +142,11 @@ let ShowRemarkType = "1";
 let Notify_NoCKFalse = "false";
 let Notify_NoLoginSuccess = "false";
 let UseGroupNotify = 1;
-const {
-    getEnvs,
-    DisableCk,
-    getEnvByPtPin
-} = require('./ql');
+//const {
+//    getEnvs,
+//    DisableCk,
+//    getEnvByPtPin
+//} = require('./function/ql');
 const fs = require('fs');
 let isnewql = fs.existsSync('/ql/data/config/auth.json');
 let strCKFile = "";
@@ -150,7 +163,7 @@ if (isnewql) {
 let Fileexists = fs.existsSync(strCKFile);
 let TempCK = [];
 if (Fileexists) {
-    console.log("检测到别名缓存文件CKName_cache.json，载入...");
+    //console.log("检测到别名缓存文件CKName_cache.json，载入...");
     TempCK = fs.readFileSync(strCKFile, 'utf-8');
     if (TempCK) {
         TempCK = TempCK.toString();
@@ -161,7 +174,7 @@ if (Fileexists) {
 let UidFileexists = fs.existsSync(strUidFile);
 let TempCKUid = [];
 if (UidFileexists) {
-    console.log("检测到一对一Uid文件WxPusherUid.json，载入...");
+    //console.log("检测到一对一Uid文件WxPusherUid.json，载入...");
     TempCKUid = fs.readFileSync(strUidFile, 'utf-8');
     if (TempCKUid) {
         TempCKUid = TempCKUid.toString();
@@ -179,17 +192,10 @@ let Notify_SkipText = [];
 let isLogin = false;
 if (process.env.NOTIFY_SHOWNAMETYPE) {
     ShowRemarkType = process.env.NOTIFY_SHOWNAMETYPE;
-    if (ShowRemarkType == "2")
-        console.log("检测到显示备注名称，格式为: 京东别名(备注)");
-    if (ShowRemarkType == "3")
-        console.log("检测到显示备注名称，格式为: 京东账号(备注)");
-    if (ShowRemarkType == "4")
-        console.log("检测到显示备注名称，格式为: 备注");
 }
-async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By ccwav Mod', strsummary = "") {
+async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By https://github.com/shufflewzc/faker2',strsummary="") {
     console.log(`开始发送通知...`);
 
-    //NOTIFY_FILTERBYFILE代码来自Ca11back.
     if (process.env.NOTIFY_FILTERBYFILE) {
         var no_notify = process.env.NOTIFY_FILTERBYFILE.split('&');
         if (module.parent.filename) {
@@ -214,6 +220,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         GOBOT_TOKEN = '';
         GOBOT_QQ = '';
         SCKEY = '';
+		PUSHDEER_KEY= '';
         BARK_PUSH = '';
         BARK_SOUND = '';
         BARK_GROUP = 'QingLong';
@@ -227,6 +234,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         DD_BOT_SECRET = '';
         QYWX_KEY = '';
         QYWX_AM = '';
+        FS_KEY = '';
         IGOT_PUSH_KEY = '';
         PUSH_PLUS_TOKEN = '';
         PUSH_PLUS_USER = '';
@@ -235,18 +243,20 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
 
         //变量开关
         var Use_serverNotify = true;
+		var Use_pushdeerNotify = true;
         var Use_pushPlusNotify = true;
         var Use_BarkNotify = true;
         var Use_tgBotNotify = true;
         var Use_ddBotNotify = true;
         var Use_qywxBotNotify = true;
         var Use_qywxamNotify = true;
+        var Use_fsBotNotify = true;
         var Use_iGotNotify = true;
         var Use_gobotNotify = true;
         var Use_WxPusher = true;
         var strtext = text;
         var strdesp = desp;
-        var titleIndex = -1;
+		var titleIndex =-1;
         if (process.env.NOTIFY_NOCKFALSE) {
             Notify_NoCKFalse = process.env.NOTIFY_NOCKFALSE;
         }
@@ -273,10 +283,17 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
 
             if (Notify_CKTask) {
                 console.log("触发CK脚本，开始执行....");
-                Notify_CKTask = "task " + Notify_CKTask + " now";
-                await exec(Notify_CKTask, function (error, stdout, stderr) {
-                    console.log(error, stdout, stderr)
-                });
+                await exec(`ps -ef|grep -v grep|grep ${Notify_CKTask}`, async function (err, stdout, stderr){
+                if (!stdout) {
+                             Notify_CKTask = "task " + Notify_CKTask + " now";
+                             console.log(Notify_CKTask)
+                             await exec(Notify_CKTask);
+                } else {
+                             console.log('已有相同任务在执行,跳过此次执行！\n')
+                             return
+                       }
+                })
+
             }
         }
         if (process.env.NOTIFY_AUTOCHECKCK == "true") {
@@ -366,24 +383,24 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
                                 if (DisableCkBody.code == 200) {
                                     console.log(`京东账号` + strdecPtPin + `已失效,自动禁用成功!\n`);
 
-                                    strNotifyOneTemp = `京东账号: ` + strdecPtPin + ` 已失效,自动禁用成功!\n如果要继续挂机，请联系管理员重新登录账号，账号有效期为30天.`;
+                                    strNotifyOneTemp = `京东账号: ` + strdecPtPin + ` 已失效,已自动禁用!\n如果要继续挂机，请重新登录账号，账号有效期为30天.`;
                                     strNotifyOneTemp += "\n任务标题：" + strtext;
                                     if (strAllNotify)
                                         strNotifyOneTemp += `\n` + strAllNotify;
                                     desp = strNotifyOneTemp;
                                     if (WP_APP_TOKEN_ONE) {
-                                        await sendNotifybyWxPucher(`账号过期下线通知`, strNotifyOneTemp, strdecPtPin,'\n\n本通知 By ccwav Mod',`账号下线通知`);
+                                        await sendNotifybyWxPucher(`账号过期下线通知`, strNotifyOneTemp, strdecPtPin);
                                     }
 
                                 } else {
                                     console.log(`京东账号` + strPtPin + `已失效,自动禁用失败!\n`);
-                                    strNotifyOneTemp = `京东账号: ` + strdecPtPin + ` 已失效!\n如果要继续挂机，请联系管理员重新登录账号，账号有效期为30天.`;
+                                    strNotifyOneTemp = `京东账号: ` + strdecPtPin + ` 已失效!\n如果要继续挂机，请重新登录账号，账号有效期为30天.`;
                                     strNotifyOneTemp += "\n任务标题：" + strtext;
                                     if (strAllNotify)
                                         strNotifyOneTemp += `\n` + strAllNotify;
                                     desp = strNotifyOneTemp;
                                     if (WP_APP_TOKEN_ONE) {
-                                        await sendNotifybyWxPucher(`账号过期下线通知`, strNotifyOneTemp, strdecPtPin,'\n\n本通知 By ccwav Mod',`账号下线通知`);
+                                        await sendNotifybyWxPucher(`账号过期下线通知`, strNotifyOneTemp, strdecPtPin);
                                     }
                                 }
                             } else {
@@ -432,7 +449,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         if (text.indexOf("任务") != -1 && (text.indexOf("新增") != -1 || text.indexOf("删除") != -1)) {
             strTitle = "脚本任务更新";
         }
-
+		
         if (strTitle) {
             const notifyRemindList = process.env.NOTIFY_NOREMIND ? process.env.NOTIFY_NOREMIND.split('&') : [];
             titleIndex = notifyRemindList.findIndex((item) => item === strTitle);
@@ -452,9 +469,18 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
             }
         }
 
-        console.log("通知标题: " + strTitle);
+        if (strTitle == "汪汪乐园养joy领取" && WP_APP_TOKEN_ONE) {
+            console.log(`捕获汪汪乐园养joy领取通知，开始尝试一对一推送...`);
+            var strPtPin = await GetPtPin(text);
+            var strdecPtPin = decodeURIComponent(strPtPin);
+            if (strPtPin) {
+                await sendNotifybyWxPucher("汪汪乐园领取通知", `【京东账号】${strdecPtPin}\n当前等级: 30\n请到京东极速版APP提现6.66\n活动入口：京东极速版APP->我的->汪汪乐园->点礼包`, strdecPtPin);
+            }
+        }
 
-        //检查黑名单屏蔽通知
+        console.log("通知标题: " + strTitle);
+		
+		//检查黑名单屏蔽通知
         const notifySkipList = process.env.NOTIFY_SKIP_LIST ? process.env.NOTIFY_SKIP_LIST.split('&') : [];
         titleIndex = notifySkipList.findIndex((item) => item === strTitle);
 
@@ -494,11 +520,13 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
                         if (strCustomTempArr.length > 2) {
                             console.log("关闭所有通知变量...");
                             Use_serverNotify = false;
+							Use_pushdeerNotify = false;
                             Use_pushPlusNotify = false;
                             Use_BarkNotify = false;
                             Use_tgBotNotify = false;
                             Use_ddBotNotify = false;
                             Use_qywxBotNotify = false;
+                            Use_fsBotNotify = false;
                             Use_qywxamNotify = false;
                             Use_iGotNotify = false;
                             Use_gobotNotify = false;
@@ -509,6 +537,10 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
                                     case "Server酱":
                                         Use_serverNotify = true;
                                         console.log("自定义设定启用Server酱进行通知...");
+                                    break;
+                                case "pushdeer":
+                                    Use_pushdeerNotify = true;
+                                    console.log("自定义设定启用pushdeer进行通知...");
                                         break;
                                     case "pushplus":
                                         Use_pushPlusNotify = true;
@@ -533,6 +565,10 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
                                     case "企业微信应用消息":
                                         Use_qywxamNotify = true;
                                         console.log("自定义设定启用企业微信应用消息进行通知...");
+		                            break;
+                                case "飞书机器人":
+                                    Use_fsBotNotify = true;
+		                            console.log("自定义设定启用飞书机器人进行通知...");
                                         break;
                                     case "iGotNotify":
                                         Use_iGotNotify = true;
@@ -587,7 +623,9 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         if (process.env["PUSH_KEY" + UseGroupNotify] && Use_serverNotify) {
             SCKEY = process.env["PUSH_KEY" + UseGroupNotify];
         }
-
+        if (process.env["DEER_KEY"+ UseGroupNotify] && Use_pushdeerNotify) {
+            PUSHDEER_KEY = process.env["DEER_KEY"+ UseGroupNotify];
+        }
         if (process.env["WP_APP_TOKEN" + UseGroupNotify] && Use_WxPusher) {
             WP_APP_TOKEN = process.env["WP_APP_TOKEN" + UseGroupNotify];
         }
@@ -648,6 +686,10 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
             QYWX_AM = process.env["QYWX_AM" + UseGroupNotify];
         }
 
+        if (process.env["FS_KEY" + UseGroupNotify] && Use_fsBotNotify) {
+		    FS_KEY = process.env["FS_KEY" + UseGroupNotify];
+		}
+        
         if (process.env["IGOT_PUSH_KEY" + UseGroupNotify] && Use_iGotNotify) {
             IGOT_PUSH_KEY = process.env["IGOT_PUSH_KEY" + UseGroupNotify];
         }
@@ -684,7 +726,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
             if (envs[0]) {
                 var strTempdesp = [];
                 var strAllNotify = "";
-                if (text == "京东资产变动" || text == "京东资产变动#2" || text == "京东资产变动#3" || text == "京东资产变动#4") {
+                if (text == "京东资产统计" || text == "京东资产统计#2" || text == "京东资产统计#3" || text == "京东资产统计#4") {
                     strTempdesp = desp.split('🎏🎏🎏🎏🎏🎏🎏🎏🎏🎏🎏🎏🎏');
                     if (strTempdesp.length == 2) {
                         strAllNotify = strTempdesp[0];
@@ -749,7 +791,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
                             //额外处理1，nickName包含星号
                             $.nickName = $.nickName.replace(new RegExp(`[*]`, 'gm'), "[*]");
                             text = text.replace(new RegExp(`${$.UserName}|${$.nickName}`, 'gm'), $.Remark);
-                            if (text == "京东资产变动" || text == "京东资产变动#2" || text == "京东资产变动#3" || text == "京东资产变动#4") {
+                            if (text == "京东资产统计" || text == "京东资产统计#2" || text == "京东资产统计#3" || text == "京东资产统计#4") {
                                 var Tempinfo = "";
                                 if (envs[i].created)
                                     Tempinfo = getQLinfo(cookie, envs[i].created, envs[i].timestamp, envs[i].remarks);
@@ -812,7 +854,7 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
 
     //提供6种通知
     desp = buildLastDesp(desp, author);
-    await serverNotify(text, desp); //微信server酱
+	await serverNotify(text, desp); //微信server酱
 
     if (PUSH_PLUS_TOKEN) {
         console.log("PUSH_PLUS TOKEN :" + PUSH_PLUS_TOKEN);
@@ -842,12 +884,14 @@ async function sendNotify(text, desp, params = {}, author = '\n\n本通知 By cc
         ddBotNotify(text, desp), //钉钉机器人
         qywxBotNotify(text, desp), //企业微信机器人
         qywxamNotify(text, desp, strsummary), //企业微信应用消息推送
+            fsBotNotify(text, desp),   //飞书机器人
         iGotNotify(text, desp, params), //iGot
         gobotNotify(text, desp), //go-cqhttp
         gotifyNotify(text, desp), //gotify
         bncrNotify(text, desp), //bncr
-        wxpusherNotify(text, desp) // wxpusher
-    ]);
+            wxpusherNotify(text, desp), // wxpusher
+            PushDeerNotify(text, desp) //pushdeer推送
+        ]);
 }
 
 function getuuid(strRemark, PtPin) {
@@ -908,15 +952,16 @@ function getQLinfo(strCK, intcreated, strTimestamp, strRemark) {
                 }
             }
         }
-
-        //过期时间
+		
+		//过期时间
         var UseDay = Math.ceil((DateToday.getTime() - DateCreated.getTime()) / 86400000);
         var LogoutDay = 30 - Math.ceil((DateToday.getTime() - DateTimestamp.getTime()) / 86400000);
-        if (LogoutDay < 1) {
-            strReturn = "\n【登录信息】总挂机" + UseDay + "天(账号即将到期，请重登续期)"
-        } else {
-            strReturn = "\n【登录信息】总挂机" + UseDay + "天(有效期约剩" + LogoutDay + "天)"
-        }
+		let Loginday = Math.ceil((DateToday.getTime() - DateTimestamp.getTime()) / 86400000)
+        //if (LogoutDay < 1) {
+            strReturn = "\n【登录信息】已服务" + UseDay + "天(已登录" + Loginday + "天)"
+        //} else {
+        //    strReturn = "\n【登录信息】已服务" + UseDay + "天(有效期约剩" + LogoutDay + "天)"
+        //}
 
     }
     return strReturn
@@ -939,14 +984,14 @@ function getRemark(strRemark) {
     }
 }
 
-async function sendNotifybyWxPucher(text, desp, PtPin, author = '\n\n本通知 By ccwav Mod', strsummary = "") {
+async function sendNotifybyWxPucher(text, desp, PtPin, author = '\n\n本通知 By Faker', strsummary = "") {
 
     try {
         var Uid = "";
         var UserRemark = "";
         var strTempdesp = [];
         var strAllNotify = "";
-        if (text == "京东资产变动") {
+        if (text == "京东资产统计") {
             strTempdesp = desp.split('🎏🎏🎏🎏🎏🎏🎏🎏🎏🎏🎏🎏🎏');
             if (strTempdesp.length == 2) {
                 strAllNotify = strTempdesp[0];
@@ -967,7 +1012,7 @@ async function sendNotifybyWxPucher(text, desp, PtPin, author = '\n\n本通知 B
                     WP_UIDS_ONE = Uid;
                     console.log("正在发送一对一通知,请稍后...");
 
-                    if (text == "京东资产变动") {
+                    if (text == "京东资产统计") {
                         try {
                             $.nickName = "";
                             $.FoundPin = "";
@@ -1026,12 +1071,8 @@ async function sendNotifybyWxPucher(text, desp, PtPin, author = '\n\n本通知 B
                         }
                     }
                     if (UserRemark) {
-                        text +=  " (" + UserRemark + ")";
-						if(strsummary){
-							strsummary="(" + UserRemark + ")"+strsummary;
-						}
+                        text = text + " (" + UserRemark + ")";
                     }
-					
                     console.log("处理完成，开始发送通知...");
                     desp = buildLastDesp(desp, author);
                     if (strAllNotify) {
@@ -1075,7 +1116,7 @@ async function GetPtPin(text) {
                     return strPtPin;
                 } else {
                     console.log(`别名反查PtPin失败: 1.用户更改了别名 2.可能是新用户，别名缓存还没有。`);
-                    return "";
+                    return strNickName;
                 }
             }
         } else {
@@ -1283,46 +1324,6 @@ function serverNotify(text, desp, time = 2100) {
     });
 }
 
-/* function BarkNotify(text, desp, params = {}) {
-    return new Promise((resolve) => {
-        if (BARK_PUSH) {
-            const options = {
-                url: `${BARK_PUSH}/${encodeURIComponent(text)}/${encodeURIComponent(
-          desp
-        )}?sound=${BARK_SOUND}&group=${BARK_GROUP}&${querystring.stringify(params)}`,
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                timeout,
-            };
-            $.get(options, (err, resp, data) => {
-                try {
-                    if (err) {
-                        console.log('Bark APP发送通知调用API失败！！\n');
-                        console.log(err);
-                    } else {
-                        data = JSON.parse(data);
-                        if (data.code === 200) {
-                            console.log('Bark APP发送通知消息成功🎉\n');
-                        } else {
-                            console.log(`${data.message}\n`);
-                        }
-                    }
-                } catch (e) {
-                    $.logErr(e, resp);
-                }
-                finally {
-                    resolve();
-                }
-            });
-        } else {
-            resolve();
-        }
-    });
-} */
-
-
-/* code from JoveYu */
 function BarkNotify(text, desp, params = {}) {
     return new Promise((resolve) => {
         if (BARK_PUSH) {
@@ -1332,7 +1333,7 @@ function BarkNotify(text, desp, params = {}) {
                     title: text,
                     body: desp,
                     group: `${BARK_GROUP}`,
-                    icon: `${BARK_ICON}`,
+                    //icon: `${BARK_ICON}`,
                     sound: `${BARK_SOUND}`,
                 },
                 headers: {
@@ -1368,57 +1369,81 @@ function BarkNotify(text, desp, params = {}) {
 function tgBotNotify(text, desp) {
     return new Promise(resolve => {
         if (TG_BOT_TOKEN && TG_USER_ID) {
-            const options = {
-                url: `https://${TG_API_HOST}/bot${TG_BOT_TOKEN}/sendMessage`,
-                json: {
-                    chat_id: `${TG_USER_ID}`,
-                    text: `${text}\n\n${desp}`,
-                    disable_web_page_preview: true
-                },
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                timeout
-            }
-            if (TG_PROXY_HOST && TG_PROXY_PORT) {
-                const tunnel = require("tunnel");
-                const agent = {
-                    https: tunnel.httpsOverHttp({
-                        proxy: {
-                            host: TG_PROXY_HOST,
-                            port: TG_PROXY_PORT * 1,
-                            proxyAuth: TG_PROXY_AUTH
-                        }
-                    })
+            const maxSegmentLength = 4000; 
+            const despSegments = [];
+            let remainingDesp = desp;
+            
+            while (remainingDesp.length > maxSegmentLength) {
+                let index = remainingDesp.lastIndexOf('\n', maxSegmentLength);
+                if (index === -1) {
+                    index = maxSegmentLength;
                 }
-                Object.assign(options, { agent })
+                despSegments.push(remainingDesp.slice(0, index));
+                remainingDesp = remainingDesp.slice(index).trimLeft();
             }
-            $.post(options, (err, resp, data) => {
-                try {
-                    if (err) {
-                        console.log('telegram发送通知消息失败！！\n')
-                        console.log(err);
-                    } else {
-                        data = JSON.parse(data);
-                        if (data.ok) {
-                            console.log('Telegram发送通知消息成功🎉\n')
-                        } else if (data.error_code === 400) {
-                            console.log('请主动给bot发送一条消息并检查接收用户ID是否正确。\n')
-                        } else if (data.error_code === 401) {
-                            console.log('Telegram bot token 填写错误。\n')
-                        }
+            if (remainingDesp) {
+                despSegments.push(remainingDesp);
+            }
+            
+            const sendSegment = (index) => {
+                if (index < despSegments.length) {
+                    const options = {
+                        url: `https://${TG_API_HOST}/bot${TG_BOT_TOKEN}/sendMessage`,
+                        json: {
+                            chat_id: `${TG_USER_ID}`,
+                            text: `${text}\n\n${despSegments[index]}`, 
+                            disable_web_page_preview: true
+                        },
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        timeout
+                    };
+                    if (TG_PROXY_HOST && TG_PROXY_PORT) {
+                        const tunnel = require("tunnel");
+                        const agent = {
+                            https: tunnel.httpsOverHttp({
+                                proxy: {
+                                    host: TG_PROXY_HOST,
+                                    port: TG_PROXY_PORT * 1,
+                                    proxyAuth: TG_PROXY_AUTH
+                                }
+                            })
+                        };
+                        Object.assign(options, { agent });
                     }
-                } catch (e) {
-                    $.logErr(e, resp);
-                } finally {
-                    resolve(data);
+                    $.post(options, (err, resp, data) => {
+                        if (err) {
+                            console.log('telegram发送通知消息失败！！\n');
+                            console.log(err);
+                        } else {
+                            data = JSON.parse(data);
+                            if (data.ok) {
+                                console.log('Telegram发送通知消息成功🎉\n');
+                            } else if (data.error_code === 400) {
+                                console.log('请主动给bot发送一条消息并检查接收用户ID是否正确。\n');
+                            } else if (data.error_code === 401) {
+                                console.log('Telegram bot token 填写错误。\n');
+                            }
+                        }
+                        // 继续发送下一段消息
+                        sendSegment(index + 1);
+                    });
+                } else {
+                    // 所有消息发送完成后 resolve
+                    resolve();
                 }
-            })
+            };
+            // 开始发送第一段消息
+            sendSegment(0);
         } else {
-            resolve()
+            resolve();
         }
-    })
+    });
 }
+
+
+
 
 function ddBotNotify(text, desp) {
     return new Promise((resolve) => {
@@ -1531,15 +1556,57 @@ function qywxBotNotify(text, desp) {
     });
 }
 
+function fsBotNotify(text, desp) {
+    return new Promise((resolve) => {
+        const options = {
+            url: `https://open.feishu.cn/open-apis/bot/v2/hook/${FS_KEY}`,
+            json: {
+                msg_type: 'text',
+                content: {
+                    text: ` ${text}\n\n${desp}`,
+                },
+            },
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            timeout,
+        };
+        if (FS_KEY) {
+            $.post(options, (err, resp, data) => {
+                try {
+                    if (err) {
+                        console.log('飞书发送通知消息失败！！\n');
+                        console.log(err);
+                    } else {
+                        data = JSON.parse(data);
+                        if (data.errcode === 0) {
+                            console.log('飞书发送通知消息成功🎉。\n');
+                        } else {
+                            console.log(`${data.errmsg}\n`);
+                        }
+                    }
+                } catch (e) {
+                    $.logErr(e, resp);
+                }
+                finally {
+                    resolve(data);
+                }
+            });
+        } else {
+            resolve();
+        }
+    });
+}
+
 function buildLastDesp(desp, author = '') {
     author = process.env.NOTIFY_AUTHOR || author;
     if (process.env.NOTIFY_AUTHOR_BLANK || !author) {
         return desp.trim();
     } else {
         if (!author.match(/本通知 By/)) {
-            author = `\n\n本通知 By ${author}`
+            author = `\n\n${author}`
         }
-        return desp.trim() + author + "\n通知时间: " + GetDateTime(new Date());
+        return desp.trim() + author + "\n现在时刻: " + GetDateTime(new Date());
     }
 }
 
@@ -1771,8 +1838,14 @@ function pushPlusNotify(text, desp) {
 function wxpusherNotifyByOne(text, desp, strsummary = "") {
     return new Promise((resolve) => {
         if (WP_APP_TOKEN_ONE) {
-            var WPURL = "";            
-            if (strsummary && strsummary.length > 96) {
+            var WPURL = "";
+            if (strsummary) {
+                strsummary = text + "\n" + strsummary;
+            } else {
+                strsummary = text + "\n" + desp;
+            }
+
+            if (strsummary.length > 96) {
                 strsummary = strsummary.substring(0, 95) + "...";
             }
             let uids = [];
@@ -1913,6 +1986,50 @@ function wxpusherNotify(text, desp) {
     });
 }
 
+function PushDeerNotify(text, desp) {
+  return new Promise((resolve) => {
+    if (PUSHDEER_KEY) {
+      desp = encodeURI(desp);
+      desp = desp.replace(/%0A/g, '%0A%0A');
+      const options = {
+        url: `https://api2.pushdeer.com/message/push`,
+        body: `pushkey=${PUSHDEER_KEY}&text=${text}&desp=${desp}&type="markdown"`,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        timeout: 5000,
+      };
+      $.post(options, (err, resp, data) => {
+        try {
+          if (err) {
+            console.log('发送通知调用API失败！！\n');
+            console.log(err);
+          } else {
+            data = JSON.parse(data);
+            // 通过返回的result的长度来判断是否成功
+            if (
+              data.content.result.length !== undefined &&
+              data.content.result.length > 0
+            ) {
+              console.log('PushDeer发送通知消息成功🎉\n');
+            } else {
+              console.log(
+                `PushDeer发送通知消息异常\n${JSON.stringify(data)}`,
+              );
+            }
+          }
+        } catch (e) {
+          $.logErr(e, resp);
+        } finally {
+          resolve(data);
+        }
+      });
+    } else {
+      resolve();
+    }
+  });
+}
+
 function GetDateTime(date) {
 
     var timeString = "";
@@ -2001,7 +2118,7 @@ function GetnickName2() {
                 "Connection": "keep-alive",
                 "Cookie": cookie,
                 "Referer": "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
-                "User-Agent": $.isNode() ? (process.env.JD_USER_AGENT ? process.env.JD_USER_AGENT : (require('./USER_AGENTS').USER_AGENT)) : ($.getdata('JDUA') ? $.getdata('JDUA') : "jdapp;iPhone;9.4.4;14.3;network/4g;Mozilla/5.0 (iPhone; CPU iPhone OS 14_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148;supportJDSHWK/1")
+                "User-Agent": $.UA
             }
         };
         $.post(options, (err, resp, data) => {
@@ -2031,7 +2148,202 @@ function GetnickName2() {
         });
     });
 }
+const got = require('got');
+require('dotenv').config();
+let exists = fs.existsSync('/ql/data/config/auth.json');
+let authFile="";
+if (exists) 
+	authFile="/ql/data/config/auth.json"
+else
+	authFile="/ql/config/auth.json"
 
+const api = got.extend({
+  prefixUrl: 'http://127.0.0.1:5600',
+  retry: { limit: 0 },
+});
+
+async function getToken() {
+  const authConfig = JSON.parse(fs.readFileSync(authFile));
+  return authConfig.token;
+}
+
+async function getEnvs(){  
+  const token = await getToken();
+  const body = await api({
+    url: 'api/envs',
+    searchParams: {
+      searchValue: 'JD_COOKIE',
+      t: Date.now(),
+    },
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+    },
+  }).json();
+  return body.data;
+};
+
+async function getEnvsCount(){
+  const data = await getEnvs();
+  return data.length;
+};
+
+async function addEnv(cookie, remarks){
+  const token = await getToken();
+  const body = await api({
+    method: 'post',
+    url: 'api/envs',
+    params: { t: Date.now() },
+    json: [{
+      name: 'JD_COOKIE',
+      value: cookie,
+      remarks,
+    }],
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json;charset=UTF-8',
+    },
+  }).json();
+  return body;
+}
+
+async function updateEnv(cookie, eid, remarks){
+  const token = await getToken();
+  const body = await api({
+    method: 'put',
+    url: 'api/envs',
+    params: { t: Date.now() },
+    json: {
+      name: 'JD_COOKIE',
+      value: cookie,
+      _id: eid,
+      remarks,
+    },
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json;charset=UTF-8',
+    },
+  }).json();
+  return body;
+};
+
+async function updateEnv11(cookie, eid, remarks){
+  const token = await getToken();
+  const body = await api({
+    method: 'put',
+    url: 'api/envs',
+    params: { t: Date.now() },
+    json: {
+      name: 'JD_COOKIE',
+      value: cookie,
+      id: eid,
+      remarks,
+    },
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json;charset=UTF-8',
+    },
+  }).json();
+  return body;
+};
+
+async function DisableCk(eid){
+  const token = await getToken();
+  const body = await api({
+    method: 'put',
+    url: 'api/envs/disable',
+    params: { t: Date.now() },	
+    body: JSON.stringify([eid]),
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json;charset=UTF-8',
+    },
+  }).json();
+  return body;
+};
+
+async function EnableCk(eid){
+  const token = await getToken();
+  const body = await api({
+    method: 'put',
+    url: 'api/envs/enable',
+    params: { t: Date.now() },	
+    body: JSON.stringify([eid]),
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json;charset=UTF-8',
+    },
+  }).json();
+  return body;
+};
+
+async function getstatus(eid){
+    const envs = await getEnvs();
+    var tempid = 0;
+    for (let i = 0; i < envs.length; i++) {
+		tempid = 0;
+        if (envs[i]._id) {
+            tempid = envs[i]._id;
+        }
+        if (envs[i].id) {
+            tempid = envs[i].id;
+        }
+        if (tempid == eid) {
+            return envs[i].status;
+        }
+    }
+    return 99;
+};
+
+async function getEnvById(eid){
+    const envs = await getEnvs();
+    var tempid = 0;
+    for (let i = 0; i < envs.length; i++) {
+        tempid = 0;
+        if (envs[i]._id) {
+            tempid = envs[i]._id;
+        }
+        if (envs[i].id) {
+            tempid = envs[i].id;
+        }
+        if (tempid == eid) {
+            return envs[i].value;
+        }
+    }
+    return "";
+};
+
+async function getEnvByPtPin(Ptpin){
+  const envs = await getEnvs();
+  for (let i = 0; i < envs.length; i++) {	
+	var tempptpin = decodeURIComponent(envs[i].value.match(/pt_pin=([^; ]+)(?=;?)/) && envs[i].value.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
+	if(tempptpin==Ptpin){		 
+		 return envs[i]; 
+	  }
+  }  
+  return "";
+};
+
+async function delEnv(eid){
+  const token = await getToken();
+  const body = await api({
+    method: 'delete',
+    url: 'api/envs',
+    params: { t: Date.now() },
+    body: JSON.stringify([eid]),
+    headers: {
+      Accept: 'application/json',
+      authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json;charset=UTF-8',
+    },
+  }).json();
+  return body;
+};
 module.exports = {
     sendNotify,
     sendNotifybyWxPucher,
