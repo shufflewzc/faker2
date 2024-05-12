@@ -35,7 +35,7 @@ CookieJDs = [...new Set(CookieJDs.filter(item => !!item))]
 if (process.env.JD_DEBUG && process.env.JD_DEBUG === 'false') console.log = () => { };
 console.log(`\n====================共${CookieJDs.length}个京东账号Cookie=================\n`);
 console.log(`============脚本执行时间：${formatdate(new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60 * 1000 + 8 * 60 * 60 * 1000))}=============\n`)
-console.log('>>>>>>>>>>>>>>Faker提醒您：有问题先更新不行在反馈>>>>>>>>>>>>>>>\n')
+console.log('>>>>>>>>>>>>>>Faker提醒您：有问题先更新 关注频道https://t.me/scriptalking>>>>>>>>>>>>>>>\n')
 for (let i = 0; i < CookieJDs.length; i++) {
   if (!CookieJDs[i].match(/pt_pin=(.+?);/) || !CookieJDs[i].match(/pt_key=(.+?);/)) console.log(`\n提示:京东cookie 【${CookieJDs[i]}】填写不规范,可能会影响部分脚本正常使用。正确格式为: pt_key=xxx;pt_pin=xxx;（分号;不可少）\n`);
   CookieJDs[i] = CookieJDs[i].replace(/[\u4e00-\u9fa5]/g, (str) => encodeURI(str));
