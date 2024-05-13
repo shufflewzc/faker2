@@ -1,10 +1,12 @@
 /*
 特价版-摇钱树
 
-cron "27 4,16 * * *" script-path=jd_tj_yqs.js, tag=特价版-摇钱树
-
 环境变量设置：
 jd_tj_yqs_txcash: 是否提现，默认不提现
+
+本地网络环境运行，云服务器环境都是0.01红包
+
+cron "27 4,16 * * *" script-path=jd_tj_yqs.js, tag=特价版-摇钱树
 
  */
 const $ = new Env('特价版-摇钱树')
