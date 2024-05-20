@@ -7,7 +7,7 @@
 JD_PDD3_InviterId // 指定助力码 非必须，不填默认助力账号一
 JD_PDD3_NUM // 指定人数  非必须，不填默认跑全部账号
 
-cron:1 1 1 1 *
+cron:1 1 1 1 * jd_pdd3_help.js
 
 */
 

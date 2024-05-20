@@ -19,7 +19,7 @@ export JD_PDD3_Exchange="true" // 上限后兑换红包，默认关闭
 
 注意：轮询页数也大，越容易403，请谨慎填写
 
-cron:1 1 1 1 *
+cron:1 1 1 1 * jd_pdd3_draw.js
 
 
 */
