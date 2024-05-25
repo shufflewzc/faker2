@@ -18,6 +18,7 @@ apk add g++ make --no-cache
 pnpm config set registry https://registry.npmmirror.com
 pnpm install -g
 pnpm install -g ds
+pnpm install -g adler-32
 pnpm install -g png-js
 pnpm install -g date-fns
 pnpm install -g axios@1.6.7
@@ -28,12 +29,15 @@ pnpm install -g global-agent
 pnpm install -g @types/node
 pnpm install -g request
 pnpm install -g jsdom
+pnpm install -g crc
+pnpm install -g qs
 pnpm install -g moment
 pnpm install -g cheerio
 pnpm install -g dotenv
 pnpm install -g got@11.8.6
 pnpm install -g tough-cookie
 pnpm install -g https-proxy-agent@7.0.2
+pnpm install -g http-cookie-agent
 pnpm install -g console-table-printer@2.12.0
 pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple/ jieba
 pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple/ requests
