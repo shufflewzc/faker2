@@ -4,7 +4,7 @@
 
 自行控制助力上限
 
-cron:0 0 * * * jd_guaguaka_invite.js
+cron:10 0 * * * jd_guaguaka_invite.js
 
 */
 
