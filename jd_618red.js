@@ -6,7 +6,7 @@ https://u.jd.com/xxx
 
 
 let rebateCodes = '' // 返利变量
-let redTimes = 10000 // 等待时间单位毫秒
+let redTimes = 1 // 等待时间单位毫秒
 let redCount = 0 // 领取次数
 let shareHelpCount = 0 // 助力次数 0=默认 1=1次满 2=2次满
 let proxyGetIpUrl = '' // 代理池URL多个请用|隔开
