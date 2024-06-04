@@ -49,7 +49,7 @@ if ($.isNode()) {
       $.UA=get_UA()
       UUID = $.UA.split(';') && $.UA.split(';')[4] || ''
       await run();
-      if ($.bean > 0) message += `【京东账号${$.index}】获得${$.bean}京豆\n`
+      if ($.bean > 0) message += `【京东账号${$.index}】获得${$.bean}能量\n`
     }
   }
   if (message) {
