@@ -5,7 +5,7 @@
 jd_kxy_inviterId // 指定助力码 非必须，不填默认助力账号一
 jd_kxy_num // 指定人数  非必须，不填默认跑全部账号
 
-0 0 * * * jd_kxy_help.js
+10 0,12 * * * jd_kxy_help1.js
 
 */
 
