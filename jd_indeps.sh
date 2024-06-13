@@ -17,7 +17,6 @@ echo -e "开始安装............\n"
 apk add g++ make --no-cache
 pnpm config set registry https://registry.npmmirror.com
 pnpm install -g
-pnpm install -g ds
 pnpm install -g adler-32
 pnpm install -g png-js
 pnpm install -g date-fns
