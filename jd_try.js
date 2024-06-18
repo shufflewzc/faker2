@@ -1,14 +1,12 @@
 /**
  * 京东试用， 只是一个DEMO
-
-0 18 * * * jd_try.js
-
  */
 const qs = require('qs');
 const axios = require("axios");
 const common = require('./utils/Rebels_jdCommon')
-const {H5st} = require("./utils/h5st4.4.0_lite");
 const {SmashUtils} = require("./utils/smashUtils");
+const {setBaseCookie} = require("./utils/baseCookie");
+
 const $ = new Env("京东试用");
 const URL = "https://api.m.jd.com/client.action";
 let trialActivityIdList = [];
@@ -33,7 +31,7 @@ let args_xh = {
     /*
      * 控制一次最多跑几个号，默认10个
      */
-    try_num: process.env.JD_TRY_NUM * 1 || 10, /*
+    try_num: process.env.JD_TRY_NUM * 1 || 10000, /*
      * 控制是否输出当前环境变量设置，默认为false
      * 环境变量名称：XH_TRY_ENV
      */
@@ -136,9 +134,7 @@ let args_xh = {
     $.log("\n第一次运行请务必运行一次【依赖安装(jd_indeps.sh)】脚本\n避免出现一些奇怪的问题，遇到问题请先看脚本内注释\n频道：https://t.me/zhouya47\n");
     await requireConfig();
     if (!$.cookiesArr[0]) {
-        $.msg($.name, "【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取", "https://bean.m.jd.com/", {
-            "open-url": "https://bean.m.jd.com/",
-        });
+        console.log($.name, "【提示】请先获取京东账号一cookie\n直接使用NobyDa的京东签到获取", "https://bean.m.jd.com/");
         return;
     }
     args_xh.tabId = args_xh.tabId.sort(() => 0.5 - Math.random());
@@ -148,59 +144,22 @@ let args_xh = {
             $.UserName = decodeURIComponent($.cookie.match(/pt_pin=(.+?);/) && $.cookie.match(/pt_pin=(.+?);/)[1]);
             $.index = i + 1;
             $.isLogin = true;
-            $.nickName = "";
             $.userAgent = common.genUA($.UserName);
-            // await totalBean();
-            console.log(`\n开始【京东账号${$.index}】${$.nickName || $.UserName}\n`);
+            console.log(`\n开始【京东账号${$.index}】${$.UserName}\n`);
+            await try_rafflecount();
             $.except = false;
             if (args_xh.except.includes($.UserName)) {
-                console.log(`跳过账号：${$.nickName || $.UserName}`);
+                console.log(`跳过账号：${$.UserName}`);
                 $.except = true;
                 continue;
             }
             if (!$.isLogin) {
-                $.msg($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.nickName || $.UserName}\n请重新登录获取\nhttps://bean.m.jd.com/bean/signIndex.action`, {
-                    "open-url": "https://bean.m.jd.com/bean/signIndex.action",
-                });
+                console.log($.name, `【提示】cookie已失效`, `京东账号${$.index} ${$.UserName}`);
                 await $.notify.sendNotify(`${$.name}cookie已失效 - ${$.UserName}`, `京东账号${$.index} ${$.UserName}\n请重新登录获取cookie`);
                 continue;
             }
-            $.ParamsSignLite = new H5st("https://prodev.m.jd.com/mall/active/3C751WNneAUaZ8Lw8xYN7cbSE8gm/index.html?ids=501730512%2C501676150&navh=49&stath=37&tttparams=wUQ86eyJhZGRyZXNzSWQiOjAsImRMYXQiOjAsImRMbmciOjAsImdMYXQiOiIzOS45NDQwOTMiLCJnTG5nIjoiMTE2LjQ4MjI3NiIsImdwc19hcmVhIjoiMF8wXzBfMCIsImxhdCI6MCwibG5nIjowLCJtb2RlbCI6IlJlZG1pIE5vdGUgMTJUIFBybyIsInBvc0xhdCI6IjM5Ljk0NDA5MyIsInBvc0xuZyI6IjExNi40ODIyNzYiLCJwcnN0YXRlIjoiMCIsInVlbXBzIjoiMC0wLTAiLCJ1bl9hcmVhIjoiMV83Ml81NTY3NF8wIn50%3D&preventPV=1&forceCurrentView=1",
-                $.cookie,
-                $.userAgent, {
-                    debug: false,
-                    appId: "35fa0",
-                });
-            $.smashUtils = new SmashUtils(
-                'https://prodev.m.jd.com/mall/active/3mpGVQDhvLsMvKfZZumWPQyWt83L/index.html?activityId=501742184&sku=10097544183544',
-                $.cookie,
-                $.userAgent
-            );
-            try {
-                $.smashUtils["getLocalData"]();
-                $.smashUtils["getAppOs"]();
-                $.smashUtils.getBlog();
-                $.smashUtils["getFpv"]();
-                await $.smashUtils.getInfo();
-                $.smashUtils.setjoyyaCookie("init");
-                $.smashUtils.getJrInfo();
-            } catch (e) {
-                $.smashUtils.getInterfaceData({
-                    funcName: "other",
-                    real_msg: "initial",
-                    error_msg: e && e.message
-                })
-            }
-            await $.smashUtils.initial({
-                appId: "50170_", debug: !1, preRequest: !0, onSign: function (e) {
-                    e.code, e.message, e.data
-                }, onRequestTokenRemotely: function (e) {
-                    e.code, e.message
-                }, onRequestToken: function (e) {
-                    e.code, e.message
-                }
-            })
 
+            await initSmashUtils();
 
             $.totalTry = 0;
             $.totalSuccess = 0;
@@ -254,16 +213,14 @@ let args_xh = {
                 await showMsg();
             }
         }
-        if ($.isNode()) {
-            if ($.index % args_xh.sendNum === 0) {
-                $.sentNum++;
-                console.log(`正在进行第 ${$.sentNum} 次发送通知，发送数量：${args_xh.sendNum}`);
-                await $.notify.sendNotify(`${$.name}`, `${notifyMsg}`);
-                notifyMsg = "";
-            }
+        if ($.index % args_xh.sendNum === 0) {
+            $.sentNum++;
+            console.log(`正在进行第 ${$.sentNum} 次发送通知，发送数量：${args_xh.sendNum}`);
+            await $.notify.sendNotify(`${$.name}`, `${notifyMsg}`);
+            notifyMsg = "";
         }
     }
-    if ($.isNode() && $.except === false) {
+    if ($.except === false) {
         if ($.cookiesArr.length - $.sentNum * args_xh.sendNum < args_xh.sendNum && notifyMsg.length != 0) {
             console.log(`正在进行最后一次发送通知，发送数量：${$.cookiesArr.length - $.sentNum * args_xh.sendNum}`);
             await $.notify.sendNotify(`${$.name}`, `${notifyMsg}`);
@@ -278,24 +235,17 @@ let args_xh = {
 
 function requireConfig() {
     return new Promise((resolve) => {
-        $.notify = $.isNode() ? require("./sendNotify") : {
-            sendNotify: async () => {
-            }
-        };
+        $.notify = require("./sendNotify");
         //获取 Cookies
         $.cookiesArr = [];
-        if ($.isNode()) {
-            //Node.js用户请在jdCookie.js处填写京东ck;
-            const jdCookieNode = require("./jdCookie.js");
-            Object.keys(jdCookieNode).forEach((item) => {
-                if (jdCookieNode[item]) $.cookiesArr.push(jdCookieNode[item]);
-            });
-            if (process.env.JD_DEBUG && process.env.JD_DEBUG === "false") console.log = () => {
-            };
-        } else {
-            //IOS等用户直接用NobyDa的jd $.cookie
-            $.cookiesArr = [$.getdata("CookieJD"), $.getdata("CookieJD2"), ...jsonParse($.getdata("CookiesJD") || "[]").map((item) => item.cookie)].filter((item) => !!item);
-        }
+        //Node.js用户请在jdCookie.js处填写京东ck;
+        const jdCookieNode = require("./jdCookie.js");
+        Object.keys(jdCookieNode).forEach((item) => {
+            if (jdCookieNode[item]) $.cookiesArr.push(jdCookieNode[item]);
+        });
+        if (process.env.JD_DEBUG && process.env.JD_DEBUG === "false") console.log = () => {
+        };
+
         for (let keyWord of $.innerKeyWords) args_xh.titleFilters.push(keyWord);
         console.log(`共${$.cookiesArr.length}个京东账号\n`);
         if (args_xh.env) {
@@ -321,163 +271,23 @@ function requireConfig() {
     });
 }
 
-//获取商品列表并且过滤
-async function try_feedsList(tabId, page) {
-    const body = {
-        functionId: "try_SpecFeedList",
-        appid: "newtry",
-        body: JSON.stringify({
-            tabId: tabId + "",
-            page: page,
-            version: 2,
-            source: "default",
-            client: "outer",
-        })
-    }
-
-    const h5st = await $.ParamsSignLite.sign(body)
-
-    try {
-        const {data} = await api({
-            method: "POST",
-            url: `https://api.m.jd.com/client.action`,
-            headers: {
-                "content-type": "application/x-www-form-urlencoded",
-                origin: "https://prodev.m.jd.com",
-                Referer: "https://prodev.m.jd.com/mall/active/3C751WNneAUaZ8Lw8xYN7cbSE8gm/index.html?ids=501730512%2C501676150&navh=49&stath=37&tttparams=wUQ86eyJhZGRyZXNzSWQiOjAsImRMYXQiOjAsImRMbmciOjAsImdMYXQiOiIzOS45NDQwOTMiLCJnTG5nIjoiMTE2LjQ4MjI3NiIsImdwc19hcmVhIjoiMF8wXzBfMCIsImxhdCI6MCwibG5nIjowLCJtb2RlbCI6IlJlZG1pIE5vdGUgMTJUIFBybyIsInBvc0xhdCI6IjM5Ljk0NDA5MyIsInBvc0xuZyI6IjExNi40ODIyNzYiLCJwcnN0YXRlIjoiMCIsInVlbXBzIjoiMC0wLTAiLCJ1bl9hcmVhIjoiMV83Ml81NTY3NF8wIn50%3D&preventPV=1&forceCurrentView=1",
-                "User-Agent": $.userAgent,
-                "x-referer-page": "https://prodev.m.jd.com/mall/active/3C751WNneAUaZ8Lw8xYN7cbSE8gm/index.html"
-            },
-            data: qs.stringify({
-                ...body,
-                h5st: h5st.h5st
-            })
-        });
-
-        let tempKeyword = ``;
-        if (data.data) {
-            console.log(`第 ${size++} 次获取试用商品成功，tabId:${args_xh.tabId[$.nowTabIdIndex]} 的 第 ${page} 页`);
-            console.log(`获取到商品 ${data.data.feedList.length} 条`);
-            for (let item of data.data.feedList) {
-                if (item.applyNum === null) {
-                    args_xh.printLog ? console.log(`商品未到申请时间：${item.skuTitle}\n`) : "";
-                    continue;
-                }
-                if (trialActivityIdList.length >= args_xh.maxLength) {
-                    console.log("商品列表长度已满.结束获取");
-                    break;
-                }
-                if (item.applyState === 1) {
-                    args_xh.printLog ? console.log(`商品已申请试用：${item.skuTitle}\n`) : "";
-                    continue;
-                }
-                if (item.applyState !== null) {
-                    args_xh.printLog ? console.log(`商品状态异常，未找到skuTitle\n`) : "";
-                    continue;
-                }
-                if (args_xh.passZhongCao) {
-                    $.isPush = true;
-                    if (item.tagList.length !== 0) {
-                        for (let itemTag of item.tagList) {
-                            if (itemTag.tagType === 3) {
-                                args_xh.printLog ? console.log("商品被过滤，该商品是种草官专属") : "";
-                                $.isPush = false;
-                                break;
-                            } else if (itemTag.tagType === 5) {
-                                args_xh.printLog ? console.log("商品被跳过，该商品是付费试用！") : "";
-                                $.isPush = false;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (item.skuTitle && $.isPush) {
-                    args_xh.printLog ? console.log(`检测 tabId:${args_xh.tabId[$.nowTabIdIndex]} 的 第 ${page} 页 第 ${$.nowItem++ + 1} 个商品\n${item.skuTitle}`) : "";
-                    if (args_xh.whiteList) {
-                        if (args_xh.whiteListKeywords.some((fileter_word) => item.skuTitle.includes(fileter_word))) {
-                            args_xh.printLog ? console.log(`商品白名单通过，将加入试用组，trialActivityId为${item.trialActivityId}\n`) : "";
-                            trialActivityIdList.push(item.trialActivityId);
-                            trialActivityTitleList.push(item.skuTitle);
-                        }
-                    } else {
-                        tempKeyword = ``;
-                        if (parseFloat(item.jdPrice) <= args_xh.jdPrice) {
-                            args_xh.printLog ? console.log(`商品被过滤，商品价格 ${item.jdPrice} < ${args_xh.jdPrice} \n`) : "";
-                        } else if (parseFloat(item.supplyNum) < args_xh.minSupplyNum && item.supplyNum !== null) {
-                            args_xh.printLog ? console.log(`商品被过滤，提供申请的份数小于预设申请的份数 \n`) : "";
-                        } else if (parseFloat(item.applyNum) > args_xh.applyNumFilter && item.applyNum !== null) {
-                            args_xh.printLog ? console.log(`商品被过滤，已申请人数大于预设的${args_xh.applyNumFilter}人 \n`) : "";
-                        } else if (item.jdPrice === null) {
-                            args_xh.printLog ? console.log(`商品被过滤，商品无价，不能申请 \n`) : "";
-                        } else if (parseFloat(item.trialPrice) > args_xh.trialPrice) {
-                            args_xh.printLog ? console.log(`商品被过滤，商品试用价大于预设试用价 \n`) : "";
-                        } else if (args_xh.titleFilters.some((fileter_word) => (item.skuTitle.includes(fileter_word) ? (tempKeyword = fileter_word) : ""))) {
-                            args_xh.printLog ? console.log(`商品被过滤，含有关键词 ${tempKeyword}\n`) : "";
-                        } else {
-                            args_xh.printLog ? console.log(`商品通过，加入试用组，trialActivityId为${item.trialActivityId}\n`) : "";
-                            if (trialActivityIdList.indexOf(item.trialActivityId) === -1) {
-                                trialActivityIdList.push(item.trialActivityId);
-                                trialActivityTitleList.push(item.skuTitle);
-                            }
-                        }
-                    }
-                } else if ($.isPush !== false) {
-                    console.error("skuTitle解析异常");
-                    return;
-                }
-            }
-            console.log(`当前试用组长度为：${trialActivityIdList.length}`);
-            console.log(`下一页状态:${data.data.hasNext}`);
-            if (data.data.hasNext === false) {
-                if ($.nowTabIdIndex < args_xh.tabId.length) {
-                    $.nowTabIdIndex++;
-                    $.nowPage = 1;
-                    $.nowItem = 1;
-                    $.retrynum = 0;
-                } else {
-                    // 这下是真的没了
-                    $.retrynum = 999
-                }
-            } else {
-                $.nowPage++;
-                $.retrynum = 0;
-            }
-        } else {
-            console.log(`💩 获得试用列表失败: ${data.message}`);
-        }
-    } catch (e) {
-        if (e.message === `Request failed with status code 403`) {
-            $.retrynum++;
-            if ($.retrynum === 4) {
-                $.isForbidden = true;
-                $.log("多次尝试失败，换个时间再试！");
-            } else {
-                console.log(`请求失败，第 ${$.retrynum} 次重试`);
-            }
-        } else {
-            console.log(e.message);
-            console.log(`${$.name} API请求失败，请检查网路重试`);
-        }
-    }
-}
 
 async function try_apply(title, activityId) {
     console.log(`申请试用商品提交中...`);
     args_xh.printLog ? console.log(`商品：${title}`) : "";
     args_xh.printLog ? console.log(`id为：${activityId}`) : "";
 
-    const body = {
+    const sign = await h5stSign({
         functionId: "try_apply",
         appid: "newtry",
-        body: JSON.stringify({
-            "activityId": activityId * 1,
-        })
-    }
+        body: {
+            "activityId": Number(activityId),
+        }
+    }, '20240616220153007;z5mm6z6ny9tgiz62;35fa0;tk03wbfcb1c2841lMisyeDJkVDljOEydj-ckiCHjIYSJ1W7xoMh0tq-jHSpwPgeelBG4C-99GSgmBbeb960pVPkbRRDb;b9425397f84d9562eb929109a424b25050f5d16849dd8187530792a36f092a5e;4.7;1718546513007;UOm5YmIikru95F6Y2j_aOPloesE0LYNBvUyh1hyaUIEa2WGNlLIeoVRcsMZcqWgWTFnOjkwc0Wfsw34nc-n9LANGlLShDUmeWeNTVNWwHWjEND1qe6qHqLYy0XHvOCOii9WbK167wpxvZ7sTBf76L627d2I2lmcmSx5t-6Pt51XG-yYCin67tQis5pE7qPpNgw0omdQtBapqp0mhA4VKFTIPQeLwuj4m4hNfXrS27fXA45dct9R-umfCHpCwN3M6IJtsi82_J7zHO0GM4sO5aSrYqaojrElDcxdbe_mKEGU7xKTMSEQR3EgqiB3JzxggCShAb1gPplWROuBzocQkrL3rpnz3FODrayk0QdOvSsXuaVHTn1DhnMleaN-6lDzlBLKzhuS0aea40k6Z2F1zEONM88GH6ptzhVQpiVLWRBbxUUGgw5S-Sid8dk9mJ3j46ekXRsHabaG8rl7KlrhCth7O')
 
-    const h5st = await $.ParamsSignLite.sign(body)
+    setBaseCookie();
     const joylog = await $.smashUtils.sign({
-        ...body,
-        h5st: h5st.h5st
+        ...sign.body
     }, true);
 
     try {
@@ -586,7 +396,7 @@ function try_MyTrials(page, selected) {
 
 async function showMsg() {
     let message = ``;
-    message += `👤 京东账号${$.index} ${$.nickName || $.UserName}\n`;
+    message += `👤 京东账号${$.index} ${$.UserName}\n`;
     if ($.totalSuccess !== 0 && $.totalTry !== 0) {
         message += `🎉 本次提交申请：${$.totalSuccess}/${$.totalTry}个商品🛒\n`;
         message += `🎉 ${$.successNum}个商品待领取\n`;
@@ -601,68 +411,238 @@ async function showMsg() {
         message += `🗑 ${$.giveupNum}个商品已放弃\n\n`;
     }
     if (!args_xh.jdNotify || args_xh.jdNotify === "false") {
-        $.msg($.name, ``, message, {
-            "open-url": "https://try.m.jd.com/user",
-        });
-        if ($.isNode()) notifyMsg += `${message}`;
+        console.log($.name, message);
+        notifyMsg += `${message}`;
     } else {
         console.log(message);
     }
 }
 
-function totalBean() {
-    return new Promise(async (resolve) => {
-        const options = {
-            url: `https://wq.jd.com/user/info/QueryJDUserInfo?sceneval=2`, headers: {
-                Accept: "application/json,text/plain, */*",
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Accept-Encoding": "gzip, deflate, br",
-                "Accept-Language": "zh-cn",
-                Connection: "keep-alive",
-                Cookie: $.cookie,
-                Referer: "https://wqs.jd.com/my/jingdou/my.shtml?sceneval=2",
-                "User-Agent": $.userAgent,
-            }, timeout: 10000,
-        };
-        $.restApi(options, (err, resp, data) => {
-            try {
-                if (err) {
-                    console.log(`${JSON.stringify(err)}`);
-                    console.log(`${$.name} API请求失败，请检查网路重试`);
-                } else {
-                    if (data) {
-                        if (data["retcode"] === 13) {
-                            $.isLogin = false; //cookie过期
-                            return;
-                        }
-                        if (data["retcode"] === 0) {
-                            $.nickName = (data["base"] && data["base"].nickname) || $.UserName;
-                        } else {
-                            $.nickName = $.UserName;
-                        }
-                    } else {
-                        console.log(`京东服务器返回空数据`);
-                    }
-                }
-            } catch (e) {
-                $.logErr(e, resp);
-            } finally {
-                resolve();
-            }
-        });
-    });
+/**
+ * 获取账号剩余次数，目前每个账号只有5次
+ */
+async function try_rafflecount() {
+    const options = {
+        method: 'POST',
+        url: 'https://api.m.jd.com/client.action',
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Cookie: $.cookie,
+            Origin: 'https://prodev.m.jd.com',
+            Referer: "https://prodev.m.jd.com/mall/active/3C751WNneAUaZ8Lw8xYN7cbSE8gm/index.html",
+            "User-Agent": $.userAgent,
+        },
+        data: qs.stringify({
+            appid: 'ysas-new',
+            functionId: 'try_rafflecount',
+            body: JSON.stringify({"previewTime": ""})
+        })
+    };
+
+    try {
+        const {data} = await axios.request(options);
+
+        if (data.code !== '0') {
+            $.isLogin = false;
+            console.log(`${data.message}`);
+            return;
+        }
+        console.log(`${data.data.promptDesc}${data.data.remainingNum}`)
+        if (data.data.remainingNum === 0) {
+            args_xh.except.push($.UserName);
+        }
+    } catch (e) {
+        console.log(e)
+    }
 }
 
-function jsonParse(str) {
-    if (typeof str == "string") {
-        try {
-            return JSON.parse(str);
-        } catch (e) {
-            console.log(e);
-            $.msg($.name, "", "请勿随意在BoxJs输入框修改内容\n建议通过脚本去获取cookie");
-            return [];
+async function initSmashUtils() {
+    try {
+        $.smashUtils = new SmashUtils(
+            'https://prodev.m.jd.com/mall/active/3mpGVQDhvLsMvKfZZumWPQyWt83L/index.html?activityId=501742184&sku=10097544183544',
+            $.cookie,
+            $.userAgent
+        );
+        $.smashUtils["getLocalData"]();
+        $.smashUtils["getAppOs"]();
+        $.smashUtils.getBlog();
+        $.smashUtils["getFpv"]();
+        await $.smashUtils.getInfo();
+        $.smashUtils.setjoyyaCookie("init");
+        $.smashUtils.getJrInfo();
+    } catch (e) {
+        $.smashUtils.getInterfaceData({
+            funcName: "other",
+            real_msg: "initial",
+            error_msg: e && e.message
+        })
+    }
+    await $.smashUtils.initial({
+        appId: "50170_", debug: !1, preRequest: !0, onSign: function (e) {
+            e.code, e.message, e.data
+        }, onRequestTokenRemotely: function (e) {
+            e.code, e.message
+        }, onRequestToken: function (e) {
+            e.code, e.message
+        }
+    })
+}
+
+/**
+ * 获取商品列表并且过滤
+ */
+async function try_feedsList(tabId, page) {
+    const sign = await h5stSign({
+            functionId: 'try_SpecFeedList',
+            appid: 'newtry',
+            body: {
+                tabId: String(tabId),
+                page: Number(page),
+                version: 2,
+                source: 'default',
+                client: 'outer',
+            },
+        },
+        '20240616184606839;z55tttgm69iy5gt3;35fa0;tk03w73961a5c41lMngyKzN4M3NZ9v6YiMHcUZzf-P--kImKPJxWOBADZAdB124IKB0-tMni0SNFkS-rY6y9NCO0kyT7;686da69d2b902071260b372ec783208bd23e2891bbe8d092fa88322f9d4af96c;4.7;1718534766839;UOGVDoANEFUxNUCVdiY9pn3sfPETGURG3lMUAqYwv2f3puLbYE75Mz4VKBAHMO4-qgP543iYlyjcq4SLHWq3kC4dKsNKK2LuLn_wCRQ-NRsgMdHsimMATwP_Kst5YN3fzVHakZmNBTqAAyt8S-19if5CXSlcYwOsVzmu7vGrSB3kHSfHw3e3Yl05nVUm_4l_VY2omdQtBapqp0mhA4VKFTIPQeLwuj4m4hNfXrS27fXA45dct9R-umfCHpCwN3M6IJtsi82_J7zHO0GM4sO5aSrYqaojrElDcxdbe_mKEGU7xKTMSEQR3EgqiB3JzxggCShAb1gPplWROuBzocQkrL3rpnz3FODrayk0QdOvSsXuaVHTn1DhnMleaN-6lDzlBLKzhuS0aea40k6Z2F1zEONM88GH6ptzhVQpiVLWRBbxUUGgw5S-Sid8dk9mJ3j46ekXRsHabaG8rl7KlrhCth7O'
+    )
+
+    try {
+        const {data} = await api({
+            method: "POST",
+            url: `https://api.m.jd.com/client.action`,
+            headers: {
+                "content-type": "application/x-www-form-urlencoded",
+                origin: "https://prodev.m.jd.com",
+                Referer: "https://prodev.m.jd.com/mall/active/3C751WNneAUaZ8Lw8xYN7cbSE8gm/index.html",
+                "User-Agent": $.userAgent,
+                "x-referer-page": "https://prodev.m.jd.com/mall/active/3C751WNneAUaZ8Lw8xYN7cbSE8gm/index.html"
+            },
+            data: sign.qs
+        });
+
+        let tempKeyword = ``;
+        if (data.code === '0') {
+            console.log(`第 ${size++} 次获取试用商品成功，tabId:${args_xh.tabId[$.nowTabIdIndex]} 的 第 ${page} 页`);
+            console.log(`获取到商品 ${data.data.feedList.length} 条`);
+            for (let item of data.data.feedList) {
+                if (item.applyNum === null) {
+                    args_xh.printLog ? console.log(`商品未到申请时间：${item.skuTitle}\n`) : "";
+                    continue;
+                }
+                if (trialActivityIdList.length >= args_xh.maxLength) {
+                    console.log("商品列表长度已满.结束获取");
+                    break;
+                }
+                if (item.applyState === 1) {
+                    args_xh.printLog ? console.log(`商品已申请试用：${item.skuTitle}\n`) : "";
+                    continue;
+                }
+                if (item.applyState !== null) {
+                    args_xh.printLog ? console.log(`商品状态异常，未找到skuTitle\n`) : "";
+                    continue;
+                }
+                if (args_xh.passZhongCao) {
+                    $.isPush = true;
+                    if (item.tagList.length !== 0) {
+                        for (let itemTag of item.tagList) {
+                            if (itemTag.tagType === 3) {
+                                args_xh.printLog ? console.log("商品被过滤，该商品是种草官专属") : "";
+                                $.isPush = false;
+                                break;
+                            } else if (itemTag.tagType === 5) {
+                                args_xh.printLog ? console.log("商品被跳过，该商品是付费试用！") : "";
+                                $.isPush = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (item.skuTitle && $.isPush) {
+                    args_xh.printLog ? console.log(`检测 tabId:${args_xh.tabId[$.nowTabIdIndex]} 的 第 ${page} 页 第 ${$.nowItem++ + 1} 个商品\n${item.skuTitle}`) : "";
+                    if (args_xh.whiteList) {
+                        if (args_xh.whiteListKeywords.some((fileter_word) => item.skuTitle.includes(fileter_word))) {
+                            args_xh.printLog ? console.log(`商品白名单通过，将加入试用组，trialActivityId为${item.trialActivityId}\n`) : "";
+                            trialActivityIdList.push(item.trialActivityId);
+                            trialActivityTitleList.push(item.skuTitle);
+                        }
+                    } else {
+                        tempKeyword = ``;
+                        if (parseFloat(item.jdPrice) <= args_xh.jdPrice) {
+                            args_xh.printLog ? console.log(`商品被过滤，商品价格 ${item.jdPrice} < ${args_xh.jdPrice} \n`) : "";
+                        } else if (parseFloat(item.supplyNum) < args_xh.minSupplyNum && item.supplyNum !== null) {
+                            args_xh.printLog ? console.log(`商品被过滤，提供申请的份数小于预设申请的份数 \n`) : "";
+                        } else if (parseFloat(item.applyNum) > args_xh.applyNumFilter && item.applyNum !== null) {
+                            args_xh.printLog ? console.log(`商品被过滤，已申请人数大于预设的${args_xh.applyNumFilter}人 \n`) : "";
+                        } else if (item.jdPrice === null) {
+                            args_xh.printLog ? console.log(`商品被过滤，商品无价，不能申请 \n`) : "";
+                        } else if (parseFloat(item.trialPrice) > args_xh.trialPrice) {
+                            args_xh.printLog ? console.log(`商品被过滤，商品试用价大于预设试用价 \n`) : "";
+                        } else if (args_xh.titleFilters.some((fileter_word) => (item.skuTitle.includes(fileter_word) ? (tempKeyword = fileter_word) : ""))) {
+                            args_xh.printLog ? console.log(`商品被过滤，含有关键词 ${tempKeyword}\n`) : "";
+                        } else {
+                            args_xh.printLog ? console.log(`商品通过，加入试用组，trialActivityId为${item.trialActivityId}\n`) : "";
+                            if (trialActivityIdList.indexOf(item.trialActivityId) === -1) {
+                                trialActivityIdList.push(item.trialActivityId);
+                                trialActivityTitleList.push(item.skuTitle);
+                            }
+                        }
+                    }
+                } else if ($.isPush !== false) {
+                    console.error("skuTitle解析异常");
+                    return;
+                }
+            }
+            console.log(`当前试用组长度为：${trialActivityIdList.length}`);
+            console.log(`下一页状态:${data.data.hasNext}`);
+            if (data.data.hasNext === false) {
+                if ($.nowTabIdIndex < args_xh.tabId.length) {
+                    $.nowTabIdIndex++;
+                    $.nowPage = 1;
+                    $.nowItem = 1;
+                    $.retrynum = 0;
+                } else {
+                    // 这下是真的没了
+                    $.retrynum = 999
+                }
+            } else {
+                $.nowPage++;
+                $.retrynum = 0;
+            }
+        } else {
+            console.log(`💩 获得试用列表失败: ${data.message}`);
+        }
+    } catch (e) {
+        if (e.message === `Request failed with status code 403`) {
+            $.retrynum++;
+            if ($.retrynum === 4) {
+                $.isForbidden = true;
+                $.log("多次尝试失败，换个时间再试！");
+            } else {
+                console.log(`403，第 ${$.retrynum} 次重试`);
+            }
+        } else {
+            console.log(e.message);
+            console.log(`${$.name} API请求失败，请检查网路重试`);
         }
     }
+}
+
+async function h5stSign(body, h5st) {
+    const options = {
+        method: 'POST',
+        url: 'https://jd.zhx47.xyz/h5st',
+        headers: {'content-type': 'application/json'},
+        data: {
+            version: '4.7.3',
+            pin: $.UserName,
+            ua: $.userAgent,
+            body,
+            h5st
+        },
+    };
+
+    const {data} = await axios.request(options);
+    return data.body;
 }
 
 function Env(name, opts) {
@@ -710,84 +690,6 @@ function Env(name, opts) {
                 this.log("", `🔔${this.name}, 开始!`);
             }
 
-            isNode() {
-                return "undefined" !== typeof module && !!module.exports;
-            }
-
-            isQuanX() {
-                return "undefined" !== typeof $task;
-            }
-
-            isSurge() {
-                return "undefined" !== typeof $httpClient && "undefined" === typeof $loon;
-            }
-
-            isLoon() {
-                return "undefined" !== typeof $loon;
-            }
-
-            loaddata() {
-                if (this.isNode()) {
-                    this.fs = this.fs ? this.fs : require("fs");
-                    this.path = this.path ? this.path : require("path");
-                    const curDirDataFilePath = this.path.resolve(this.dataFile);
-                    const rootDirDataFilePath = this.path.resolve(process.cwd(), this.dataFile);
-                    const isCurDirDataFile = this.fs.existsSync(curDirDataFilePath);
-                    const isRootDirDataFile = !isCurDirDataFile && this.fs.existsSync(rootDirDataFilePath);
-                    if (isCurDirDataFile || isRootDirDataFile) {
-                        const datPath = isCurDirDataFile ? curDirDataFilePath : rootDirDataFilePath;
-                        try {
-                            return JSON.parse(this.fs.readFileSync(datPath));
-                        } catch (e) {
-                            return {};
-                        }
-                    } else return {};
-                } else return {};
-            }
-
-            lodash_get(source, path, defaultValue = undefined) {
-                const paths = path.replace(/\[(\d+)\]/g, ".$1").split(".");
-                let result = source;
-                for (const p of paths) {
-                    result = Object(result)[p];
-                    if (result === undefined) {
-                        return defaultValue;
-                    }
-                }
-                return result;
-            }
-
-            getdata(key) {
-                let val = this.getval(key);
-                // 如果以 @
-                if (/^@/.test(key)) {
-                    const [, objkey, paths] = /^@(.*?)\.(.*?)$/.exec(key);
-                    const objval = objkey ? this.getval(objkey) : "";
-                    if (objval) {
-                        try {
-                            const objedval = JSON.parse(objval);
-                            val = objedval ? this.lodash_get(objedval, paths, "") : val;
-                        } catch (e) {
-                            val = "";
-                        }
-                    }
-                }
-                return val;
-            }
-
-            getval(key) {
-                if (this.isSurge() || this.isLoon()) {
-                    return $persistentStore.read(key);
-                } else if (this.isQuanX()) {
-                    return $prefs.valueForKey(key);
-                } else if (this.isNode()) {
-                    this.data = this.loaddata();
-                    return this.data[key];
-                } else {
-                    return (this.data && this.data[key]) || null;
-                }
-            }
-
             initAxios() {
                 if (!this.axios) {
                     this.axios = axios.create();
@@ -809,71 +711,6 @@ function Env(name, opts) {
                     });
             }
 
-            /**
-             * 系统通知
-             *
-             * > 通知参数: 同时支持 QuanX 和 Loon 两种格式, EnvJs根据运行环境自动转换, Surge 环境不支持多媒体通知
-             *
-             * 示例:
-             * $.msg(title, subt, desc, 'twitter://')
-             * $.msg(title, subt, desc, { 'open-url': 'twitter://', 'media-url': 'https://github.githubassets.com/images/modules/open_graph/github-mark.png' })
-             * $.msg(title, subt, desc, { 'open-url': 'https://bing.com', 'media-url': 'https://github.githubassets.com/images/modules/open_graph/github-mark.png' })
-             *
-             * @param {*} title 标题
-             * @param {*} subt 副标题
-             * @param {*} desc 通知详情
-             * @param {*} opts 通知参数
-             *
-             */
-            msg(title = name, subt = "", desc = "", opts) {
-                const toEnvOpts = (rawopts) => {
-                    if (!rawopts) return rawopts;
-                    if (typeof rawopts === "string") {
-                        if (this.isLoon()) return rawopts; else if (this.isQuanX()) return {
-                            "open-url": rawopts,
-                        }; else if (this.isSurge()) return {
-                            url: rawopts,
-                        }; else return undefined;
-                    } else if (typeof rawopts === "object") {
-                        if (this.isLoon()) {
-                            let openUrl = rawopts.openUrl || rawopts.url || rawopts["open-url"];
-                            let mediaUrl = rawopts.mediaUrl || rawopts["media-url"];
-                            return {
-                                openUrl, mediaUrl,
-                            };
-                        } else if (this.isQuanX()) {
-                            let openUrl = rawopts["open-url"] || rawopts.url || rawopts.openUrl;
-                            let mediaUrl = rawopts["media-url"] || rawopts.mediaUrl;
-                            return {
-                                "open-url": openUrl, "media-url": mediaUrl,
-                            };
-                        } else if (this.isSurge()) {
-                            let openUrl = rawopts.url || rawopts.openUrl || rawopts["open-url"];
-                            return {
-                                url: openUrl,
-                            };
-                        }
-                    } else {
-                        return undefined;
-                    }
-                };
-                if (!this.isMute) {
-                    if (this.isSurge() || this.isLoon()) {
-                        $notification.post(title, subt, desc, toEnvOpts(opts));
-                    } else if (this.isQuanX()) {
-                        $notify(title, subt, desc, toEnvOpts(opts));
-                    }
-                }
-                if (!this.isMuteLog) {
-                    let logs = ["", "==============📣系统通知📣=============="];
-                    logs.push(title);
-                    subt ? logs.push(subt) : "";
-                    desc ? logs.push(desc) : "";
-                    console.log(logs.join("\n"));
-                    this.logs = this.logs.concat(logs);
-                }
-            }
-
             log(...logs) {
                 if (logs.length > 0) {
                     this.logs = [...this.logs, ...logs];
@@ -881,27 +718,14 @@ function Env(name, opts) {
                 console.log(logs.join(this.logSeparator));
             }
 
-            logErr(err, msg) {
-                const isPrintSack = !this.isSurge() && !this.isQuanX() && !this.isLoon();
-                if (!isPrintSack) {
-                    this.log("", `❗️${this.name}, 错误!`, err);
-                } else {
-                    this.log("", `❗️${this.name}, 错误!`, err.stack);
-                }
-            }
-
             wait(time) {
                 return new Promise((resolve) => setTimeout(resolve, time));
             }
 
-            done(val = {}) {
+            done() {
                 const endTime = new Date().getTime();
                 const costTime = (endTime - this.startTime) / 1000;
                 this.log("", `🔔${this.name}, 结束! 🕛 ${costTime} 秒`);
-                this.log();
-                if (this.isSurge() || this.isQuanX() || this.isLoon()) {
-                    $done(val);
-                }
             }
         }
 

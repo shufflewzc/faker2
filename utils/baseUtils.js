@@ -3,7 +3,7 @@ const {JSDOM,ResourceLoader} = require("jsdom");
 const {CookieJar, Cookie} = require("tough-cookie");
 const axios = require("axios");
 const {HttpCookieAgent, HttpsCookieAgent} = require('http-cookie-agent/http')
-const {getBaseCookie} = require("./baseCookie");
+const {setBaseCookie} = require("./baseCookie");
 
 const crc32 = require('crc').crc32;
 
@@ -153,13 +153,7 @@ class BaseUtils {
                 }
             });
 
-            let baseCookie = getBaseCookie(userAgent, url);
-            const baseCookies = baseCookie.split(';');
-            baseCookies.forEach((cookieString) => {
-                if (cookieString) {
-                    global.document.cookie = cookieString.concat(";domain=.jd.com;path=/;expires=2099-04-16T07:09:14.000Z");
-                }
-            });
+            setBaseCookie();
         }
     }
 
