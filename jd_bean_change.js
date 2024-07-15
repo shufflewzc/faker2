@@ -8,6 +8,7 @@ const $ = new Env('京东资产统计');
 const notify = $.isNode() ? require('./sendNotify') : '';
 //Node.js用户请在jdCookie.js处填写京东ck;
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
+const dyx = require('./function/dylanx.js');
 let NowHour = new Date().getHours();
 
 //默认开启缓存模式
@@ -126,7 +127,7 @@ RemainMessage += '【超市卡】APP首页->京东超市->超市卡（超市商�
 RemainMessage += '【老农场】APP->我的->东东农场->回旧版,完成可兑换无门槛红包,可用于任意商品\n';
 RemainMessage += '【新农场】APP->我的->东东农场,完成可在记录里查看奖品\n';
 RemainMessage += '【奖票】APP->我的->玩一玩,可兑换京豆、红包等\n';
-RemainMessage += '【汪贝余额】APP首页->京豆超市->每日签到,可兑换\n';
+RemainMessage += '【汪贝余额】APP首页->京东超市->每日签到,可兑换\n';
 RemainMessage += '【其他】不同类别红包不能叠加使用，自测';
 
 let WP_APP_TOKEN_ONE = "";
@@ -1362,7 +1363,7 @@ function jingBeanDetail() {
                 strsign = strsign.body;
             }
             else
-                strsign = await getSignfromNolan('jingBeanDetail', { "pageSize": "20", "page": "1" });
+                strsign = await dyx.getbody('jingBeanDetail', { "pageSize": "20", "page": "1" });
 
             const options = {
                 "url": `https://api.m.jd.com/client.action?functionId=jingBeanDetail`,
