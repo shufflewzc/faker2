@@ -1,10 +1,8 @@
 const CryptoJS = require("crypto-js");
 const {JSDOM,ResourceLoader} = require("jsdom");
-const {CookieJar, Cookie} = require("tough-cookie");
+const {CookieJar} = require("tough-cookie");
 const axios = require("axios");
 const {HttpCookieAgent, HttpsCookieAgent} = require('http-cookie-agent/http')
-const {setBaseCookie} = require("./baseCookie");
-
 const crc32 = require('crc').crc32;
 
 
