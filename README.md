@@ -31,7 +31,7 @@ ql repo https://git.metauniverse-cn.com/https://github.com/shufflewzc/faker2.git
 
 【教程合集】
 [https://www.notion.so/Cent-OS-7-6-1c598629675145988b43a37998a1604a
-]()
+](https://www.notion.so/Cent-OS-7-6-1c598629675145988b43a37998a1604a)
 
 ## Special statement:
 
