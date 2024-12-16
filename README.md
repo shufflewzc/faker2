@@ -3,12 +3,12 @@
 
 Faker自用仓库。本地秘钥计算方法，保证账户信息安全。已适配Spy插件24小时全天监控。
 
-* 推荐配合spy使用
+* 推荐配合无界使用
 * 自有拉库代理
 * 每日保持更新
 
 ### 注意
-由于现在青龙版本更新迭代快，但青龙插件适配速度慢，为了可以完美使用本库，请使用一键安装脚本安装2.11.3版青龙。
+为了可以完美使用本库，请使用一键安装脚本安装青龙。
 
 【一键脚本】
 https://thin-hill-428.notion.site/Faker-QL-pannel-Faker-Repository-environment-Setup-45edcbfe90d74d8abb2d71896eab3be7
