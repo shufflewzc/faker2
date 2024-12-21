@@ -594,7 +594,7 @@ async function initJsToken() {
 async function try_feedsList(tabId, page) {
   const sign = await h5stSign(
     {
-      functionId: 'try_SpecFeedList',
+      functionId: 'try_feedsList',
       appid: 'newtry',
       body: {
         tabId: String(tabId),
@@ -730,7 +730,7 @@ async function try_feedsList(tabId, page) {
   }
 }
 
-async function h5stSign(body, appId, version = '4.9.7') {
+async function h5stSign(body, appId, version = '5.0.0') {
   const options = {
     method: 'POST',
     url: `${args_xh.h5st_server}/h5st`,
