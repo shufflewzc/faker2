@@ -257,13 +257,13 @@ let args_xh = {
           await try_feedsList(args_xh.tabId[$.nowTabIdIndex], $.nowPage); //获取对应tabId的试用页面
         }
         if (trialActivityIdList.length < args_xh.maxLength) {
-          console.log(`间隔等待中，请等待5秒 \n`);
-          await $.wait(5000);
+          console.log(`间隔等待中，请等待10秒 \n`);
+          await $.wait(10000);
         }
       }
       if ($.isForbidden === false && $.isLimit === false) {
-        console.log(`稍后将执行试用申请，请等待 5 秒\n`);
-        await $.wait(5000);
+        console.log(`稍后将执行试用申请，请等待 10 秒\n`);
+        await $.wait(10000);
         for (let i = 0; i < trialActivityIdList.length && $.isLimit === false; i++) {
           if ($.isLimit) {
             console.log('试用上限');
@@ -275,7 +275,7 @@ let args_xh = {
           }
           await try_apply(trialActivityTitleList[i], trialActivityIdList[i]);
           console.log(`间隔等待中，请等待15秒 \n`);
-          await $.wait(15000);
+          await $.wait(150000);
         }
         console.log('试用申请执行完毕...');
         $.giveupNum = 0;
@@ -594,7 +594,7 @@ async function initJsToken() {
 async function try_feedsList(tabId, page) {
   const sign = await h5stSign(
     {
-      functionId: 'try_feedsList',
+      functionId: 'try_SpecFeedList',
       appid: 'newtry',
       body: {
         tabId: String(tabId),
@@ -611,7 +611,7 @@ async function try_feedsList(tabId, page) {
   try {
     const { data } = await api({
       method: 'POST',
-      url: `https://api.m.jd.com/client.action`,
+      url: `http://api.m.jd.com/client.action`,
       headers: {
         'content-type': 'application/x-www-form-urlencoded',
         origin: 'https://prodev.m.jd.com',
@@ -730,7 +730,7 @@ async function try_feedsList(tabId, page) {
   }
 }
 
-async function h5stSign(body, appId, version = '5.0.0') {
+async function h5stSign(body, appId, version = '5.0.1') {
   const options = {
     method: 'POST',
     url: `${args_xh.h5st_server}/h5st`,
