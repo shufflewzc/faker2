@@ -730,7 +730,7 @@ async function try_feedsList(tabId, page) {
   }
 }
 
-async function h5stSign(body, appId, version = '5.0.2') {
+async function h5stSign(body, appId, version = '5.0.3') {
   const options = {
     method: 'POST',
     url: `${args_xh.h5st_server}/h5st`,
