@@ -730,18 +730,20 @@ async function try_feedsList(tabId, page) {
   }
 }
 
-async function h5stSign(body, appId, version = '5.0.3') {
+async function h5stSign(body, appId, version) {
   const options = {
     method: 'POST',
     url: `${args_xh.h5st_server}/h5st`,
     headers: { 'content-type': 'application/json' },
     data: {
-      version: version,
       pin: $.UserName,
       ua: $.userAgent,
       body,
       appId,
     },
+    if (version) {
+      data.version = version;
+    }
   };
   const { data } = await axios.request(options);
   return data.body;
