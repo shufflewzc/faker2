@@ -15,7 +15,7 @@ packages.urllib3.disable_warnings()
 from urllib.parse import unquote
 """
 new Env('wskey本地转换');
-9 9 9 9 * jd_wsck.py
+57 21,9 * * * jd_wsck.py
 by:lonesomexz
 """
 hadsend=True
@@ -253,7 +253,7 @@ def getcookie_wskey(key):
         #sign = get_sign_diy(pin)
         if not sign:
         	continue
-        url = f"https://api.m.jd.com/client.action?functionId=genToken&{sign}"
+        url = f"http://api.m.jd.com/client.action?functionId=genToken&{sign}"
         headers = {
             "cookie": key,
             'user-agent': UserAgent,
@@ -441,7 +441,9 @@ def main():
     if os.path.exists("/ql/config/auth.json"):
         config="/ql/config/auth.json"
         envtype="ql"
-    
+    if os.path.exists("/ql/data/db/keyv.sqlite"):
+        config="/ql/data/db/keyv.sqlite"
+        envtype="ql_latest"    
     if os.path.exists("/ql/data/config/auth.json"):
         config="/ql/data/config/auth.json"
         envtype="ql"
@@ -499,9 +501,21 @@ def main():
         url = 'http://127.0.0.1:5678/openApi/count'
         headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ', 'api-token': f'{token}'} 
         datas = get(url, headers=headers).json()["data"]["accountCount"]
-    
-    # printf(f"token：{token}")
-    # printf(f"datas：{datas}")
+    elif envtype == "ql_latest":
+        with open(config, "r", encoding="latin1") as f1:
+            content = f1.read()
+            matches = re.search(r'token":"([^"]+)"', content)
+            try:
+                token = matches.group(1)
+            except Exception as e:
+                sys.exit(0)
+        url = 'http://127.0.0.1:5600/api/envs'
+        headers = {'Authorization': f'Bearer {token}'}
+        body = {
+            'searchValue': 'JD_WSCK',
+            'Authorization': f'Bearer {token}'
+        }
+        datas = get(url, params=body, headers=headers).json()['data']
         
 
     if datas > 0 if isinstance(datas, int) else len(datas) > 0:
@@ -510,7 +524,7 @@ def main():
         printf("\n错误:没有需要转换的JD_WSCK，退出脚本!")
         return
 
-    if envtype == "ql":
+    if envtype in ('ql','ql_latest'):
         for data in datas:
             randomuserAgent()
             if data['status']!=0:
@@ -527,7 +541,7 @@ def main():
             else:
                 newpin=getRemark(pin,token)
                 if "fake_" in cookie:
-                    message = f"pin为{newpin}的wskey过期了！"
+                    message = f"{newpin}的wskey过期了！"
                     printf(message)
                     url = 'http://127.0.0.1:5600/api/envs/disable'
                     try:
