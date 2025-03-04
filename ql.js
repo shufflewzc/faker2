@@ -1,32 +1,128 @@
 'use strict';
 
 const got = require('got');
+const sqlite3 = require('sqlite3').verbose();
 require('dotenv').config();
 const { readFile } = require('fs/promises');
 const path = require('path');
 
 const qlDir = '/ql';
 const fs = require('fs');
-let Fileexists = fs.existsSync('/ql/data/config/auth.json');
-let authFile="";
-if (Fileexists) 
-	authFile="/ql/data/config/auth.json"
-else
-	authFile="/ql/config/auth.json"
-//const authFile = path.join(qlDir, 'config/auth.json');
 
 const api = got.extend({
   prefixUrl: 'http://127.0.0.1:5600',
   retry: { limit: 0 },
+  responseType: 'json'
 });
 
-async function getToken() {
-  const authConfig = JSON.parse(await readFile(authFile));
-  return authConfig.token;
+global.versionPromise = null;
+module.exports.getVersion = () => {
+  return api({
+    url: 'api/system',
+    headers: {
+      Accept: 'application/json',
+    },
+  }).then(response => {
+    //console.log('Response Status Code:', response.statusCode);
+    //console.log('Response Body:', response.body);
+    return response.body.data.version;
+  }).catch(error => {
+    console.error('Error fetching version:', error.response ? error.response.body : error.message);
+    throw error;
+  });
+};
+
+let authFile = "";
+
+(function initialize() {
+  global.versionPromise = module.exports.getVersion();
+  global.versionPromise.then(version => {
+    console.log('当前青龙版本：', version+"\n");
+    if (version >=  '2.18.0') {
+
+      			authFile = "/ql/data/db/keyv.sqlite";
+
+    		           } else if(version < '2.12.0'){
+
+      						authFile = "/ql/config/auth.json";
+
+    		                                                           }else {
+
+      									authFile = "/ql/data/config/auth.json";
+
+    		                                                           			           }
+  }).catch(error => {
+    console.error('Error after initialization:', error);
+  });
+})();
+
+async function getAuthFile() {
+  await global.versionPromise;
+  return authFile;
 }
+
+async function getTokenFromSqlite(dbPath) {
+  return new Promise((resolve, reject) => {
+    const db = new sqlite3.Database(dbPath, (err) => {
+      if (err) {
+        return reject(err);
+      }
+      db.serialize(() => {
+        db.get('SELECT value FROM keyv WHERE key = ?', ['keyv:authInfo'], (err, row) => {
+          if (err) {
+            db.close((closeErr) => {
+              if (closeErr) {
+                console.error('Error closing database:', closeErr);
+              }
+              reject(err);
+            });
+            return;
+          }
+
+          let token = null;
+          if (row && row.value) {
+            try {
+              const parsedData = JSON.parse(row.value);
+              token = parsedData.value.token;
+            } catch (parseErr) {
+              console.error('Error parsing JSON:', parseErr);
+              reject(parseErr);
+              return;
+            }
+          }
+
+          resolve(token);
+
+          db.close((closeErr) => {
+            if (closeErr) {
+              console.error('Error closing database:', closeErr);
+            }
+          });
+        });
+      });
+    });
+  });
+}
+
+async function getToken() {
+
+  				const authFilePath = await getAuthFile();
+  				if (authFilePath.endsWith('keyv.sqlite')) {
+
+    									return getTokenFromSqlite(authFilePath);
+									
+
+  			                			               } else {
+
+    					  				const authConfig = JSON.parse(await readFile(authFilePath));
+  					   				return authConfig.token;
+
+  				         				          }
+	                            }
 
 module.exports.getEnvs = async () => {  
   const token = await getToken();
+  //console.log('当前token：', token);
   const body = await api({
     url: 'api/envs',
     searchParams: {
