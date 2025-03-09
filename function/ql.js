@@ -5,22 +5,28 @@ require('dotenv').config();
 const { readFile } = require('fs/promises');
 const path = require('path');
 const fs = require('fs');
-let Fileexists280 = fs.existsSync('/ql/data/db/keyv.sqlite');
-let Fileexists = fs.existsSync('/ql/data/config/auth.json');
-let authFile = "";
-if (Fileexists280)
-    authFile = "/ql/data/db/keyv.sqlite"
-else if (Fileexists)
-    authFile = "/ql/data/config/auth.json"
-else
-    authFile = "/ql/config/auth.json"
-
-
+const tokenFileList = ['/ql/data/db/keyv.sqlite', '/ql/data/config/auth.json', '/ql/config/auth.json'];
+let authFile = getLatestFile(tokenFileList);
 const api = got.extend({
     prefixUrl: 'http://127.0.0.1:5600',
     retry: { limit: 0 },
 });
-
+function getLatestFile(files) {
+    let latestFile = null;
+    let latestMtime = 0;
+    for (const file of files) {
+        try {
+            const stats = fs.statSync(file);
+            const mtime = stats.mtimeMs;
+            if (mtime > latestMtime) {
+                latestMtime = mtime;
+                latestFile = file;
+            }
+        } catch (e) {
+        }
+    }
+    return latestFile;
+}
 async function getToken() {
     const authConfig = await readFile(authFile);
     // console.log(authConfig.toString().match(/"token":"(.*?)",/)[1])
