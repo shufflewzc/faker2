@@ -424,6 +424,20 @@ def getRemark(pt_pin,token):
 
     return strreturn
 
+def get_latest_file(files):
+    latest_file = None
+    latest_mtime = 0
+    for file in files:
+        try:
+            stats = os.stat(file)
+            mtime = stats.st_mtime
+            if mtime > latest_mtime:
+                latest_mtime = mtime
+                latest_file = file
+        except FileNotFoundError:
+            continue
+    return latest_file
+
 def main():
     printf("版本: 20230602")
     printf("说明: 如果用Wxpusher通知需配置WP_APP_TOKEN_ONE和WP_APP_MAIN_UID，其中WP_APP_MAIN_UID是你的Wxpusher UID")
@@ -438,18 +452,12 @@ def main():
     iswxpusher=False
     counttime=0
 
-    if os.path.exists("/ql/config/auth.json"):
-        config="/ql/config/auth.json"
-        envtype="ql"
-    
-    if os.path.exists("/ql/data/config/auth.json"):
-        config="/ql/data/config/auth.json"
-        envtype="ql"
 
-    if os.path.exists("/jd/config/auth.json"):
-        config="/jd/config/auth.json"
-        envtype="arcadia"
 
+    token_file_list = ['/ql/data/db/keyv.sqlite', '/ql/data/config/auth.json', '/ql/config/auth.json']
+
+    config = get_latest_file(token_file_list)
+    envtype="ql"
 
     if os.path.exists("/arcadia/config/auth.json"):
         config="/arcadia/config/auth.json"
@@ -482,8 +490,16 @@ def main():
     summary=""
 
     if envtype == "ql":
-        with open(config, "r", encoding="utf-8") as f1:
-            token = json.load(f1)['token']
+        if 'keyv' in config:
+            with open(config, "r", encoding="latin1") as file: 
+                auth = file.read()
+                matches = re.search(r'token":"([^"]+)"', auth)
+                token = matches.group(1)     
+        else:
+            with open(config, "r") as file:
+                auth = file.read()     
+                auth = json.loads(auth) 
+                token = auth["token"]   
         url = 'http://127.0.0.1:5600/api/envs'
         headers = {'Authorization': f'Bearer {token}'}
         body = {
@@ -499,9 +515,8 @@ def main():
         url = 'http://127.0.0.1:5678/openApi/count'
         headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ', 'api-token': f'{token}'} 
         datas = get(url, headers=headers).json()["data"]["accountCount"]
-    
-    # printf(f"token：{token}")
-    # printf(f"datas：{datas}")
+
+        datas = get(url, params=body, headers=headers).json()['data']
         
 
     if datas > 0 if isinstance(datas, int) else len(datas) > 0:
@@ -510,7 +525,7 @@ def main():
         printf("\n错误:没有需要转换的JD_WSCK，退出脚本!")
         return
 
-    if envtype == "ql":
+    if envtype in ('ql',''):
         for data in datas:
             randomuserAgent()
             if data['status']!=0:
