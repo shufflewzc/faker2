@@ -8,7 +8,7 @@
          jd_gzsl_contact_Notify // 是否通知（true/false），默认不通知
 
 
-cron:59 23 29 2 jd_gzsl_contact.js
+cron:59 23 29 2 *
 
 */
 

@@ -6,7 +6,7 @@
          jd_gzsl_lottery_opencard // 是否入会（true/false），默认不入会
 
 
-cron:1 1 1 1 * jd_gzsl_lottery.js
+cron:59 23 29 2 *
 
 */
 
