@@ -30,7 +30,7 @@ function getLatestFile(files) {
 async function getToken() {
     const authConfig = await readFile(authFile);
     // console.log(authConfig.toString().match(/"token":"(.*?)",/)[1])
-    return authConfig.toString().match(/"token":"(.*?)",/)[1];
+    return authConfig.toString().match(/"token":"([^"]*)"(?!.*"token":)/)[1];
 }
 // getToken()
 module.exports.getEnvs = async () => {
