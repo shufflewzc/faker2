@@ -42,8 +42,29 @@ def randomuserAgent():
 
 
 def get_proxy_api(proxy_url, max_retries=5, timeout=60, retry_delay=1):
+    session = requests.Session()
     for retry in range(max_retries):
-        res = get(url=proxy_url)
+        if '@' in proxy_url:
+            # 解析认证信息
+            auth_part, url_part = proxy_url.split('@')
+            protocol = auth_part.split('://')[0]
+            auth_part = auth_part.split('://')[1]
+            host = url_part
+            
+            # 处理只有 token 的情况
+            if ':' in auth_part:
+                username, password = auth_part.split(':')
+                session.auth = (username, password)
+            else:
+                # 只有 token 的情况，需要 base64 编码
+                token = auth_part
+                token_b64 = base64.b64encode(token.encode()).decode()
+                session.headers.update({'Authorization': f'Basic {token_b64}'})
+            
+            res = session.get(f"{protocol}://{host}", verify=False, timeout=timeout)
+        else:
+            res = session.get(proxy_url, verify=False, timeout=timeout)
+            
         printf(f"本次获取到的代理：{res.text}")
         proxy_ip_port = res.text.strip()
         proxy_address = f"http://{proxy_ip_port}"
@@ -242,7 +263,7 @@ def get_sign_diy(pin):
     
 def getcookie_wskey(key):
     proxys = proxy_url
-    if os.environ.get("WSKEY_PROXY_URL") is not None:
+    if os.environ.get("DY_PROXY") is not None:
         proxys = get_proxy_api(proxy_url)
 
     body = "body=%7B%22to%22%3A%22https%3A//plogin.m.jd.com/jd-mlogin/static/html/appjmp_blank.html%22%7D"
@@ -270,7 +291,7 @@ def getcookie_wskey(key):
                 printf(f"【错误】{unquote(pin)}在获取token时：\n{error}")
                 return pin, "False"
             randomuserAgent()
-            if os.environ.get("WSKEY_PROXY_URL") is not None:
+            if os.environ.get("DY_PROXY") is not None:
                 proxys = get_proxy_api(proxy_url)
             continue
 
@@ -280,7 +301,7 @@ def getcookie_wskey(key):
             printf(f"【警告】{unquote(pin)}在获取token时失败，等待5秒后重试")
             time.sleep(5)
             randomuserAgent()
-            if os.environ.get("WSKEY_PROXY_URL") is not None:
+            if os.environ.get("DY_PROXY") is not None:
                 proxys = get_proxy_api(proxy_url)
             
     if token=="xxx":
@@ -307,7 +328,7 @@ def getcookie_wskey(key):
                 printf(f"【错误】{unquote(pin)}在获取cookie时：\n{error}")
                 return "Error"
             randomuserAgent()
-            if os.environ.get("WSKEY_PROXY_URL") is not None:
+            if os.environ.get("DY_PROXY") is not None:
                 proxys = get_proxy_api(proxy_url)
             continue
         
@@ -424,34 +445,40 @@ def getRemark(pt_pin,token):
 
     return strreturn
 
+def get_latest_file(files):
+    latest_file = None
+    latest_mtime = 0
+    for file in files:
+        try:
+            stats = os.stat(file)
+            mtime = stats.st_mtime
+            if mtime > latest_mtime:
+                latest_mtime = mtime
+                latest_file = file
+        except FileNotFoundError:
+            continue
+    return latest_file
+
 def main():
     printf("版本: 20230602")
     printf("说明: 如果用Wxpusher通知需配置WP_APP_TOKEN_ONE和WP_APP_MAIN_UID，其中WP_APP_MAIN_UID是你的Wxpusher UID")
     printf("隧道型代理池接口:export WSKEY_PROXY_TUNNRL='http://127.0.0.1:123456'")
-    printf("拉取型代理API接口(数据格式:txt;提取数量:每次一个):export WSKEY_PROXY_URL='http://xxx.com/apiUrl'")
+    printf("拉取型代理API接口(数据格式:txt;提取数量:每次一个):export DY_PROXY='http://xxx.com/apiUrl'")
     printf("没有代理可以自行注册，比如携趣，巨量，每日免费1000IP，完全够用")
     printf("====================================")
     config=""
     envtype=""
     global proxy_url
-    proxy_url=os.environ.get("WSKEY_PROXY_URL") or os.environ.get("WSKEY_PROXY_TUNNRL") or None
+    proxy_url=os.environ.get("DY_PROXY") or os.environ.get("WSKEY_PROXY_TUNNRL") or None
     iswxpusher=False
     counttime=0
 
-    if os.path.exists("/ql/config/auth.json"):
-        config="/ql/config/auth.json"
-        envtype="ql"
-    if os.path.exists("/ql/data/db/keyv.sqlite"):
-        config="/ql/data/db/keyv.sqlite"
-        envtype="ql_latest"    
-    if os.path.exists("/ql/data/config/auth.json"):
-        config="/ql/data/config/auth.json"
-        envtype="ql"
 
-    if os.path.exists("/jd/config/auth.json"):
-        config="/jd/config/auth.json"
-        envtype="arcadia"
 
+    token_file_list = ['/ql/data/db/keyv.sqlite', '/ql/data/config/auth.json', '/ql/config/auth.json']
+
+    config = get_latest_file(token_file_list)
+    envtype="ql"
 
     if os.path.exists("/arcadia/config/auth.json"):
         config="/arcadia/config/auth.json"
@@ -473,7 +500,7 @@ def main():
         iswxpusher=False
                 
     if proxy_url is None:
-        printf("没有配置代理，无法使用代理!\n请配置环境变量WSKEY_PROXY_TUNNRL或WSKEY_PROXY_URL\n")
+        printf("没有配置代理，无法使用代理!\n请配置环境变量WSKEY_PROXY_TUNNRL或DY_PROXY\n")
         printf("====================================")
     else:
         printf(f"已配置代理: {proxy_url}\n")
@@ -484,8 +511,16 @@ def main():
     summary=""
 
     if envtype == "ql":
-        with open(config, "r", encoding="utf-8") as f1:
-            token = json.load(f1)['token']
+        if 'keyv' in config:
+            with open(config, "r", encoding="latin1") as file: 
+                auth = file.read()
+                matches = re.search(r'"token":"([^"]*)"(?!.*"token":)', auth)
+                token = matches.group(1)     
+        else:
+            with open(config, "r") as file:
+                auth = file.read()     
+                auth = json.loads(auth) 
+                token = auth["token"]   
         url = 'http://127.0.0.1:5600/api/envs'
         headers = {'Authorization': f'Bearer {token}'}
         body = {
@@ -501,20 +536,7 @@ def main():
         url = 'http://127.0.0.1:5678/openApi/count'
         headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ', 'api-token': f'{token}'} 
         datas = get(url, headers=headers).json()["data"]["accountCount"]
-    elif envtype == "ql_latest":
-        with open(config, "r", encoding="latin1") as f1:
-            content = f1.read()
-            matches = re.search(r'token":"([^"]+)"', content)
-            try:
-                token = matches.group(1)
-            except Exception as e:
-                sys.exit(0)
-        url = 'http://127.0.0.1:5600/api/envs'
-        headers = {'Authorization': f'Bearer {token}'}
-        body = {
-            'searchValue': 'JD_WSCK',
-            'Authorization': f'Bearer {token}'
-        }
+
         datas = get(url, params=body, headers=headers).json()['data']
         
 
@@ -524,7 +546,7 @@ def main():
         printf("\n错误:没有需要转换的JD_WSCK，退出脚本!")
         return
 
-    if envtype in ('ql','ql_latest'):
+    if envtype in ('ql',''):
         for data in datas:
             randomuserAgent()
             if data['status']!=0:
