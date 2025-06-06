@@ -275,7 +275,7 @@ let args_xh = {
           }
           await try_apply(trialActivityTitleList[i], trialActivityIdList[i]);
           console.log(`间隔等待中，请等待15秒 \n`);
-          await $.wait(150000);
+          await $.wait(15000);
         }
         console.log('试用申请执行完毕...');
         $.giveupNum = 0;
