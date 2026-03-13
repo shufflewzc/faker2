@@ -379,7 +379,7 @@ def subcookie(pt_pin, cookie, token):
             strptpin=pt_pin
             if re.search('%', strptpin):
                 strptpin = unquote(strptpin, 'utf-8')
-            url = 'http://127.0.0.1:5600/api/envs'
+            url = 'http://127.0.0.1:5700/api/envs'
             headers = {'Authorization': f'Bearer {token}'}
             body = {
                 'searchValue': pt_pin,
@@ -406,7 +406,7 @@ def subcookie(pt_pin, cookie, token):
                         
             if old:
                 put(url, json=body, headers=headers)
-                url = 'http://127.0.0.1:5600/api/envs/enable'
+                url = 'http://127.0.0.1:5700/api/envs/enable'
                 if isline:
                     body = [body['_id']]
                 else:
@@ -426,7 +426,7 @@ def getRemark(pt_pin,token):
         strreturn=pt_pin
 
     if token!="":
-        url = 'http://127.0.0.1:5600/api/envs'
+        url = 'http://127.0.0.1:5700/api/envs'
         headers = {'Authorization': f'Bearer {token}'}
         body = {
             'searchValue': pt_pin,
@@ -521,7 +521,7 @@ def main():
                 auth = file.read()     
                 auth = json.loads(auth) 
                 token = auth["token"]   
-        url = 'http://127.0.0.1:5600/api/envs'
+        url = 'http://127.0.0.1:5700/api/envs'
         headers = {'Authorization': f'Bearer {token}'}
         body = {
             'searchValue': 'JD_WSCK',
@@ -565,7 +565,7 @@ def main():
                 if "fake_" in cookie:
                     message = f"{newpin}的wskey过期了！"
                     printf(message)
-                    url = 'http://127.0.0.1:5600/api/envs/disable'
+                    url = 'http://127.0.0.1:5700/api/envs/disable'
                     try:
                         body = [data['_id']]
                     except:   
