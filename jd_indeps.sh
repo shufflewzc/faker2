@@ -20,11 +20,11 @@ dir_log="$dir_root/log"
 # 自动配置 sendNotify.js
 if [[ "${AUTOCFG:-}" == 'true' ]]; then
     if [[ -z "$(pwd | grep 'main')" ]]; then
-        dir_code="$dir_log/shufflewzc_faker2_jd_sharecode"
-        repo='shufflewzc_faker2'
+        dir_code="$dir_log/shufflewzc_faker4_jd_sharecode"
+        repo='shufflewzc_faker4'
     else
-        dir_code="$dir_log/shufflewzc_faker2_main_jd_sharecode"
-        repo='shufflewzc_faker2_main'
+        dir_code="$dir_log/shufflewzc_faker4_main_jd_sharecode"
+        repo='shufflewzc_faker4_main'
     fi
 
     [[ -d "$dir_root/data" ]] && dir_data="$dir_root/data"
